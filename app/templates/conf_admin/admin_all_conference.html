@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% set active_page = "conferences" %}
+{% set active_subpage = "admin-all-conferences" %}
+{% set page_title = "All Conferences" %}
+
+{% block head %}
+    {{ super() }}
+
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <style>
+        .table > thead > tr > th {
+            border-bottom: 0px;
+            vertical-align: bottom;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('conf_admin.admin_dashboard')), ('Conferences', '#'), (page_title, url_for('conf_admin.conference_all'))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="row">
+        <div class="tabs-container center">
+            <ul class="nav nav-tabs">
+                <li id="nav-tab-1" class="active"><a data-toggle="tab" href="#tab-1">Current Conferences</a></li>
+                <li id="nav-tab-2" class=""><a data-toggle="tab" href="#tab-2">Past Conferences</a></li>
+            </ul>
+            <div class="tab-content">
+                <div id="tab-1" class="tab-pane active">
+                    <div class="panel-body">
+                        {% if conferences_notexpired | count >= 1 %}
+                            <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny"
+                                   data-page-size="20">
+                                <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>ID</th>
+                                    <th>Conference Name</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Location</th>
+                                    <th></th>
+                                    <th class="hide" data-hide="all">Website</th>
+                                    <th class="hide" data-hide="all">Tags</th>
+                                    <th class="hide" data-hide="all">Subjects</th>
+
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for conference in conferences_notexpired if conference.id != 1 %}
+                                    <tr>
+                                        <td></td>
+                                        <td>{{ conference.id }}</td>
+                                        <td>
+                                            {{ conference.name }} - {{ conference.short_name.upper() }}
+                                        </td>
+                                        <td>{{ conference.start_date }}</td>
+                                        <td>{{ conference.end_date }}</td>
+                                        <td>
+                                            {{ conference.city }}, {{ conference.country }}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('conf_admin.conferences_detail', conference_id=conference.id) }}" class="btn btn-primary btn-sm">Details</a>
+                                        </td>
+                                        <td class="hide">
+                                            <a href="http://{{ conference.website }}"
+                                               target="_blank">{{ conference.website }}</a>
+                                        </td>
+                                        <td class="hide">{{ conference.tags }}</td>
+                                        <td class="hide">{{ conference.subjects }} </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <td colspan="7">
+                                        <ul class="pagination pagination-centered hide-if-no-paging"></ul>
+                                    </td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        {% else %}
+                            <div class="middle-box text-center animated" style="margin-bottom: 140px;">
+                                <h3 class="font-bold">There is no current conference...</h3>
+                                <a class="btn btn-primary" href="{{ url_for('conference.all_conference') }}"><i
+                                        class="fa fa-list-ul"></i> View All Conferences</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div id="tab-2" class="tab-pane">
+                    <div class="panel-body">
+                        {% if conferences_expired | count >= 1 %}
+                            <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny"
+                                   data-page-size="20">
+                                <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Conference Name</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Location</th>
+                                    <th></th>
+                                    <th class="hide" data-hide="all">Website</th>
+                                    <th class="hide" data-hide="all">Tags</th>
+                                    <th class="hide" data-hide="all">Subjects</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for conference in conferences_expired if conference.id != 1 %}
+                                    <tr>
+                                        <td></td>
+                                        <td>
+                                            {{ conference.name }} - {{ conference.short_name.upper() }}
+                                        </td>
+                                        <td>{{ conference.start_date }}</td>
+                                        <td>{{ conference.end_date }}</td>
+                                        <td>
+                                            {{ conference.city }}, {{ conference.country }}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('conf_admin.conferences_detail', conference_id=conference.id) }}" class="btn btn-primary btn-sm">Details</a>
+                                        </td>
+                                        <td class="hide">
+                                            <a href="http://{{ conference.website }}"
+                                               target="_blank">{{ conference.website }}</a>
+                                        </td>
+                                        <td class="hide">{{ conference.tags }}</td>
+                                        <td class="hide">{{ conference.subjects }} </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <td colspan="7">
+                                        <ul class="pagination pagination-centered hide-if-no-paging"></ul>
+                                    </td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        {% else %}
+                            <div class="middle-box text-center animated" style="margin-bottom: 140px;">
+                                <h3 class="font-bold">There is no past conference...</h3>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+            $('.footable').footable();
+
+            $("ul.nav-tabs > li > a").on("shown.bs.tab", function (e) {
+                //fire initialize of footable because the footable plugin only processes tables that are visible
+                $('.footable').trigger('footable_initialize');
+            });
+            // $('.btn-join-quit').click(function(event){
+            //     // console.log('follow');
+            //     var element = $(this);
+            //     var conference_id = element.attr('conf_id');
+            //     // console.log(element.attr('class'));
+            //     if (element.hasClass('join')) {
+            //         console.log('join');
+            //         $.ajax({
+            //             type: "POST",
+            //             url: "/join/" + conference_id,
+            //             data: id=conference_id,
+            //             success: function(){
+            //                 // change button to unfollow
+            //                 element.removeClass('btn-primary join').addClass('btn-default quit');
+            //                 element.html('Quit');
+            //             }
+            //         });
+            //     } else {
+            //         console.log('quit');
+            //         $.ajax({
+            //             type: "POST",
+            //             url: "/quit/" + conference_id,
+            //             data: id=conference_id,
+            //             success: function(){
+            //                 // change button to follow
+            //                 element.removeClass('btn-default quit').addClass('btn-primary join');
+            //                 element.html('Join');
+            //             }
+            //         });
+            //     }
+            // });
+        });
+    </script>
+
+{% endblock %}

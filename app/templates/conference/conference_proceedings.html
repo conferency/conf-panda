@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "proceedings" %}
+{% set page_title = "Proceedings" %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/switchery/switchery.css') }}" rel="stylesheet">
+    <style media="screen">
+        .checkbox-inline {
+            font-weight: 700;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.proceedings', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox">
+            <div class="ibox-content">
+                <form class="form-horizontal" action="{{ url_for('conference.proceedings', conference_id=conference.id) }}" method="get" id="filter_form">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Show proceedings</label>
+                        <div class="col-sm-1">
+                            <input type="checkbox" id="proceeding_switch" name="proceeding_switch" class="switch-button" {% if conference.configuration.get('show_proceeding') %}checked{% endif %}/>
+                        </div>
+                        <div class="col-sm-9">
+                            <a href="{{ url_for('main.conf_proceedings', conf_name=conference.short_name) }}" target="_blank"><h3>{{ url_for('main.conf_proceedings', conf_name=conference.short_name, _external=True) }}</h3></a>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Status</label>
+                        <div class="col-sm-10">
+                            {% for status in statuses %}
+                            <label class="checkbox-inline i-checks"> <input type="checkbox" name="statuses" value="{{ status }}" {% if status in checked_statuses %}checked{% endif %}> {{ status }} </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if show_track %}
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Tracks</label>
+                        <div class="col-sm-10">
+                            {% for track in tracks %}
+                            <div class="i-checks"><label> <input type="checkbox" name="tracks" value="{{track.id}}" {% if track.id in checked_track_ids %}checked{% endif %}> <i></i> {{ track.name }} </label></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Access Code</label>
+                        <div class="col-sm-1">
+                            <input type="checkbox" id="proceeding_code_switch" name="proceeding_code_switch" class="switch-button" {% if conference.configuration.get('use_proceeding_code') %}checked{% endif %}/>
+                        </div>
+                        <!-- <div class="col-sm-5 col-md-3">
+                            <input type="text" placeholder="Access Code" class="form-control" id="proceeding_code" name="proceeding_code" value="{{ conference.configuration.get('proceeding_code', '') }}" {% if not conference.configuration.get('use_proceeding_code') %}disabled{% endif %}>
+
+                        </div> -->
+                        <div class="input-group col-sm-5 col-md-3">
+                            <input type="text" class="form-control" placeholder="Access Code" id="proceeding_code" name="proceeding_code" value="{{ conference.configuration.get('proceeding_code', '') }}" {% if not conference.configuration.get('use_proceeding_code') %}disabled{% endif %}>
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-primary" id="save_button">Save</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-3">
+                            <p class="text-navy">Code for users to access the proceedings. If it is switched off, proceedings are open to public.</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox">
+            <div class="ibox-content">
+                <div class="row">
+                    <a class="btn btn-w-m btn-primary m-sm"
+                                   href="{{ url_for('conference.proceedings', conference_id=conference.id, action='select_all', statuses=checked_statuses, tracks=checked_track_ids) }}">
+                    Select All</a>
+                    <a class="btn btn-w-m btn-warning m-sm"
+                                   href="{{ url_for('conference.proceedings', conference_id=conference.id, action='select_none', statuses=checked_statuses, tracks=checked_track_ids) }}">
+                    Unselect All</a>
+                </div>
+                <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny" data-page-size="20">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th data-type="numeric">ID</th>
+                            <th>Title</th>
+                            <th data-hide="phone">Author</th>
+                            {% if track_num > 1 %}
+                                <th data-hide="phone">Track</th>
+                            {% endif %}
+                            <th>Status</th>
+                            <th>Include</th>
+                            <th class="hide" data-hide="all">Abstract</th>
+                            <th class="hide" data-hide="all">Keywords</th>
+                            <th class="hide" data-hide="all">Submission Time</th>
+                            <th class="hide" data-hide="all">Submitted By</th>
+                            <th class="hide" data-hide="all">Reviews</th>
+                            <th class="hide" data-hide="all">File</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for paper in papers %}
+                        <tr>
+                            <td></td>
+                            <td>{{ paper.id }}</td>
+                            <td class="title_{{ paper.id }}">{{ paper.title }}</td>
+                            <td>{{ macros.generate_paper_authors(paper.authors_list) }}</td>
+                            {% if track_num > 1 %}
+                            <td>{{ paper.track.name }}</td>
+                            {% endif %}
+                            <td>{{ paper.status }}</td>
+                            <td>
+                                <input type="checkbox" class="i-checks" value="{{ paper.id }}" {% if paper.proceeding_included %}checked{% endif %}>
+                            </td>
+                            <td class="hide">{{ paper.abstract }}</td>
+                            <td class="hide">{{ paper.keywords }}</td>
+                            <td class="hide">{{ moment(timestamp=paper.submitted_time).format('LLL') }}</td>
+                            <td class="hide">{{ paper.uploader.full_name }}</td>
+                            <td class="hide">
+                                <a class="btn btn-white btn-sm addmargin"
+                                    href="{{ url_for('paper.paper_reviews', paper_id=paper.id) }}">
+                                    <i class="fa fa-list-ul"></i> View Reviews
+                                </a>
+                            </td>
+                            <td class="hide">
+                                {{ render_files_button(paper, paper.files, use_timestamp=True) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {{ macros.pagination_widget(pagination, 'conference.proceedings', conference_id=conference.id, statuses=checked_statuses, tracks=checked_track_ids) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- custom radio buttons -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+    <!-- footable -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <!-- Switchery -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/switchery/switchery.js') }}"></script>
+    <script type="text/javascript">
+        function ajax_function(ajax_json) {
+            $.ajax({
+                type : "PUT",
+                url: "{{ url_for('api.update_conference_config', conference_id=conference.id) }}",
+                data: JSON.stringify({"setting": ajax_json}),
+                contentType: "application/json",
+                success: function(response) {
+                    toastr.success('Succeed!');
+                }, // end of success
+                complete: function(xhr, textStatus) {
+                    if (xhr.status === 403 || xhr.status === 500) {
+                        // document.getElementById("proceeding_switch").checked = false;
+                        // onChange(document.getElementById('proceeding_switch'));
+                        swal({title: "Oops...", text: "Operation failed. Please contact custom service.", type: "error"});
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            $(".footable").footable();
+
+            var elems = Array.prototype.slice.call(document.querySelectorAll('.switch-button'));
+            elems.forEach(function(elem) {
+                var switchery = new Switchery(elem, { color: '#1AB394', size: 'large' });
+            });
+
+            $(".i-checks").iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+            $("ul.nav-tabs > li > a").on("shown.bs.tab", function (e) {
+                //fire initialize of footable because the footable plugin only processes tables that are visible
+                $('.footable').trigger('footable_initialize');
+            });
+
+
+            $("#filter_form .i-checks").on("ifChanged", function(event) {
+                $("#filter_form").submit();
+            });
+
+            $("tbody .i-checks").on("ifChanged", function(event) {
+                var paper_ele = this;
+                $.ajax({
+                    type : "PUT",
+                    url: "/api/papers/" + paper_ele.value,
+                    data: JSON.stringify({'proceeding_included': paper_ele.checked}),
+                    contentType: "application/json",
+                    success: function(response) {
+                        // console.log(response);
+                        // if (result) {
+                        //     // $('#registration_setting').show();
+                        // } else {
+                        //     // $('#registration_setting').hide();
+                        // }
+                    }, // end of success
+                    complete: function(xhr, textStatus) {
+                        //
+                    }
+                });
+            });
+
+            $("#save_button").click(function(event) {
+                ajax_function({"proceeding_code": $("#proceeding_code").val()});
+            });
+
+            $("#filter_form #proceeding_switch, #proceeding_code_switch").change(function(event) {
+                if (this.name === "proceeding_code_switch") {
+                    var ajax_json = {
+                        "use_proceeding_code": this.checked
+                    };
+                    if (this.checked) {
+                        $("#proceeding_code").prop('disabled', false);
+                    } else {
+                        $("#proceeding_code").prop('disabled', true);
+                    }
+                } else {
+                    var ajax_json = {
+                        "show_proceeding": this.checked
+                    }
+                }
+                ajax_function(ajax_json);
+            });
+        });
+    </script>
+{% endblock %}

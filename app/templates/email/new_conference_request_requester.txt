@@ -1,0 +1,1 @@
+Hi {{ user.first_name }}, your conference request for "{{ conference.name }}" has been received and we will respond soon. Thanks for choosing Conferency!

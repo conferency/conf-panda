@@ -1,0 +1,78 @@
+{% extends "conference/conference_report_detail_base.html" %}
+
+{% block contents_before_table %}
+    <div class="row" style="margin-bottom: 5px;">
+        <div class="col-lg-3">
+            <div class="form-group">
+                <label class="control-label" for="display_option" style="padding-top: 7px;">Display Option</label>
+                <select id="display_option" name="display_option" class="form-control">
+                    <option value="group_by_paper" selected>Group by Paper (Default)</option>
+                    <option value="sort_by_papers_reviewed">Sort by Papers Reviewed</option>
+                    <option value="sort_by_review_quality">Sort by Review Quality</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-lg-9"></div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        var columns_map = {
+            "group_by_paper": [
+                {"name": "empty", "title": ""},
+                {"name": "Full Name", "title": "Full Name"},
+                {"name": "Affiliation", "title": "Affiliation"},
+                {"name": "Email", "title": "Email"},
+                {"name": "Country", "title": "Country"},
+                {"name": "Registration Status", "title": "Registration Status"},
+                {"name": "Paper ID", "title": "Paper ID", "breakpoints": "all"},
+                {"name": "Paper Title", "title": "Paper Title", "breakpoints": "all"},
+                {"name": "Paper Status", "title": "Paper Status", "breakpoints": "all"},
+                {"name": "Evaluation", "title": "Evaluation", "breakpoints": "all"},
+                {"name": "Confidence", "title": "Confidence", "breakpoints": "all"},
+                {"name": "Review", "title": "Review", "breakpoints": "all"}
+            ],
+            "sort_by_papers_reviewed": [
+                {"name": "empty", "title": ""},
+                {"name": "Full Name", "title": "Full Name"},
+                {"name": "Affiliation", "title": "Affiliation"},
+                {"name": "Email", "title": "Email"},
+                {"name": "Country", "title": "Country"},
+                {"name": "Papers Reviewed", "title": "Papers Reviewed"},
+                {"name": "Registration Status", "title": "Registration Status"}
+            ],
+            "sort_by_review_quality": [
+                {"name": "empty", "title": ""},
+                {"name": "Full Name", "title": "Full Name"},
+                {"name": "Affiliation", "title": "Affiliation"},
+                {"name": "Email", "title": "Email"},
+                {"name": "Country", "title": "Country"},
+                {"name": "Registration Status", "title": "Registration Status"}
+            ]
+        };
+
+        $(document).ready(function () {
+
+            var $displayOption = $("#display_option");
+            $displayOption.val("{{ display_option }}");
+            $displayOption.change(function () {
+                location.href = "?display_option=" + $displayOption.val();
+            });
+
+            $(".footable").footable({
+                    "columns": columns_map["{{ display_option }}"],
+                    "rows": $.get("{{ url_for('api.get_report_reviewer', conference_id=conference.id) }}",
+                        {"display_option": "{{ display_option }}"}),
+                    "paging": {
+                        "enabled": true,
+                        "size": 10
+                    }
+                });
+
+            $("[data-toggle=\"tooltip\"]").tooltip();
+
+        });
+    </script>
+{% endblock %}

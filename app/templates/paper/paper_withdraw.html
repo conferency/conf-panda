@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% set active_page = "submissions" %}
+{% set page_title = "Withdraw Paper" %}
+{% import "_macros.html" as macros %}
+
+
+
+{% block head %}
+    {{ super() }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="wrapper wrapper-content passwordBox animated fadeInRight text-center">
+        <h2>You are trying to withdraw the paper</h2><p><strong>"{{ paper_title }}"</strong></p>
+        <form id="withdrawform" method="post" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.reason.label }}
+                <textarea class="form-control required" id="reason" name="reason" placeholder="Withdraw reason" aria-required="true" rows="5"></textarea>
+            </div>
+            {{ form.submit(class_='btn btn-primary') }}
+        <form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src={{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}></script>
+    <!-- Autosize Textarea -->
+    <script src="{{ url_for('static', filename='conferency/js/autosize.min.js') }}"></script>
+    <script>
+        $(document).ready(function(){
+            $('textarea').each(function(){
+                autosize(this);
+            });
+
+            $("#withdrawform").validate({
+                    messages: {
+                        reason: "The field is required."
+                    }
+
+            });
+        });
+    </script>
+{% endblock %}

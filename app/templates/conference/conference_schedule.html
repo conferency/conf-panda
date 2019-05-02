@@ -1,0 +1,1021 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "schedule" %}
+{% set page_title = "Schedule" %}
+
+{% block head %}
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-datetimepicker.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/fullcalendar/fullcalendar.min.css') }}"
+          rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/fullcalendar/fullcalendar.print.min.css') }}"
+          rel="stylesheet" media="print">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/ladda/ladda-themeless.min.css') }}"
+          rel="stylesheet">
+    <!-- <link href="{{ url_for('static', filename='conferency/inspinia/css/fullcalendar/scheduler.min.css') }}" rel='stylesheet'> -->
+    <link href="{{ url_for('static', filename='conferency/css/select2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/switchery/switchery.css') }}" rel="stylesheet">
+    {{ super() }}
+    <style media="screen">
+        .fc-license-message {
+            display: none
+        }
+
+        .tooltiptopicevent {
+            height: auto;
+            background: #fff;
+            position: absolute;
+            z-index: 10001;
+            padding: 10px 10px 10px 10px;
+            line-height: 200%;
+            border-color: #e7eaec;
+            border-width: 1px;
+            border-style: solid;
+            border-radius: 3px;
+        }
+
+        .unstyled {
+            -webkit-padding-start: 0;
+        }
+
+        .ibox .select2-container {
+            z-index: 2000 !important;
+        }
+
+        .bootstrap-datetimepicker-widget {
+            z-index: 4000 !important;
+        }
+
+        .select2-container {
+            z-index: 3000 !important;
+        }
+
+        .margin-control {
+            margin-top: 15px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.conferences_setting', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+{% if conference.type == 'Free' %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox-content m-b-sm">
+            <h3 class="text-center">You need to <a class="btn btn-danger" href="{{ url_for('conference.payment', conference_id=conference.id) }}" style="font-size: 16px; font-weight: 600;">upgrade your plan</a> to enable schedule.</h3>
+        </div>
+    </div>
+</div>
+{% endif %}
+<div class="{% if conference.type == 'Free' %}blur-div{% endif %}">
+    <div class="row m-b-md">
+        <div class="col-lg-12">
+            <div class="row">
+                <div class="col-md-4 margin-control">
+                    <h3>Publish Schedule?</h3>
+                </div>
+                <div class="col-md-8 margin-control">
+                    <input type="checkbox" id="publish_switch" class="switch-button"
+                           {% if conference.conference_schedule.publish %}checked{% endif %}/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 margin-control">
+                    <h3>Web Link</h3>
+                </div>
+                <div class="col-md-4 margin-control">
+                    <a id="url_copy" href="{{ url_for('main.conf_schedule', conf_name=conference.short_name) }}"
+                       target="_blank"><h3>{{ url_for('main.conf_schedule', conf_name=conference.short_name,
+                        _external=True)
+                        }}</h3></a>
+                </div>
+                <div class="col-md-4 margin-control">
+                    <button id="url_copy_btn" class="btn btn-sm btn-primary m-t-n-xs" data-placement="bottom"
+                            data-clipboard-target="#url_copy"><i class="fa fa-copy"></i> Copy the link
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 margin-control">
+                    <h3>Mobile App</h3>
+                </div>
+                <div class="col-md-8 margin-control">
+                    <p>Search "<b>Conferency</b>" in Apple App Store or Google Play or click the following buttons</p>
+                    <a href="https://itunes.apple.com/app/conferency/id1246305811" target="_blank" style="margin-right: 5px;">
+                        <div style="width: 135px; display: inline-block;">
+                            <img src="{{ url_for('static', filename='img/Download_on_the_App_Store_Badge.svg') }}" style="margin:6%; width:80%; height: auto; max-width: 100%;">
+                        </div>
+                    </a>
+                    <a href="https://play.google.com/store/apps/details?id=com.conferency.main" target="_blank">
+                        <div style="width: 135px; display: inline-block;">
+                            <img src="{{ url_for('static', filename='img/google-play-badge.png') }}" style="height: auto; max-width: 100%;">
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="ibox float-e-margins"> -->
+        <!-- <div class="row"> -->
+    </div>
+    <div class="row animated fadeInDown">
+        <div class="col-lg-5">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>New session</h5>
+                </div>
+                <div class="ibox-content">
+                    <form id="new_event" method="post">
+                        <div class="form-group">
+                            <label for="new_title">Title</label>
+                            <input type="text" name="new_title" id="new_title" placeholder="Required"
+                                   class="form-control required">
+                        </div>
+                        <div class="form-group">
+                            <label for="new_start">Start Time</label>
+                            <input type="text" name="new_start" id="new_start" placeholder="Required"
+                                       class="form-control datetimepicker required">
+                        </div>
+                        <div class="form-group">
+                            <label for="new_end">End Time</label>
+                            <input type="text" name="new_end" id="new_end" placeholder="Required"
+                                       class="form-control datetimepicker required check_time">
+                        </div>
+                        <div class="form-group">
+                            <label for="new_venue">Venue</label>
+                            <input type="text" name="new_venue" id="new_venue" placeholder="Required"
+                                   class="form-control required">
+                        </div>
+                        <div class="form-group">
+                            <label for="new_type">Type</label>
+                            <select name="new_type" id="new_type" placeholder="Required" class="form-control required">
+                                <!-- <option value="networking">Networking</option> -->
+                                <option value="regular">Regular Session</option>
+                                <option value="keynote">Keynote/Panel</option>
+                                <option value="workshop">Workshop</option>
+                                <option value="paper">Paper Session</option>
+                                <!-- <option value="break">Break</option> -->
+                            </select>
+                        </div>
+                        <div id="hidden_for_selection"></div>
+                        <div class="form-group">
+                            <label for="new_description">Description</label>
+                            <textarea type="text" name="new_description" id="new_description" placeholder="Optional"
+                                      class="form-control"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <button class="ladda-button btn btn-primary center-block" data-style="zoom-in" id="save-new-session">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Schedule</h5>
+                    <div class="ibox-tools">
+                        <a class="btn btn-primary btn-xs" href="{{ url_for('api.get_conference_schedule_file', short_name=conference.short_name, type='doc') }}">Download Doc</a>
+                        <a class="btn btn-primary btn-xs" href="{{ url_for('api.get_conference_schedule_file', short_name=conference.short_name, type='txt') }}">Download Txt</a>
+                    </div>
+                </div>
+
+                <div class="ibox-content">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="hide" id="form_keynote_workshop">
+        <div class="form-group">
+            <p>You can <a href="{{ url_for('conference.send_invitations', conference_id=conference.id) }}"
+                          target="_blank">invite</a> people to join the conference, or <a
+                    href="{{ url_for('conference.conferences_members', conference_id=conference.id) }}" target="_blank">add</a>
+                people directly.</p>
+        </div>
+        <div class="form-group">
+            <label for="new_speaker">Speakers</label>
+            <select id="new_speaker" name="new_speaker" class="form-control select_2" multiple
+                    data-ajax--url="{{ url_for('api.get_conference_member', conference_id=conference.id) }}"
+                    data-placeholder="Type the name">
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="new_moderator">Moderators</label>
+            <select id="new_moderator" name="new_moderator" class="form-control select_2" multiple
+                    data-ajax--url="{{ url_for('api.get_conference_member', conference_id=conference.id) }}"
+                    data-placeholder="Type the name">
+            </select>
+        </div>
+    </div>
+    <div class="hide" id="form_paper">
+        <div class="paper_section" data-paper-number="1">
+            <div class="form-group">
+                <label for="new_paper">Paper 1</label><span style="margin-left: 5px; cursor: pointer;"
+                                                            onclick="remove_paper(this)"><i style="color: red;"
+                                                                                            class="fa fa-minus-circle"></i></span>
+                <select name="new_paper_1" id="new_paper_1" class="form-control select_2 required"
+                        data-ajax--url="{{ url_for('api.get_conference_paper', conference_id=conference.id) }}"
+                        data-placeholder="Type the title">
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="new_discussant">Discussants</label>
+                <select id="new_discussant_1" name="new_discussant_1" class="form-control select_2" multiple
+                        data-ajax--url="{{ url_for('api.get_conference_member', conference_id=conference.id) }}"
+                        data-placeholder="Type the name">
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="hide" id="edit_form_keynote_workshop">
+        <div class="form-group">
+            <p>You can <a href="{{ url_for('conference.send_invitations', conference_id=conference.id) }}"
+                          target="_blank">invite</a> people to join the conference, or <a
+                    href="{{ url_for('conference.conferences_members', conference_id=conference.id) }}" target="_blank">add</a>
+                people directly.</p>
+        </div>
+        <div class="form-group">
+            <label for="edit_speaker">Speakers</label>
+            <select id="edit_speaker" name="edit_speaker" class="form-control select_2" multiple
+                    data-ajax--url="{{ url_for('api.get_conference_member', conference_id=conference.id) }}"
+                    data-placeholder="Type the name">
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="edit_moderator">Moderators</label>
+            <select id="edit_moderator" name="edit_moderator" class="form-control select_2" multiple
+                    data-ajax--url="{{ url_for('api.get_conference_member', conference_id=conference.id) }}"
+                    data-placeholder="Type the name">
+            </select>
+        </div>
+    </div>
+    <div class="hide" id="edit_form_paper">
+        <div class="paper_section" data-paper-number="">
+            <div class="form-group">
+                <label for="edit_paper">Paper 1</label><span style="margin-left: 5px; cursor: pointer;"
+                                                             onclick="remove_paper(this)"><i style="color: red;"
+                                                                                             class="fa fa-minus-circle"></i></span>
+                <select name="edit_paper_1" id="edit_paper_1" class="form-control select_2 required"
+                        data-ajax--url="{{ url_for('api.get_conference_paper', conference_id=conference.id) }}"
+                        data-placeholder="Type the title">
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_discussant">Discussants</label>
+                <select id="edit_discussant_1" name="edit_discussant_1" class="form-control select_2" multiple
+                        data-ajax--url="{{ url_for('api.get_conference_member', conference_id=conference.id) }}"
+                        data-placeholder="Type the name">
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="edit_session" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h2 class="modal-title" style="padding-left:15px">Edit session</h2>
+                </div>
+                <div class="modal-body">
+                    <form id="modal-form">
+                        <input type="hidden" id="edit_session_id" name="edit_session_id" value="">
+                        <div class="form-group">
+                            <label for="edit_title">Title</label>
+                            <input type="text" name="edit_title" id="edit_title" placeholder="Required"
+                                   class="form-control required">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_start">Start Time</label>
+                            <input type="text" name="edit_start" id="edit_start" placeholder="Required"
+                                       class="form-control datetimepicker required">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_end">End Time</label>
+                            <input type="text" name="edit_end" id="edit_end" placeholder="Required"
+                                       class="form-control datetimepicker required check_time">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_venue">Venue</label>
+                            <input type="text" name="edit_venue" id="edit_venue" placeholder="Required"
+                                   class="form-control required">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_type">Type</label>
+                            <select name="edit_type" id="edit_type" placeholder="Required"
+                                    class="form-control required">
+                                <!-- <option value="networking">Networking</option> -->
+                                <option value="regular">Regular Session</option>
+                                <option value="keynote">Keynote/Panel</option>
+                                <option value="workshop">Workshop</option>
+                                <option value="paper">Paper Session</option>
+                                <!-- <option value="break">Break</option> -->
+                            </select>
+                        </div>
+                        <div id="edit_hidden_for_selection"></div>
+                        <div class="form-group">
+                            <label for="edit_description">Description</label>
+                            <textarea type="text" name="edit_description" id="edit_description" placeholder="Optional"
+                                      class="form-control"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="del-session">Delete</button>
+                    <button type="button" class="ladda-button btn btn-primary" data-style="zoom-in" id="save-edit-session">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- fullcalendar -->
+    <script src="{{ url_for('static', filename='conferency/inspinia/js/fullcalendar/fullcalendar.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/inspinia/js/fullcalendar/scheduler.min.js') }}"></script>
+    <!-- datetimepicker -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-datetimepicker.min.js') }}"></script>
+    <!-- select -->
+    <script src="{{ url_for('static', filename='conferency/js/select2.full.min.js') }}"></script>
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- Switchery -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/switchery/switchery.js') }}"></script>
+    <!-- Clipboard -->
+    <script src="{{ url_for('static', filename='conferency/js/clipboard.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/spin.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/ladda.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/ladda.jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/session_tooltip.js') }}"></script>
+    <script>
+        var UPDATED_EVENT;
+        var FULLCALENDAR_INIT = false;
+
+        var datetimepicker = {
+            useCurrent: false,
+            // defaultDate: moment(7, "HH"),
+            sideBySide: true,
+            format: 'YYYY-MM-DD HH:mm',
+            showClear: true,
+            showClose: true,
+            showTodayButton: true,
+            toolbarPlacement:'top',
+        };
+
+        var select2_config = {
+            placeholder: "optional multi-select",
+            tags: false,
+            closeOnSelect: true,
+            width: "100%",
+            ajax: {
+                dataType: "json",
+                delay: 250,
+                data: function (params) {
+                    return {
+                        name: params.term // search term
+                    };
+                },
+                processResults: function (data) {
+                    if ("members" in data) {
+                        var results = data.members;
+                    } else {
+                        var results = data.papers;
+                    }
+                    return {results: results}
+                },
+                cache: true
+            }
+        };
+
+        jQuery.validator.addMethod("greaterThanStart", function (value, element) {
+            // compare start and end time
+            var start_time = moment($("#" + element.getAttribute("name").split("_")[0] + "_start").val());
+            var end_time = moment(value);
+            if (start_time < end_time) {
+                return true;
+            } else {
+                return false;
+            }
+        }, "End has to be greater than Start.");
+        jQuery.validator.classRuleSettings.check_time = {greaterThanStart: true};
+
+        var validate_config = {
+            errorPlacement: function (error, element) {
+                if (element.parent().hasClass("input-group")) {
+                    error.insertAfter(element.parent());
+                } else {
+                    error.insertAfter(element);
+                }
+            }
+        };
+
+        function process_events(data) {
+            var events = [];
+            for (var i = 0; i < data.length; i++) {
+                var cal_event = {
+                    id: data[i].id,
+                    title: data[i].title,
+                    start: data[i].start_time,
+                    end: data[i].end_time,
+                    start_time: data[i].start_time,
+                    end_time: data[i].end_time,
+                    venue: data[i].venue,
+                    description: data[i].description,
+                    type: data[i].type
+                };
+                if (cal_event.type !== "regular") {
+                    cal_event["speakers"] = data[i].speakers;
+                    cal_event["moderators"] = data[i].moderators;
+                    if (cal_event.type === "paper") {
+                        cal_event["papers"] = data[i].papers;
+                    }
+                }
+                events.push(cal_event);
+            }
+            return events;
+        }
+
+        function add_paper(ele) {
+            if (ele.getAttribute("data-prefix") === "#edit_") {
+                var prefix = "edit_";
+            } else {
+                var prefix = "new_";
+            }
+            var new_paper_number = parseInt(ele.previousElementSibling.getAttribute("data-paper-number")) + 1;
+            var new_paper_form = document.getElementById("form_paper").cloneNode(true).firstElementChild;
+            // update paper number
+            new_paper_form.setAttribute("data-paper-number", new_paper_number);
+            // update id, name, text
+            new_paper_form.getElementsByTagName("label")[0].innerHTML = "Paper " + new_paper_number;
+            new_paper_form.getElementsByTagName("select")[0].setAttribute("name", prefix + "paper_" + new_paper_number);
+            new_paper_form.getElementsByTagName("select")[0].setAttribute("id", prefix + "paper_" + new_paper_number);
+            new_paper_form.getElementsByTagName("select")[1].setAttribute("name", prefix + "discussant_" + new_paper_number);
+            new_paper_form.getElementsByTagName("select")[1].setAttribute("id", prefix + "discussant_" + new_paper_number);
+            ele.parentElement.insertBefore(new_paper_form, ele);
+            $(new_paper_form).find(".select_2").select2(select2_config);
+        }
+
+        function remove_paper(ele) {
+            // can't remove last paper
+            if (ele.parentElement.parentElement.parentElement.querySelectorAll('[data-paper-number]').length === 1) {
+                return false;
+            }
+            if (ele.parentElement.parentElement.parentElement.id.startsWith("edit_")) {
+                var prefix = "edit_";
+            } else {
+                var prefix = "new_";
+            }
+            var remove_paper_number = parseInt(ele.parentElement.parentElement.getAttribute("data-paper-number"));
+            var i = 1;
+            while (ele.parentElement.parentElement.parentElement.querySelectorAll('[data-paper-number="' + (remove_paper_number + i) + '"]').length) {
+                var next_ele = ele.parentElement.parentElement.parentElement.querySelectorAll('[data-paper-number="' + (remove_paper_number + i) + '"]')[0];
+                next_ele.setAttribute("data-paper-number", remove_paper_number + i - 1);
+                next_ele.getElementsByTagName("label")[0].innerHTML = "Paper " + (remove_paper_number + i - 1);
+                next_ele.getElementsByTagName("select")[0].setAttribute("name", prefix + "paper_" + (remove_paper_number + i - 1));
+                next_ele.getElementsByTagName("select")[0].setAttribute("id", prefix + "paper_" + (remove_paper_number + i - 1));
+                next_ele.getElementsByTagName("select")[1].setAttribute("name", prefix + "discussant_" + (remove_paper_number + i - 1));
+                next_ele.getElementsByTagName("select")[1].setAttribute("id", prefix + "discussant_" + (remove_paper_number + i - 1));
+                i++;
+            }
+            // remove paper
+            ele.parentElement.parentElement.remove();
+        }
+
+        function modal_render_papers(ele, papers) {
+            for (var i = 0; i < papers.length; i++) {
+                var edit_paper_form = document.getElementById("edit_form_paper").cloneNode(true).firstElementChild;
+                edit_paper_form.setAttribute("data-paper-number", i + 1);
+                edit_paper_form.getElementsByTagName("label")[0].innerHTML = "Paper " + (i + 1);
+                edit_paper_form.getElementsByTagName("select")[0].setAttribute("name", "edit_paper_" + (i + 1));
+                edit_paper_form.getElementsByTagName("select")[0].setAttribute("id", "edit_paper_" + (i + 1));
+                var paper_option = document.createElement("option");
+                paper_option.text = papers[i].title;
+                paper_option.value = papers[i].id;
+                paper_option.selected = true;
+                edit_paper_form.getElementsByTagName("select")[0].add(paper_option);
+                edit_paper_form.getElementsByTagName("select")[1].setAttribute("name", "edit_discussant_" + (i + 1));
+                edit_paper_form.getElementsByTagName("select")[1].setAttribute("id", "edit_discussant_" + (i + 1));
+                for (var j = 0; j < papers[i].discussants.length; j++) {
+                    var discussant_option = document.createElement("option");
+                    discussant_option.text = papers[i].discussants[j].first_name + " " + papers[i].discussants[j].last_name;
+                    discussant_option.value = papers[i].discussants[j].id;
+                    discussant_option.selected = true;
+                    edit_paper_form.getElementsByTagName("select")[1].add(discussant_option);
+                }
+                ele.find("#edit_hidden_for_selection").append($(edit_paper_form));
+            }
+        }
+
+        function onChange(el) {
+            if (typeof Event === 'function' || !document.fireEvent) {
+                var event = document.createEvent('HTMLEvents');
+                event.initEvent('change', true, true);
+                el.dispatchEvent(event);
+            } else {
+                el.fireEvent('onchange');
+            }
+        }
+
+        $(document).ready(function () {
+            // clipboard
+            var clipboard = new Clipboard(document.getElementById("url_copy_btn"));
+            clipboard.on('success', function(e) {
+                e.clearSelection();
+                $('#url_copy_btn').tooltip({title: "Copied!"});
+                $('#url_copy_btn').tooltip('show');
+            });
+            clipboard.on('error', function(e){
+              $('#url_copy_btn').tooltip({title: "Press Ctrl+C to copy"});
+              $('#url_copy_btn').tooltip('show');
+            });
+
+            // initialize switchery  javascript
+            var elems = Array.prototype.slice.call(document.querySelectorAll('.switch-button'));
+            elems.forEach(function (elem) {
+                if (elem.getAttribute("name") === "disabled") {
+                    var switchery = new Switchery(elem, {color: '#1AB394', size: 'large', disabled: true});
+                } else {
+                    var switchery = new Switchery(elem, {color: '#1AB394', size: 'large'});
+                }
+            });
+
+            // fix select2 in modal
+            // https://github.com/select2/select2/issues/1436
+            $.fn.modal.Constructor.prototype.enforceFocus = function () {
+            };
+
+            $("#calendar").fullCalendar({
+                defaultView: 'listWeek',
+                defaultDate: new Date(),
+                slotDuration: '00:30:00',
+                snapDuration: '00:05:00',
+                maxTime: '23:59:59',
+                timeFormat: 'H:mm',
+                scrollTime: '08:00:00',
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaWeek,agendaDay,listWeek'
+                },
+                editable: true,
+                droppable: true, // this allows things to be dropped onto the calendar
+                drop: function () {
+                    // is the "remove after drop" checkbox checked?
+                },
+                events: function (start, end, timezone, callback) {
+                    $.ajax({
+                        type: "GET",
+                        url: "{{ url_for('api.get_conference_schedule', short_name=conference.short_name) }}",
+                        contentType: "application/json",
+                        success: function (response) {
+                            callback(process_events(response.results));
+                            // go to conference day
+                            if (response.results.length > 0) {
+                                if (!FULLCALENDAR_INIT) {
+                                    $("#calendar").fullCalendar("gotoDate", response.results[0].start_time);
+                                    FULLCALENDAR_INIT = true;
+                                }
+                            }
+                        }
+                    })
+                        .fail(function (data, textStatus, error) {
+                            swal({
+                                title: "Oops!",
+                                text: "Something is wrong please contact with our help desk",
+                                type: "error",
+                                timer: 4000,
+                                showConfirmButton: false
+                            });
+                        });
+                },
+                eventClick: function (event, jsEvent, view) {
+                    // remove tooltip
+                    $(this).css('z-index', 8);
+                    $('.tooltiptopicevent').remove();
+                    // edit event
+                    UPDATED_EVENT = event;
+                    $('#edit_session').modal('show');
+                },
+                eventMouseover: function (event, jsEvent, view) {
+                    $("body").append(generate_tooltip(event, true));
+                    $(this).mouseover(function (e) {
+                        $(this).css('z-index', 10000);
+                        $('.tooltiptopicevent').fadeIn('500').fadeTo('10', 1.9);
+                    }).mousemove(function (e) {
+                        $('.tooltiptopicevent').css({
+                            "max-width": Math.max($(window).width() / 3, 300),
+                            "min-width": Math.max($(window).width() / 5, 230)
+                        })
+                        var toolWidth = $('.tooltiptopicevent').width();
+                        var toolHeight = $('.tooltiptopicevent').height();
+                        var windowWidth = $(window).width();
+                        var windowHeight = $(window).height();
+                        if (e.pageX + 25 + toolWidth < windowWidth) {
+                            $('.tooltiptopicevent').css('left', e.pageX + 20);
+                        } else {
+                            $('.tooltiptopicevent').css('left', e.pageX - 30 - toolWidth);
+                        }
+
+                        var scroolTop = $(document).scrollTop();
+                        if (e.pageY + 15 + toolHeight < windowHeight + scroolTop) { // Bottom overflow?
+                            $('.tooltiptopicevent').css('top', e.pageY + 10);
+                        } else if (e.pageY - $(document).scrollTop()  < toolHeight) { // Top overflow?
+                            $('.tooltiptopicevent').css('top', scroolTop + 10);
+                        } else {
+                            $('.tooltiptopicevent').css('top', e.pageY - 20 - toolHeight);
+                        }
+                    });
+                },
+                eventMouseout: function (event, jsEvent, view) {
+                    $(this).css('z-index', 8);
+                    $('.tooltiptopicevent').remove();
+                },
+                eventDrop: function (event, delta, revertFunc) {
+                    // update date, start time and end time
+                    $.ajax({
+                        type: "PUT",
+                        url: "{{ url_for('api.edit_session', conference_id=conference.id) }}",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            operation: 'update_session_time',
+                            data: {
+                                session_id: event.id,
+                                start_time: event.start.format('YYYY-MM-DD HH:mm'),
+                                end_time: event.end.format('YYYY-MM-DD HH:mm')
+                            }
+                        }),
+                        success: function (response) {
+                            // update event
+                            event.start_time = response.start_time;
+                            event.end_time = response.end_time;
+                            $("#calendar").fullCalendar('updateEvent', event);
+                        }
+                    }).fail(function (data, textStatus, error) {
+                        revertFunc();
+                        swal({
+                            title: "Oops!",
+                            text: "Something is wrong please contact with our help desk",
+                            type: "error",
+                            timer: 4000,
+                            showConfirmButton: false
+                        });
+                    });
+                },
+                eventResize: function (event, delta, revertFunc) {
+                    // update end time
+                    $.ajax({
+                        type: "PUT",
+                        url: "{{ url_for('api.edit_session', conference_id=conference.id) }}",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            operation: 'update_session_time',
+                            data: {
+                                session_id: event.id,
+                                start_time: event.start.format('YYYY-MM-DD HH:mm'),
+                                end_time: event.end.format('YYYY-MM-DD HH:mm'),
+                            }
+                        }),
+                        success: function (response) {
+                            // update event
+                            event.start_time = response.start_time;
+                            event.end_time = response.end_time;
+                            $("#calendar").fullCalendar('updateEvent', event);
+                        }
+                    }).fail(function (data, textStatus, error) {
+                        revertFunc();
+                        swal({
+                            title: "Oops!",
+                            text: "Something is wrong please contact with our help desk",
+                            type: "error",
+                            timer: 4000,
+                            showConfirmButton: false
+                        });
+                    });
+                }
+            });
+
+            var firstOpen = true;
+            $("#new_event .datetimepicker").datetimepicker(datetimepicker).on("dp.show", function() {
+                if (firstOpen == true) {
+                    $(this).data('DateTimePicker').date(moment(7, "HH"));
+                    firstOpen = false;
+                }
+            });
+
+            $("#new_event #new_start").on("dp.change", function (e) {
+                $("#new_event #new_end").data("DateTimePicker").minDate(e.date);
+                $("#new_event #new_end").data("DateTimePicker").date(moment(e.date).add(1, 'hours'));
+            });
+
+            // $("#edit_start").on("dp.change", function (e) {
+            //     console.log(e);
+            //     $("#edit_end").data("DateTimePicker").minDate(e.date);
+            //     $("#edit_end").data("DateTimePicker").date(moment(e.date).add(1, 'hours'));
+            // });
+            // $("#new_event #new_end").on("dp.change", function (e) {
+            //     $("#new_event #new_start").data("DateTimePicker").maxDate(e.date);
+            // });
+
+            // $("#new_event .clockpicker").clockpicker(clockpicker_config);
+
+            $("#new_type, #edit_type").change(function () {
+                if ($(this).attr("name").startsWith("new")) {
+                    var prefix = "#";
+                } else {
+                    var prefix = "#edit_";
+                }
+                $(prefix + "hidden_for_selection").empty();
+                $(prefix + "hidden_for_selection .select_2").select2().select2("destroy");
+                if (this.value !== "regular") {
+                    $(prefix + "hidden_for_selection").append($(prefix + "form_keynote_workshop").html());
+                    if (this.value === "paper") {
+                        $(prefix + "hidden_for_selection select[name$='_speaker']").parent().remove();
+                        $(prefix + "hidden_for_selection").append("<div class='form-group'>\
+                        <p>You can <a href='{{ url_for('conference.conference_submission_add', conference_id=conference.id) }}' target='_blank'>add</a>\
+                        paper manually.</p></div>");
+                        $(prefix + "hidden_for_selection").append($(prefix + "form_paper").html());
+                        $(prefix + "hidden_for_selection").append('<button type="button" class="btn btn-primary btn-sm" onclick="add_paper(this)" data-prefix="' + prefix + '">Add paper</button>');
+                    }
+                    $(prefix + "hidden_for_selection .select_2").select2(select2_config);
+                }
+            });
+
+            $("#new_event").validate(validate_config);
+
+            var save_button = $('#save-new-session').ladda();
+            save_button.click(function (event) {
+                event.preventDefault();
+                // ajax add event
+                if ($("#new_event").valid()) {
+                    save_button.ladda('start');
+                    // get papers
+                    var papers = [];
+                    $('#new_event select[name^=new_paper]').each(function (index) {
+                        papers.push({
+                            paper_id: $(this).val(),
+                            discussants: $('#new_event select[name=new_discussant_' + (index + 1) + ']').val()
+                        });
+                    });
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url_for('api.new_session', conference_id=conference.id) }}",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            title: $('#new_event input[name=new_title]').val(),
+                            start_time: $('#new_event input[name=new_start]').val(),
+                            end_time: $('#new_event input[name=new_end]').val(),
+                            type: $('#new_event select[name=new_type]').val(),
+                            venue: $('#new_event input[name=new_venue]').val(),
+                            speakers: $('#new_event select[name=new_speaker]').val(),
+                            moderators: $('#new_event select[name=new_moderator]').val(),
+                            papers: papers,
+                            description: $('#new_event textarea[name=new_description]').val()
+                        }),
+                        success: function (response) {
+                            $("#new_event")[0].reset();
+                            $(".select_2").val("").trigger("change");
+                            $("#hidden_for_selection").empty();
+                            // add event to calendar
+                            var new_event = {
+                                id: response.id,
+                                title: response.title,
+                                start: response.start_time,
+                                end: response.end_time,
+                                start_time: response.start_time,
+                                end_time: response.end_time,
+                                venue: response.venue,
+                                description: response.description,
+                                type: response.type,
+                            };
+                            if (response.type !== "regular") {
+                                new_event["speakers"] = response.speakers;
+                                new_event["moderators"] = response.moderators;
+                                if (response.type === "paper") {
+                                    new_event["papers"] = response.papers;
+                                }
+                            }
+
+                            $("#calendar").fullCalendar("refetchEvents");
+                            $("#calendar").fullCalendar("gotoDate", response.start_time);
+                        }
+                    })
+                        .fail(function (data, textStatus, error) {
+                            swal({
+                                title: "Oops!",
+                                text: "Something is wrong please contact with our help desk",
+                                type: "error",
+                                timer: 4000,
+                                showConfirmButton: false
+                            });
+                        })
+                        .always(function() {
+                            save_button.ladda('stop');
+                        });
+                }
+            });
+
+            $('#edit_session').on('show.bs.modal', function (event) {
+                var modal = $(this);
+                // clear the form
+                modal.find("#modal-form")[0].reset();
+                modal.find("#edit_hidden_for_selection").empty();
+                modal.find("#edit_session_id").val(UPDATED_EVENT.id);
+                modal.find("#edit_title").val(UPDATED_EVENT.title);
+                modal.find("#edit_start").val(UPDATED_EVENT.start_time);
+                modal.find("#edit_end").val(UPDATED_EVENT.end_time);
+                modal.find("#edit_venue").val(UPDATED_EVENT.venue);
+                modal.find("#edit_type").val(UPDATED_EVENT.type);
+                modal.find("#edit_description").val(UPDATED_EVENT.description);
+                if (UPDATED_EVENT.type !== "regular") {
+                    modal.find("#edit_hidden_for_selection").append($("#edit_form_keynote_workshop").html());
+                    for (var i = 0; i < UPDATED_EVENT.speakers.length; i++) {
+                        modal.find("#edit_speaker").append($("<option>", {
+                            value: UPDATED_EVENT.speakers[i].id,
+                            text: UPDATED_EVENT.speakers[i].first_name + " " + UPDATED_EVENT.speakers[i].last_name,
+                            selected: true
+                        }));
+                    }
+                    for (var i = 0; i < UPDATED_EVENT.moderators.length; i++) {
+                        modal.find("#edit_moderator").append($("<option>", {
+                            value: UPDATED_EVENT.moderators[i].id,
+                            text: UPDATED_EVENT.moderators[i].first_name + " " + UPDATED_EVENT.moderators[i].last_name,
+                            selected: true
+                        }));
+                    }
+                    if (UPDATED_EVENT.type === "paper") {
+                        modal.find("#edit_speaker").parent().remove();
+                        modal.find("#edit_hidden_for_selection").append("<div class='form-group'>\
+                        <p>You can <a href='{{ url_for('conference.conference_submission_add', conference_id=conference.id) }}' target='_blank'>add</a>\
+                        paper manually.</p></div>");
+                        modal_render_papers(modal, UPDATED_EVENT.papers);
+                        // modal.find("#edit_hidden_for_selection").append($("#edit_form_paper").html());
+                        // for (var i = 0; i < UPDATED_EVENT.papers.length; i++) {
+
+                        // console.log(edit_paper_form);
+                        // modal.find("#edit_paper_" + (i+1)).append($("<option>", {
+                        //     value: UPDATED_EVENT.papers[i].id,
+                        //     text: UPDATED_EVENT.papers[i].title,
+                        //     selected: true
+                        // }));
+                        // }
+                        modal.find("#edit_hidden_for_selection").append('<button type="button" class="btn btn-primary btn-sm" onclick="add_paper(this)" data-prefix="#edit_">Add paper</button>');
+                        // for (var i = 0; i < UPDATED_EVENT.discussants.length; i++) {
+                        //     modal.find("#edit_discussant").append($("<option>", {
+                        //         value: UPDATED_EVENT.discussants[i].id,
+                        //         text: UPDATED_EVENT.discussants[i].name,
+                        //         selected: true
+                        //     }));
+                        // }
+                    }
+                    modal.find(".select_2").select2(select2_config);
+                }
+                modal.find(".datetimepicker").datetimepicker(datetimepicker);
+            });
+
+            $('#edit_session').on('hide.bs.modal', function (event) {
+                // IMPORTANT!!!! unbind the click. If don't unbind click will fire multiple times
+                // if (event.namespace === "bs.modal") {
+                //     $("#save-edit-session").unbind();
+                // }
+                $("#modal-form").validate(validate_config).resetForm();
+            });
+
+            var edit_button = $("#save-edit-session").ladda();
+            edit_button.click(function (event) {
+                event.preventDefault();
+                $("#modal-form").validate(validate_config);
+                if ($("#modal-form").valid()) {
+                    edit_button.ladda("start");
+                    // update session
+                    // get papers
+                    var papers = [];
+                    $('#modal-form select[name^=edit_paper]').each(function (index) {
+                        papers.push({
+                            paper_id: $(this).val(),
+                            discussants: $('#modal-form select[name=edit_discussant_' + (index + 1) + ']').val()
+                        });
+                    });
+
+                    $.ajax({
+                        type: "PUT",
+                        url: "{{ url_for('api.edit_session', conference_id=conference.id) }}",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            operation: "update_session",
+                            data: {
+                                session_id: $('#modal-form input[name=edit_session_id]').val(),
+                                title: $('#modal-form input[name=edit_title]').val(),
+                                start_time: $('#modal-form input[name=edit_start]').val(),
+                                end_time: $('#modal-form input[name=edit_end]').val(),
+                                type: $('#modal-form select[name=edit_type]').val(),
+                                venue: $('#modal-form input[name=edit_venue]').val(),
+                                speakers: $('#modal-form select[name=edit_speaker]').val(),
+                                moderators: $('#modal-form select[name=edit_moderator]').val(),
+                                papers: papers,
+                                // discussants: $('#modal-form select[name=edit_discussant]').val(),
+                                description: $('#modal-form textarea[name=edit_description]').val()
+                            }
+                        }),
+                        success: function (response) {
+                            // update event
+                            UPDATED_EVENT.title = response.title;
+                            UPDATED_EVENT.start = response.start_time;
+                            UPDATED_EVENT.end = response.end_time;
+                            UPDATED_EVENT.start_time = response.start_time;
+                            UPDATED_EVENT.end_time = response.end_time;
+                            UPDATED_EVENT.venue = response.venue;
+                            UPDATED_EVENT.description = response.description;
+                            UPDATED_EVENT.type = response.type;
+                            if (response.type !== "regular") {
+                                UPDATED_EVENT["speakers"] = response.speakers;
+                                UPDATED_EVENT["moderators"] = response.moderators;
+                                if (response.type === "paper") {
+                                    UPDATED_EVENT["papers"] = response.papers;
+                                    // UPDATED_EVENT["discussants"] = response.discussants;
+                                }
+                            }
+                            $("#calendar").fullCalendar('updateEvent', UPDATED_EVENT);
+                        }
+                    }).fail(function (data, textStatus, error) {
+                        swal({
+                            title: "Oops!",
+                            text: "Something is wrong please contact with our help desk",
+                            type: "error",
+                            timer: 4000,
+                            showConfirmButton: false
+                        });
+                    }).always(function (){
+                        edit_button.ladda("stop");
+                    });
+                    $("#edit_session").modal('hide');
+                }
+
+            });
+
+            $("#del-session").click(function (event) {
+                event.preventDefault();
+                swal({
+                    title: "This session will be deleted",
+                    // text: "",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, delete it",
+                    cancelButtonText: "No, cancel it",
+                    closeOnConfirm: true,
+                    closeOnCancel: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $.ajax({
+                                type: "DELETE",
+                                url: "{{ url_for('api.edit_session', conference_id=conference.id) }}",
+                                contentType: "application/json",
+                                data: JSON.stringify({session_id: $('#modal-form input[name=edit_session_id]').val()}),
+                                success: function (response) {
+                                    // delete event
+                                    $("#calendar").fullCalendar('removeEvents', UPDATED_EVENT.id);
+                                }
+                            }).fail(function (data, textStatus, error) {
+                                swal({
+                                    title: "Oops!",
+                                    text: "Something is wrong please contact with our help desk",
+                                    type: "error",
+                                    timer: 4000,
+                                    showConfirmButton: false
+                                });
+                            });
+                            $("#edit_session").modal('hide');
+                        }
+                    }
+                );
+
+            });
+
+            $('#publish_switch').change(function (event) {
+                var result = document.getElementById('publish_switch').checked;
+                $.ajax({
+                    type: "PUT",
+                    url: "{{ url_for('api.update_conference_schedule', short_name=conference.short_name )}}",
+                    contentType: "application/json",
+                    data: JSON.stringify({publish: result}),
+                    success: function (response) {
+
+                    }, // end of success
+                    complete: function (xhr, textStatus) {
+                        if (xhr.status > 300) {
+                            document.getElementById('publish_switch').checked = false;
+                            onChange(document.getElementById('publish_switch'));
+                            swal({title: "Oops...", text: "Please contact custom service", type: "error"});
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

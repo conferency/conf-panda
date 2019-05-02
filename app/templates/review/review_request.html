@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+{% set active_page = "reviews" %}
+{% set active_subpage = "my-reviews" %}
+{% set page_title = "Review Request" %}
+
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/summernote/summernote.css') }}" rel="stylesheet">
+    <style>
+        .add_cursor {
+            cursor: pointer;
+        }
+
+        .padding-top-7 {
+            padding-top: 7px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Reviews', '#'), (page_title, url_for('review.my_reviews'))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>{{ paper.title }}</h5>
+                    </div>
+                    <div class="ibox-content">
+                        {% if review_delegations | length > 0 %}
+                            <div class="row">
+                                <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny"
+                                       data-page-size="20">
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <!-- <th class="col-md-6">Paper</th> -->
+                                        <th class="col-md-3">Subreviewer</th>
+                                        <th class="col-md-3">Email</th>
+                                        <th class="col-md-2">Requested</th>
+                                        <th class="col-md-2">Status</th>
+                                        <th class="col-md-2"></th>
+                                        <th class="hide" data-hide="all">Reason to decline</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for review_delegation in review_delegations %}
+                                        <tr>
+                                            <td></td>
+                                            <!-- <td>{{ review_delegation.paper.title }}</td> -->
+                                            <td>{{ review_delegation.delegatee.first_name }} {{ review_delegation.delegatee.last_name }}</td>
+                                            <td>{{ review_delegation.delegatee.email }}</td>
+                                            <td>{{ moment(review_delegation.timestamp).fromNow() }}</td>
+                                            <td>
+                                                {% if review_delegation.status == 'Pending' %}
+                                                    <span class="label">{{ review_delegation.status }}</span>
+                                                {% elif review_delegation.status == 'Revoked' %}
+                                                    <span class="label label-warning">{{ review_delegation.status }}</span>
+                                                {% elif review_delegation.status == 'Declined' %}
+                                                    <span class="label label-danger">{{ review_delegation.status }}</span>
+                                                {% elif review_delegation.status == 'Submitted' %}
+                                                    <span class="label label-info">{{ review_delegation.status }}</span>
+                                                {% elif review_delegation.status == 'Approved' %}
+                                                    <span class="label label-success">{{ review_delegation.status }}</span>
+                                                {% elif review_delegation.status == 'Accepted' %}
+                                                    <span class="label label-primary">{{ review_delegation.status }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if review_delegation.status != 'Pending' %}
+                                                    {% set disabled = 'disabled' %}
+                                                {% else %}
+                                                    {% set disabled = '' %}
+                                                {% endif %}
+                                                <button type="button" {{ disabled }}
+                                                        class="btn btn-primary btn-xs delegation_operation m-b-xs"
+                                                        data-delegation-id="{{ review_delegation.id }}"
+                                                        data-operation="resend">Resend
+                                                </button>
+                                                <button type="button" {% if not review_delegation.is_revocable() %}disabled{% endif %}
+                                                        class="btn btn-danger btn-xs delegation_operation m-b-xs"
+                                                        data-delegation-id="{{ review_delegation.id }}"
+                                                        data-operation="revoke">Revoke
+                                                </button>
+                                            </td>
+                                            <td class="hide">{% if review_delegation.message %}
+                                                {{ review_delegation.message }}{% endif %}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                                <p>To delegate to a different sub-reviewer, you need to revoke the existing review
+                                    request above.</p>
+                            </div>
+                        {% endif %}
+                        <div class="row">
+                            {% set delegation_disabled = {0: False} %}
+                            {% for review_delegation in review_delegations %}
+
+                                {% if review_delegation.status != 'Revoked' %}
+                                    {{ delegation_disabled.update({0: True}) }}
+                                {% endif %}
+
+                            {% endfor %}
+
+                            <form id="review_request" class="form-horizontal" method="post"
+                                  action="{{ url_for('review.review_request', paper_id=paper.id) }}">
+                                {{ form.hidden_tag() }}
+                                
+                                <div class="mail-box">
+                                    <div class="mail-body">
+                                        <div class="form-group padding-bottom-20">
+                                            <div class="col-md-2 control-label">
+                                                {{ form.firstname.label }}
+                                            </div>
+                                            <div class="col-sm-10">
+                                                {{ form.firstname(class_='form-control required check_name autofill', placeholder='Required', **{'disabled': delegation_disabled[0]}) }}
+                                            </div>
+                                        </div>
+                                        <div class="form-group padding-bottom-20">
+                                            <div class="col-md-2 control-label">
+                                                {{ form.lastname.label }}
+                                            </div>
+                                            <div class="col-sm-10">
+                                                {{ form.lastname(class_='form-control required check_name autofill', placeholder="Required", **{'disabled': delegation_disabled[0]}) }}
+                                            </div>
+                                        </div>
+                                        <div class="form-group padding-bottom-20">
+                                            <div class="col-md-2 control-label">
+                                                {{ form.email.label }}
+                                            </div>
+                                            <div class="col-sm-10">
+                                                {{ form.email(class_='form-control email required autofill', placeholder="Required", **{'disabled': delegation_disabled[0]}) }}
+                                            </div>
+                                        </div>
+                                        <div class="form-group padding-bottom-20">
+                                            <div class="col-md-2 control-label">
+                                                {{ form.subject.label }}
+                                            </div>
+                                            <div class="col-sm-10">
+                                                {{ form.subject(class_='form-control required', placeholder="Required", **{'disabled': delegation_disabled[0]}) }}
+                                            </div>
+                                        </div>
+                                        <div class="form-group  padding-bottom-20">
+                                            <div class="col-md-2 control-label">
+                                                <label>Hint</label>
+                                            </div>
+                                            <div class="col-sm-10 padding-top-7 text-info">
+                                                <p>You can add template variables in the body of the email by
+                                                    clicking the blue buttons below.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mail-text h-200">
+                                        {{ form.content(class_='check_content hide') }}
+                                        <div class="clearfix"></div>
+                                    </div>
+                                    <div class="mail-body text-right tooltip-demo">
+                                        <div id="errorMsg_1" class="pull-left"></div>
+                                        <button type="button" id="preview" class="btn btn-primary" data-toggle="modal"
+                                                data-target="#previewModal"
+                                                {% if delegation_disabled[0] %}disabled{% endif %}>Preview
+                                        </button>
+                                        {{ form.submit(class_='btn btn-primary', **{'disabled': delegation_disabled[0]}) }}
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal inmodal fade" id="previewModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mail-box-header">
+                        <div class="mail-tools tooltip-demo m-t-md">
+                            <h3>
+                                <span id="subject_title" class="font-noraml"></span>
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="mail-box">
+                        <div class="mail-body">
+                            <div class="m-b-md">
+                                <img src="https://s3-us-west-2.amazonaws.com/conferency/img/conferency-email-logo.png"
+                                     width="40" height="40" alt="Conferency" border="0" class="center-block">
+                            </div>
+                            <div id="preview_content" class="m-b-md">
+                                <!-- mail content -->
+                            </div>
+                            <div class="text-center">
+                                <button type="button" disabled class="btn btn-w-m btn-primary m-sm">Log in to accept
+                                </button>
+                                <button type="button" disabled class="btn btn-w-m btn-danger m-sm">Decline</button>
+                                <p class="text-warning">PLEASE DO NOT REPLY TO THIS MESSAGE</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <form role="form" id="testEmailForm" class="form-inline">
+                        <div class="form-group pull-left">
+                            <input type="email" placeholder="Enter a testing email address" id="testEmail"
+                                   class="form-control required email" style="width:400px">
+                        </div>
+                    </form>
+                    <button class="btn btn-primary" type="submit" id="sendTestEmail">Send a testing email</button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- footable -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- summernote -->
+    <script src="{{ url_for('static', filename='conferency/inspinia/js/summernote/summernote.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/summernote_buttons.js') }}"></script>
+    <!-- Autocomplete -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+    <script>
+        function convert_variables(content) {
+            content = content.replace(/\*TITLE\*/g, "{{paper.title}}");
+            content = content.replace(/\*NAME\*/g, $("#firstname").val() + ' ' + $("#lastname").val());
+            content = content.replace(/\*FIRST_NAME\*/g, $("#firstname").val());
+            content = content.replace(/\*LAST_NAME\*/g, $("#lastname").val());
+            content = content.replace(/\*CONFERENCE_NAME\*/g, "{{paper.conference.name}}");
+            return content;
+        }
+
+        $(document).ready(function () {
+            $('.footable').footable();
+
+            $(".delegation_operation").click(function (event) {
+                event.preventDefault();
+                var delegation_id = $(this).data("delegation-id");
+                var operation = $(this).data("operation");
+                // var invitation_ele = $(this.parentNode.parentNode);
+                swal({
+                    title: "Are you sure?",
+                    text: "You will " + $(this).data("operation") + " this review request.",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Yes",
+                    closeOnConfirm: false
+                }, function () {
+                    $.ajax({
+                        type: "POST",
+                        url: "/review/review_request/" + delegation_id + "/" + operation,
+                        // contentType: "application/json",
+                        // data: JSON.stringify({'invitation_id': invitation_id, 'operation': operation}),
+                        success: function (response) {
+                            if (operation === "revoke") {
+                                location.reload();
+                            }
+                            swal({title: "Done!", type: "success", timer: 2000, showConfirmButton: false});
+                        }
+                    });
+                });
+            });
+
+            function fill_form(element, data) {
+                // for(var name in data) {
+                //     $(element).find("[name="+name+"]").val(data[name]);
+                // }
+                $(element).find("[name^=firstname]").val(data["first_name"]);
+                $(element).find("[name^=lastname]").val(data["last_name"]);
+                $(element).find("[name^=email]").val(data["email"]);
+            }
+            function escapeRegExChars (value) {
+                return value.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&");
+            }
+
+            var autocomplete_config = {
+                serviceUrl: "{{ url_for('api.search_users') }}",
+                paramName: "",
+                maxHeight: 440,
+                formatResult: function (suggestion, currentValue) {
+                    // Do not replace anything if the current value is empty
+                    if (!currentValue) {
+                        return suggestion.value;
+                    }
+                    var pattern = '(' + escapeRegExChars(currentValue) + ')';
+                    var organization = suggestion.data.organization ? "<p><i class=\"fa fa-institution\"></i>&nbsp;" + suggestion.data.organization + "</p>" : "";
+                    return "<h4>" + (suggestion.data.first_name + " " + suggestion.data.last_name)
+                        .replace(new RegExp(pattern, 'gi'), '<strong>$1<\/strong>')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/&lt;(\/?strong)&gt;/g, '<$1>') + "</h4>" +
+                        "<p><i class=\"fa fa-envelope\"></i>&nbsp;" + suggestion.data.email + "</p>" +
+                        organization;
+                }
+            };
+
+            $(".autofill").focus(function (event) {
+                if (this.name === "firstname") {
+                    var paramName = "first_name";
+                } else if (this.name === "lastname") {
+                    var paramName = "last_name";
+                } else {
+                    var paramName = "email";
+                }
+                autocomplete_config['paramName'] = paramName;
+                autocomplete_config['onSelect'] = function (suggestion) {
+                    fill_form(this.parentElement.parentElement.parentElement.parentElement.parentElement, suggestion.data);
+                };
+                $(this).devbridgeAutocomplete(autocomplete_config);
+            });
+
+            var my_buttons = ['title_paper', 'name_recipient', 'first_name_recipient', 'last_name_recipient', 'conference_name'];
+            summernote_activate($('#content'), my_buttons, 300);
+
+            {% if form.content.data %}
+            $('#content').summernote("disable");
+            {% else %}
+            var template = "<p>Dear *FIRST_NAME*,</p><p>I am a PC member of \
+            *CONFERENCE_NAME*. Could you please write a review for me on the following paper:\
+            </p><p><br></p><p> ------------------------------------- </p><p>Title: *TITLE* \
+            </p><p>-------------------------------------</p><p>I need to receive the review by</p>\
+            <p>The instructions on how to answer this review request can be found \
+            at the bottom of this message. </p><p><br></p><p>Best regards, </p><p><br>\
+            </p><p>{{current_user.first_name}} {{current_user.last_name}} &lt;{{current_user.email}}&gt;</p>";
+            $('#content').summernote("code", template);
+            {% endif %}
+
+            $('#review_request').validate({
+                errorPlacement: function (error, element) {
+                    error.appendTo($("#errorMsg_1"));
+                }
+            }).settings.ignore = [];
+            jQuery.validator.messages.required = "Input is reuqired.";
+            jQuery.validator.addMethod("check_member_name", function(value, element) {
+                var regex = /^[a-zA-Z. \-]*$/g;
+                return regex.test(value);
+            }, "Name should only contain letters, dots, hyphens and spaces.");
+
+            jQuery.validator.addClassRules("check_name", {
+                check_member_name: true
+            });
+
+            $('#previewModal').on('show.bs.modal', function (e) {
+                if ($('#review_request').valid()) {
+                    $('#subject_title').text('Subject: ' + $('#subject').val());
+                    $('#preview_content').empty().append(convert_variables($('#content').summernote('code')));
+                } else {
+                    e.stopPropegation();
+                }
+            });
+
+            $('#sendTestEmail').click(function (event) {
+                event.preventDefault();
+                // console.log($("#notification").valid());
+                $('#testEmailForm').validate();
+
+                if ($("#testEmailForm").valid()) {
+                    var email = {
+                        'address': $('#testEmail').val(),
+                        'subject': $('#subject').val(),
+                        'first_name': $("#firstname").val(),
+                        'last_name': $("#lastname").val(),
+                        'paper_id': {{paper.id}},
+                        'content': $('#content').summernote('code'),
+                    };
+                    // console.log(email);
+                    $.ajax({
+                        type: "POST",
+                        url: "/test_delgation_email",
+                        contentType: "application/json",
+                        data: JSON.stringify(email),
+                        success: function (response) {
+                            swal({
+                                title: "Email Sent!",
+                                text: "Testing email has been sent.",
+                                type: "success",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
+{% endblock %}

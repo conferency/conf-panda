@@ -1,0 +1,2 @@
+Hi, account '{{ user_1.email }}' {{ user_1.full_name }} has been merged into '{{ user_2.email }}' {{ user_2.full_name }}.
+You can switch between by click your name in the menu on the left side.

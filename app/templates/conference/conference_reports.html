@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "reports" %}
+{% set page_title = "Conference Reports" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.reports', conference_id=conference_id))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+{% endblock %}
+
+{% block page_content %}
+<div class="animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="vote-item">
+                        <div class="row">
+                            <div class="col-md-10">
+                                <h2>Papers Summary</h2>
+                                <div class="vote-info" style="margin-left: 0px;">
+                                    <span>Information on reviewers</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2 ">
+                                <td align="center">
+                                    <a href="{{url_for('conference.get_report', conference_id=conference_id, report='paper')}}" class="btn btn-w-m btn-default">View Report</a>
+                                </td>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="vote-item">
+                        <div class="row">
+                            <div class="col-md-10">
+                                <h2>Authors Summary</h2>
+                                <div class="vote-info" style="margin-left: 0px;">
+                                    <span>Information on authors</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2 ">
+                                <td align="center">
+                                    <a href="{{url_for('conference.get_report', conference_id=conference_id, report='author')}}" class="btn btn-w-m btn-default">View Report</a>
+                                </td>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="vote-item">
+                        <div class="row">
+                            <div class="col-md-10">
+                                <h2>Reviewers Summary</h2>
+                                <div class="vote-info" style="margin-left: 0px;">
+                                    <span>Information on reviewers</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2 ">
+                                <td align="center">
+                                    <a href="{{url_for('conference.get_report', conference_id=conference_id, report='reviewer')}}" class="btn btn-w-m btn-default">View Report</a>
+                                </td>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

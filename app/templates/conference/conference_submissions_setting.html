@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "submission_menu" %}
+{% set active_second_subpage = "submissions-setting" %}
+{% set page_title = "Submission Settings" %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/switchery/switchery.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <!-- <link href="{{ url_for('static', filename='conferency/css/datepicker3.css') }}" rel="stylesheet"> -->
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-tagsinput.css') }}" rel="stylesheet">
+    <style>
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius:0px;
+            box-shadow: none;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.conference_submission_setting', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content clearfix">
+                    <p></p>
+                    <div class="hr-line-dashed"></div>
+                    {% if endpoint == 'track_chair_control' %}
+                        <div class="col-md-8 col-md-offset-2">
+                            <p>If you want to control the submission settings of your tracks, please ask the chair to turn on the submission settings for corresponding tracks in tracks panel.</p>
+                        </div>
+                        <div class="col-md-8 col-md-offset-2">
+                            <select class="form-control m-b" id="track_select" name="track_select">
+                                {% for track_id, track_name in tracks %}
+                                <option value="{{ track_id }}">{{ track_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% if track.configuration['allow_submission_config'] %}
+                            {% set disabled = '' %}
+                            {% set configuration = track.configuration %}
+                        {% else %}
+                            {% set disabled = 'disabled' %}
+                            {% set configuration = {} %}
+                        {% endif %}
+                    {% else %}
+                        {% set configuration = conference.configuration %}
+                    {% endif %}
+                    <div class="col-md-8 col-md-offset-2 submissions_configuration">
+                        <div class="form-group">
+                            <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label for="submission_process">Open submission process</label>&nbsp;<i class="fa fa-question-circle"
+                                                                                          data-toggle="tooltip"
+                                                                                          data-placement="top"
+                                                                                          title="Authors can only submit papers when this option is on."></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <input type="checkbox" id="submission_process" name="submission_process"
+                                           class="switch-button"
+                                           {% if configuration['submission_process'] %}checked{% endif %} {{ disabled }}/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label for="revision_submission">Open Paper Revision Submission</label>&nbsp;<i
+                                        class="fa fa-question-circle" data-toggle="tooltip" data-placement="top"
+                                        title="Authors can only revision papers when this option is open after submission deadline."></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <input type="checkbox" id="revision_submission" name="revision_submission"
+                                           class="switch-button"
+                                           {% if configuration.get('revision_submission', False) %}checked{% endif %} {{ disabled }}/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label for="multiple_submission">Allow uploading multiple files</label>&nbsp;<i
+                                        class="fa fa-question-circle" data-toggle="tooltip" data-placement="top"
+                                        title="Allow authors uploading more than one files."></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <input type="checkbox" id="multiple_submission" name="multiple_submission" class="switch-button"
+                                           {% if configuration.get("multiple_submission", False) %}checked{% endif %} {{ disabled }}/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label for="submissions_notification">Email chairs whenever a paper is submitted</label>&nbsp;<i
+                                        class="fa fa-question-circle" data-toggle="tooltip" data-placement="top"
+                                        title="This sends an email to chairs whenever a paper is submitted."></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <input type="checkbox" id="submissions_notification" name="submissions_notification" class="switch-button"
+                                           {% if configuration['submissions_notification'] %}checked{% endif %} {{ disabled }}/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label for="allow_edit_paper_author">Allow adding/removing authors during resubmission</label>&nbsp;<i
+                                        class="fa fa-question-circle" data-toggle="tooltip" data-placement="top"
+                                        title="Allow paper authors to edit author information during resubmission."></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <input type="checkbox" id="allow_edit_paper_author" name="allow_edit_paper_author" class="switch-button"
+                                           {% if configuration['allow_edit_paper_author'] %}checked{% endif %} {{ disabled }}/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label for="submission-pdf-allowed">Allowed submission file types</label>&nbsp;<i
+                                        class="fa fa-question-circle" data-toggle="tooltip" data-placement="top"
+                                        title="Choose in which formats authors can submit papers."></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <div><label> <input type="checkbox" id="submission-pdf-allowed"
+                                                                         name="submission-pdf-allowed"
+                                                                         class="i-checks"
+                                                                         {% if configuration.get('submission-pdf-allowed', True) %}checked{% endif %}
+                                                                         {{ disabled }}>
+                                        <i></i> PDF </label></div>
+                                    <div><label> <input type="checkbox" id="submission-word-allowed"
+                                                                         name="submission-word-allowed"
+                                                                         class="i-checks"
+                                                                         {% if configuration.get('submission-word-allowed', False) %}checked{% endif %}
+                                                                         {{ disabled }}>
+                                        <i></i> Word (.doc or .docx) </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label for="submission_limit">Maximum number of papers an individual can submit</label>&nbsp;<i
+                                            class="fa fa-question-circle" data-toggle="tooltip" data-placement="top"
+                                            title="Limiting the number of submissions an individual can submit. Leave it blank to allow user submit unlimited number of papers"></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <input type="number" id="submission_limit" name="submission_limit"
+                                               min="1" step="1"
+                                               class="form-control Maximum"
+                                               value="{{ configuration['submission_limit'] }}"
+                                               placeholder="Leave this blank to allow user submit unlimited number of papers"
+                                               {{ disabled }}/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label for="submission_types">Custom submission types</label>&nbsp;<i class="fa fa-question-circle"
+                                                                                              data-toggle="tooltip"
+                                                                                              data-placement="top"
+                                                                                              title="Custom submission types, such as completed research, research in progress, poster, etc."></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <input type="text" id="submission_types" name="submission_types" class="form-control" value="{{ configuration['submission_types'] }}" data-role="tagsinput" placeholder="Separated by commas" {{ disabled }}/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label for="abstract_max_word_count">Maximum abstract word count</label>
+                                    <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top"
+                                        title="The word count of the abstract of the submitted paper should not larger than this number. Zero for no limit."></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <input type="number" id="abstract_max_word_count" min="1" name="abstract_max_word_count" class="form-control" value="{{ configuration.get('abstract_max_word_count', "") }}" {{ disabled }} placeholder="No limitation if leave it blank"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group col-md-12">
+                                <div class="col-md-2 col-md-offset-5">
+                                    <button class="btn btn-primary save" {{ disabled }}>Save Changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Switchery -->
+    <script src="{{ url_for('static', filename='conferency/js/switchery.min.js') }}"></script>
+    <!-- iChecks -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+    <!-- Tag Input -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-tagsinput.js') }}"></script>
+    <!-- save -->
+    <script src="{{ url_for('static', filename='conferency/js/save.js') }}" type="text/javascript"></script>
+    <script>
+        function resizeChosen() {
+            $(".select2-container").each(function () {
+                $(this).attr('style', 'width: 100%');
+            });
+        }
+
+        function onChange(el) {
+            if (typeof Event === 'function' || !document.fireEvent) {
+                var event = document.createEvent('HTMLEvents');
+                event.initEvent('change', true, true);
+                el.dispatchEvent(event);
+            } else {
+                el.fireEvent('onchange');
+            }
+        }
+
+        function update_track_setting_url(track_id) {
+            return "/api/conferences/{{ conference.id }}/track/" + track_id + "/track_setting";
+        }
+
+        $(document).ready(function () {
+            var update_json = {};
+            //resize the select2 form depends on window size
+            $(window).on('resize', resizeChosen);
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green'
+            });
+
+            // init_datepicker($('.datepicker'));
+
+            // initialize switchery  javascript
+            var elems = Array.prototype.slice.call(document.querySelectorAll('.switch-button'));
+            elems.forEach(function (elem) {
+                var switchery = new Switchery(elem, {color: '#1AB394', size: 'large'});
+                $(elem).data('ObjSwitchery', switchery);
+            });
+
+            $('[data-toggle="tooltip"]').tooltip();
+
+            /*** submission ***/
+            var previous_val;
+            $("#track_select").on("focus",function () {
+                previous_val = this.value;
+            }).change(function(e) {
+                if (!saved) {
+                    this.value = previous_val;
+                    confirm("Unsaved changes");
+                    return;
+                }
+                get_setting_url = "/api/conferences/{{ conference.id }}/track/" + $(this).val() + "/track_setting/submission";
+                $.ajax({
+                        type: "GET",
+                        url: get_setting_url,
+                        contentType: "application/json",
+                        success: function (response) {
+                            let disabled;
+                            if (!response['allow_submission_config']) {
+                                // disable all Input
+                                disabled = true;
+                                $(".save").prop("disabled", true);
+                            } else {
+                                disabled = false;
+                                $(".save").prop("disabled", false);
+                            }
+                            // disable ifChanged listener
+                            $('#submission-word-allowed, #submission-pdf-allowed').data('disable_ifChanged', true);
+                            $('.submissions_configuration input, .submissions_configuration textarea').each(function(index) {
+                                // load settings
+                                if ($(this).hasClass("i-checks")) {
+                                    if (response[$(this).attr("name")]) {
+                                        $(this).iCheck("check");
+                                    } else {
+                                        $(this).iCheck("uncheck");
+                                    }
+                                    if (disabled) {
+                                        $(this).iCheck("disable");
+                                    } else {
+                                        $(this).iCheck("enable");
+                                    }
+                                } else if ($(this).hasClass("switch-button")) {
+                                    let switchery = $(this).data('ObjSwitchery');
+                                    // switchery.setPosition(true);
+                                    if (response[$(this).attr("name")]) {
+                                        this.checked = true;
+                                    } else {
+                                        this.checked = false;
+                                    }
+                                    onChange(this);
+                                    if (disabled) {
+                                        switchery.disable();
+                                    } else {
+                                        switchery.enable();
+                                    }
+                                } else if ($(this).attr("name") == "submission_types") {
+                                    $(this).tagsinput("removeAll");
+                                    if (response[$(this).attr("name")]) {
+                                        $(this).tagsinput("add", response[$(this).attr("name")]);
+                                    }
+                                    if (disabled) {
+                                        $(this).prop("disabled", true);
+                                    } else {
+                                        $(this).prop("disabled", false);
+                                    }
+                                } else {
+                                    if (response[$(this).attr("name")]) {
+
+                                    } else {
+                                        $(this).val("");
+                                    }
+                                    if (disabled) {
+                                        $(this).prop("disabled", true);
+                                    } else {
+                                        $(this).prop("disabled", false);
+                                    }
+                                }
+                            });
+                            // enable ifChanged listener
+                            $('#submission-word-allowed, #submission-pdf-allowed').data('disable_ifChanged', false);
+                        }
+                })
+                    .fail(function (data, textStatus, error) {
+                            // console.log(data);
+                            swal({
+                                title: "Oops...",
+                                text: "Update failed. We are very sorry. Please contact with customer service.",
+                                type: "error",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                    })
+                    .always(function() {
+                        saved = true;
+                    });
+            });
+
+            $('.submissions_configuration').on('change', "#submission-word-allowed, .switch-button, .Maximum, .input-submission-type, input", function (event) {
+                event.preventDefault();
+                var changed_type = $(this).attr('type');
+                // console.log(changed_type);
+                if (changed_type === "checkbox") {
+                    update_json[$(this).attr('id')] = $(this).is(':checked');
+                } else if ($(this).hasClass('input-submission-type')) {
+                    if ($(this).select(':selected').val() !== null) {
+                        update_json['submission_types'] = $(this).select(':selected').val().join(';');
+                    } else {
+                        update_json['submission_types'] = $(this).select(':selected').val();
+                    }
+                } else {
+                    update_json[$(this).attr('id')] = $(this).val();
+                }
+            });
+
+            $('#submission-word-allowed, #submission-pdf-allowed').on("ifChanged", function (event) {
+                var check = $(this);
+                if (check.data('disable_ifChanged')) {
+                    return;
+                }
+                if (!$('#submission-word-allowed').is(':checked') && !$('#submission-pdf-allowed').is(':checked')) {
+                    swal({
+                        title: "Oops...",
+                        text: "You should leave at least one option on.",
+                        type: "error",
+                        timer: 2000,
+                        showConfirmButton: true
+                    }, function () {check.iCheck('check');});
+                } else {
+                    update_json[$(this).attr('id')] = $(this).is(':checked');
+                    // console.log(update_json);
+                }
+            });
+
+            save_detect([".submissions_configuration .switch-button", ".submissions_configuration .i-checks input", ".submissions_configuration :text, .submissions_configuration input[type=number]", ".submissions_configuration textarea"]);
+
+            $(".save").on('click', function(event) {
+                $.ajax({
+                        type: "PUT",
+                        url: {% if endpoint == 'chair_control' %}"{{ url_for('api.update_conference_submission_config', conference_id=conference.id) }}"{% else %}update_track_setting_url($("#track_select").val()){% endif %},
+                        contentType: "application/json",
+                        data: JSON.stringify({"setting": update_json}),
+                        success: function (response) {
+                            // console.log(response);
+                            swal({title: "Updated!", text: "Submission configuration updated.", type: "success", timer: 2000,   showConfirmButton: false});
+                            saved = true;
+                            update_json = {};
+                        }
+                    })
+                        .fail(function (data, textStatus, error) {
+                            // console.log(data);
+                            swal({
+                                title: "Oops...",
+                                text: "Update failed. We are very sorry. Please contact with customer service.",
+                                type: "error",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        });
+            });
+
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'conference/embed/embed_base.html' %}
+
+{% block page_content %}
+    <div class="row">
+        <div class="ibox">
+            <div class="ibox-content">
+                <div class="feed-activity-list">
+                    {% for paper in papers %}
+                    <div class="feed-element">
+                        <div class="media-body">
+                            <strong>{{ paper.title }}</strong><br>
+                            {% for author in paper.authors_list %}
+                            <small class="text-muted">{{ author.full_name }}, {{ author.organization }}</small><br>
+                            {% endfor %}
+                            <div class="actions">
+                                {% for paper_doc in paper.files %}
+                                    {% if paper_doc.filename and paper_doc.status != "Deleted" %}
+                                        <a class="btn btn-xs btn-white" href="{{ url_for('paper.public_get_doc', paper_id=paper.id, doc_id=paper_doc.id) }}"><i class="fa fa-download"></i> Download </a>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

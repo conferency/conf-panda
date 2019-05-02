@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceRegistration" %}
+{% set active_subpage = "registration_recent_orders" %}
+{% set page_title = "Orders" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Registration', '#'), (page_title, url_for('conference.registration_recent_orders', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <!-- <link href="{{ url_for('static', filename='inspinia/css/plugins/ladda/ladda-themeless.min.css') }}" rel="stylesheet"> -->
+    <style>
+
+        .center {
+            float: none;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        .less-bottom-margin {
+            margin-bottom: 0px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Orders Information</h5>
+                    <div class="pull-right">
+                        <!-- <span style="position: relative; top: -3px; right: 10px">Export: </span> -->
+                        <a style="position: relative; top: -3px; right: 10px" class="btn btn-primary btn-xs"
+                           href="{{ url_for('conference.registration_info_download', conference_id=conference.id) }}">Download CSV</a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="table-responsive">
+                        <input type="text" class="form-control input-sm m-b-xs" id="filter"
+                               placeholder="Search in table">
+                        <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="20"
+                               data-filter=#filter>
+                            <thead>
+                            <tr>
+                                <th>Attendee</th>
+                                <th>Ticket</th>
+                                <th data-type="numeric">Quantity</th>
+                                <th data-type="numeric">Total</th>
+                                <th data-hide="phone" data-sort-initial="descending" data-type="numeric">Date</th>
+                                <th data-hide="phone">Payment</th>
+                                <th data-hide="phone" data-sort-ignore="true">Refund</th>
+                                <th class="hide" data-hide="all"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% if conference.registration.ticket_transactions.all() | length %}
+                                {% set disable_refund = conference.registration.payout.status == 'Completed' %}
+                                {% for ticket_transaction in conference.registration.ticket_transactions.all() %}
+                                    <tr>
+                                        <td>{{ ticket_transaction.attendee_info['First Name'] }} {{ ticket_transaction.attendee_info['Last Name'] }}</td>
+                                        <td>{{ ticket_transaction.tickets[0].name }}</td>
+                                        <td>1</td>
+                                        <td data-value="{{ ticket_transaction.subtotal }}"> {{ ticket_transaction.subtotal }} {{ ticket_transaction.currency }}</td>
+                                        <td data-value="{{ ticket_transaction.timestamp.timetuple() | unix_time }}">{{ moment(ticket_transaction.timestamp).fromNow() }}</td>
+                                        <td>{{ ticket_transaction.status }}</td>
+                                        <td>
+                                            <button type="button"
+                                                    data-ticket-transaction-id="{{ ticket_transaction.id }}"
+                                                    class="btn btn-danger btn-xs refund" data-style="zoom-in"
+                                                    {% if disable_refund or ticket_transaction.status == 'Refunded' or ticket_transaction.subtotal == 0 %}disabled{% endif %}>
+                                                Refund
+                                            </button>
+                                            <button type="button"
+                                                    data-ticket-transaction-id="{{ ticket_transaction.id }}"
+                                                    class="btn btn-info btn-xs ladda-button sent-receipt"
+                                                    data-style="zoom-in"
+                                                    {% if ticket_transaction.status == 'Refunded' %}disabled{% endif %}>
+                                                Send Receipt
+                                            </button>
+                                            <button type="button"
+                                                    data-ticket-transaction-id="{{ ticket_transaction.id }}"
+                                                    class="btn btn-success btn-xs edit-transaction"
+                                                    id="edit-transaction-{{ ticket_transaction.id }}"
+                                                    data-style="zoom-in"
+                                                    {% if ticket_transaction.status == 'Refunded' %}disabled{% endif %}>
+                                                Edit Order
+                                            </button>
+                                        </td>
+                                        <td class="hide">
+                                            {% set attendee_info = ticket_transaction.attendee_info %}
+                                            <b>Email: </b>{{ attendee_info['Email'] }}<br>
+                                            <b>Affiliation: </b>{{ attendee_info['Affiliation'] }}<br>
+                                            {% for question in questions %}
+                                                {% if question.get('deleted', False) == False and question.get('include', False) == True %}
+                                                    <b>{{ question['desc'] }}:</b>
+                                                    {% if question['id'] in attendee_info %}
+                                                        {% if question['ques_type'] == 1 %}
+                                                            {{ ', '.join(attendee_info[question['id']]) }}
+                                                        {% else %}
+                                                            {{ attendee_info[question['id']] }}
+                                                        {% endif %}
+                                                    {% endif %}
+                                                    <br>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <td class="text-center" colspan="7">Not found any order.</td>
+                            {% endif %}
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="7">
+                                    <ul class="pagination pagination-centered hide-if-no-paging"></ul>
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" tabindex="-1" role="dialog" id="edit_transaction_model">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="edit_transaction_model_label">Edit Order</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <form class="form-horizontal" id="edit-transaction-form">
+                            <div class="form-group">
+                                <div class="col-md-3 control-label">
+                                    <label for="contact_email">First Name</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input required class="form-control required" id="et_first_name"
+                                           name="et_first_name"
+                                           placeholder="Required" type="text" value="" aria-required="true">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-3 control-label">
+                                    <label for="contact_email">Last Name</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input required class="form-control required" id="et_last_name" name="et_last_name"
+                                           placeholder="Required" type="text" value="" aria-required="true">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-3 control-label">
+                                    <label for="contact_email">Email</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input required class="form-control required" id="et_email" name="et_email"
+                                           placeholder="Required" type="email" value="" aria-required="true">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-3 control-label">
+                                    <label for="contact_email">Affiliation</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <input required class="form-control required" id="et_affiliation"
+                                           name="et_affiliation"
+                                           placeholder="Required" type="text" value="" aria-required="true">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="et_save">Save changes</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- fooTables -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <!-- Autocomplete -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+    <!-- Ladda -->
+    <!-- <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/spin.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/ladda.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/ladda.jquery.min.js') }}"></script>-->
+    <script>
+        $(document).ready(function () {
+            function setUpAutocomplete(selector, data) {
+                $(selector).devbridgeAutocomplete({
+                    lookup: data,
+                    lookupLimit: 10
+                });
+            }
+
+            $('.refund').click(function (event) {
+                var refund_button = $(this);
+                swal({
+                    title: "Are you sure?",
+                    // text: tracks,
+                    type: "info",
+                    allowOutsideClick: true,
+                    showCancelButton: true,
+                    confirmButtonColor: "#1c84c6",
+                    confirmButtonText: "Yes, issue the refund.",
+                    closeOnConfirm: false
+                }, function (isConfirm) {
+                    if (isConfirm) {
+                        $.ajax({
+                            type: "PUT",
+                            url: "{{ url_for('main.ticket_refund') }}",
+                            data: {ticket_transaction_id: refund_button.data('ticket-transaction-id')},
+                            success: function (response) {
+                                refund_button.prop('disabled', true);
+                                refund_button.parent().prev().text('Refunded');
+                                swal({
+                                    title: "Success",
+                                    text: "The refund will be processed very soon!",
+                                    type: "success",
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        })
+                            .fail(function (data, textStatus, error) {
+                                swal({
+                                    title: "Oops...",
+                                    text: data.responseText,
+                                    type: "error"
+                                });
+                            });
+                    }
+                });
+            });
+            // var refund = $('.refund').ladda();
+            // refund.click(function(event){
+            //     // Start loading
+            //     var refund_button = $(this);
+            //     refund_button.ladda('start');
+            //     $.ajax({
+            //         type: "PUT",
+            //         url: "{{ url_for('main.ticket_refund') }}",
+            //         data: {ticket_transaction_id: refund_button.data('ticket-transaction-id')},
+            //         success: function (response) {
+            //                 refund_button.ladda('stop');
+            //                 refund_button.prop('disabled', true);
+            //                 refund_button.parent().prev().text('Refunded');
+            //             }
+            //     })
+            //         .fail(function(data, textStatus, error) {
+            //             refund_button.ladda('stop');
+            //             // swal({title: "Oops...", text: "Update failed. We are very sorry. Please contact with customer service.", type: "error", timer: 2000,   showConfirmButton: false});
+            //         });
+
+            // });
+            // var datatable = $('.order-table').DataTable({
+            //     dom: '<"html5buttons"B>lTfgitp',
+            //     buttons: [
+            //         {extend: 'copy'},
+            //         {extend: 'csv'},
+            //         {extend: 'excel', title: 'ExampleFile'},
+            //         {extend: 'print',
+            //             customize: function (win){
+            //                 $(win.document.body).addClass('white-bg');
+            //                 $(win.document.body).css('font-size', '10px');
+            //                 $(win.document.body).find('table')
+            //                     .addClass('compact')
+            //                     .css('font-size', 'inherit');
+            //             }
+            //         }
+            //     ],
+            //     order: [[4, 'desc']], // sorting on date
+            //     aoColumnDefs: [
+            //         { 'bSortable': false, 'aTargets': [0] }
+            //    ] // disable sorting on first column
+            // });
+            $('.sent-receipt').click(function (event) {
+                var sent_receipt_button = $(this);
+                swal({
+                    title: "Are you sure?",
+                    // text: tracks,
+                    type: "info",
+                    allowOutsideClick: true,
+                    showCancelButton: true,
+                    confirmButtonColor: "#1c84c6",
+                    confirmButtonText: "Yes, send the receipt.",
+                    closeOnConfirm: false
+                }, function (isConfirm) {
+                    if (isConfirm) {
+                        $.ajax({
+                            type: "POST",
+                            url: "{{ url_for('main.send_ticket_receipt') }}",
+                            data: {ticket_transaction_id: sent_receipt_button.data('ticket-transaction-id')},
+                            success: function (response) {
+                                swal({
+                                    title: "Success",
+                                    text: "The receipt has been sent to the customer.",
+                                    type: "success",
+                                    timer: 3000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        })
+                            .fail(function (data, textStatus, error) {
+                                console.log(data);
+                                console.log(textStatus);
+                                console.log(error);
+                            });
+                    }
+                });
+            });
+
+            $('.edit-transaction').click(function (event) {
+                $('#et_save').data('ticket-transaction-id', $(this).data('ticket-transaction-id'));
+                $.getJSON("/api/transactions/" + $(this).data('ticket-transaction-id'),
+                function (data) {
+                    $('#et_first_name').val(data['attendee_info']['First Name']);
+                    $('#et_last_name').val(data['attendee_info']['Last Name']);
+                    $('#et_affiliation').val(data['attendee_info']['Affiliation']);
+                    $('#et_email').val(data['attendee_info']['Email']);
+                });
+                $('#edit_transaction_model').modal();
+                $('#edit-transaction-form').find('input').each(function () {
+                    $(this).removeClass("error");
+                });
+                $.getJSON("{{ url_for('static', filename='json/affiliations.json')}}", function (data) {
+                    setUpAutocomplete('#et_affiliation', data);
+                });
+                et_validator.resetForm();
+            });
+
+            $('#et_save').click(function (event) {
+                if ($('#edit-transaction-form').valid()) {
+                    $.ajax({
+                        contentType: 'application/json',
+                        type: "POST",
+                        url: "{{ url_for('api.edit_transaction') }}",
+                        data: JSON.stringify({
+                            ticket_transaction_id: $(this).data('ticket-transaction-id'),
+                            first_name: $('#et_first_name').val(),
+                            last_name: $('#et_last_name').val(),
+                            email: $('#et_email').val(),
+                            affiliation: $('#et_affiliation').val()
+                        }),
+                        success: function (response) {
+                            $('#edit_transaction_model').modal('hide');
+                            swal({
+                                title: "Success",
+                                text: "Your changes have been saved.",
+                                type: "success",
+                                timer: 3000,
+                                showConfirmButton: false
+                            }, function () {
+                                location.reload();
+                            });
+
+                        }
+                    })
+                        .fail(function (data, textStatus, error) {
+                            $('#edit_transaction_model').modal('hide');
+                            swal({
+                                title: "Oops...",
+                                text: "Edit action cannot be processed! Please contact with the administrator.",
+                                type: "error"
+                            });
+                            console.log(data);
+                            console.log(textStatus);
+                            console.log(error);
+                        });
+                }
+            });
+
+            var et_validator = $('#edit-transaction-form').validate();
+            // var sent_receipt = $('.sent-receipt').ladda();
+            // sent_receipt.click(function(event){
+            //     var sent_receipt_button = $(this);
+            //     sent_receipt_button.ladda('start');
+            //     $.ajax({
+            //         type: "POST",
+            //         url: "{{ url_for('main.send_ticket_receipt') }}",
+            //         data: {ticket_transaction_id: sent_receipt_button.data('ticket-transaction-id')},
+            //         success: function (response) {
+            //                 sent_receipt_button.ladda('stop');
+            //             }
+            //     })
+            //         .fail(function(data, textStatus, error) {
+            //             sent_receipt_button.ladda('stop');
+            //         });
+            // });
+
+            var table = $('.footable').footable({
+                {% if not conference.registration.ticket_transactions.all() | length %}
+                    addRowToggle: false
+                {% endif %}
+            });
+        });
+
+    </script>
+{% endblock %}

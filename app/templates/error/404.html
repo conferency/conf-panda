@@ -1,0 +1,14 @@
+{% extends "auth/base_auth.html" %}
+{% set page_title = "404" %}
+
+{% block main_form %}
+<h1>{{ page_title }}</h1>
+<h3 class="font-bold">Page Not Found</h3>
+<div class="error-desc">
+    <p>The page you are looking for cannot been found.</p>
+    <p>
+      <a class="btn btn-w-m btn-primary m-b-sm" href="{{ url_for('main.index') }}">Home</a>
+      <a class="btn btn-w-m btn-success m-b-sm" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+    </p>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "auth/base_auth.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Conferency | Login{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='conferency/css/login.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block main_form %}
+
+    <div class="form">
+            {% if invitation is not defined or not invitation %}
+
+        <ul class="tab-group">
+            <li class="tab "><a href="
+                    {{ url_for('auth.register', next=next) }}{% if conference is defined %}?conf={{ conference.id }}{% endif %}">Register</a>
+            </li>
+            <li class="tab active"><a href="">Log In</a></li>
+        </ul>
+{% endif %}
+    {% if conference is defined %}
+        {% if invitation is defined and invitation %}
+            <p>Welcome. You are invited to join <a
+                    href="{{ url_for('main.conf_index', conf_name=conference.short_name) }}"><b>{{ conference.name }}</b></a>
+                as <b>{{ role }}</b>{% if not track.default %} of {{ track.name }}{% endif %}, please login to accept.
+            </p>
+        {% else %}
+            <h2>Login in to {{ conference.short_name.upper() }}</h2>
+        {% endif %}
+    {% endif %}
+        <div class="tab-content">
+            <form action="" class="m-t" role="form" method="post">
+                {{ form.hidden_tag() }}
+                {{ macros.render_field(form.email, "Email", type="email") }}
+                {{ macros.render_field(form.password, "Password") }}
+                {% if invitation is defined and invitation %}
+                <div class="form-group">
+                    <textarea class="form-control" id="note" name="note" rows="5" placeholder="Optional message to the inviter"></textarea>
+                </div>
+                {% endif %}
+                {# macros.render_field(form.code, "Preview code") #}
+                {{ form.submit(class="btn btn-primary block full-width m-b") }}
+                {#{{ macros.render_checkbox(form.remember_me, "Keep me logged in") }}Disabled for now#}
+            </form>
+            <a id="forget_password_login_page" href="{{ url_for('auth.password_reset_request') }}">
+                <p>Forgot password?</p>
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='conferency/js/emailchecker.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% import "_macros.html" as macros %}
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!-->
+<html lang="en"> <!--<![endif]-->
+
+	<head>
+
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+		<!-- BASIC INFO -->
+		<title>{% block title %}{% endblock %}Conferency - Academic Conferences Made Easy</title>
+		<meta name="author" content="Conferency.com">
+		<meta name="keywords" content="conference management, registration, paper review, website, mobile app">
+		<meta name="description" content="Conferency - Academic Conferences Made Easy">
+		{% block head %}
+		<!-- FAVICONS -->
+		<link rel="icon" href="/static/img/favicons/favicon.ico">
+		<!--
+		<link rel="apple-touch-icon" href="images/favicons/apple-touch-icon.png">
+		-->
+
+		<!-- LIBRARIES CSS -->
+		<link href="{{ url_for('static', filename='drew/css/bootstrap.min.css') }}" rel="stylesheet">
+		<link href="{{ url_for('static', filename='inspinia/css/plugins/toastr/toastr.min.css') }}" rel="stylesheet">
+		<link href="{{ url_for('static', filename='drew/css/font-awesome.min.css') }}" rel="stylesheet">
+		<link href="{{ url_for('static', filename='drew/css/animate.min.css') }}" rel="stylesheet">
+
+		<!-- SPECIFIC CSS -->
+		<link href="{{ url_for('static', filename='conferency/drew/css/style.css') }}" rel="stylesheet">
+		<link href="{{ url_for('static', filename='conferency/css/drew.css') }}" rel="stylesheet">
+
+		<!-- COLORS -->
+		<link id="color-css" href="{{ url_for('static', filename='conferency/drew/css/color.css') }}" rel="stylesheet">
+		<!-- Start of conferency Zendesk Widget script -->
+<script>/*<![CDATA[*/window.zEmbed||function(e,t){var n,o,d,i,s,a=[],r=document.createElement("iframe");window.zEmbed=function(){a.push(arguments)},window.zE=window.zE||window.zEmbed,r.src="javascript:false",r.title="",r.role="presentation",(r.frameElement||r).style.cssText="display: none",d=document.getElementsByTagName("script"),d=d[d.length-1],d.parentNode.insertBefore(r,d),i=r.contentWindow,s=i.document;try{o=s}catch(e){n=document.domain,r.src='javascript:var d=document.open();d.domain="'+n+'";void(0);',o=s}o.open()._l=function(){var e=this.createElement("script");n&&(this.domain=n),e.id="js-iframe-async",e.src="https://assets.zendesk.com/embeddable_framework/main.js",this.t=+new Date,this.zendeskHost="conferency.zendesk.com",this.zEQueue=a,this.body.appendChild(e)},o.write('<body onload="document._l();">'),o.close()}();
+/*]]>*/</script>
+<!-- End of conferency Zendesk Widget script -->
+		{% endblock %}
+	</head>
+
+	<!-- the preloader can be closed by set disable_preloader -->
+	<body class="enable-animations {% if not disable_preloader|default('', false) %}enable-preloader{% endif %}">
+
+		<div id="document" class="document">
+
+			{% block page_content %}
+
+			{% endblock %}
+
+			<!-- FOOTER
+			================================= -->
+			<section id="footer" class="footer-section section">
+
+					<h3 class="footer-logo">
+						<a href="{{ url_for('main.index') }}">
+							<img src="{{url_for('static', filename='img/logos/footer-logo.png')}}" srcset="{{url_for('static', filename='img/logos/footer-logo@2x.png')}} 2x" alt="Conferency">
+						</a>
+					</h3>
+					<!-- <div class="footer-socmed">
+						<a href="#" target="_blank"><span class="fa fa-facebook"></span></a>
+						<a href="#" target="_blank"><span class="fa fa-twitter"></span></a>
+						<a href="#" target="_blank"><span class="fa fa-instagram"></span></a>
+						<a href="#" target="_blank"><span class="fa fa-pinterest"></span></a>
+					</div> -->
+
+					<div id="siteseal"><img src="{{url_for('static', filename='img/logos/siteseal_gd.gif')}}" alt="GoDaddy Security Seal"></div>
+
+										<div class="footer-copyright">
+											&copy; 2015 - 2018
+										</div>
+
+
+			</section>
+
+		</div>
+		{% block scripts %}
+		<!-- LIBRARIES JS
+		================================= -->
+		<script src="{{ url_for('static', filename='drew/js/jquery-1.11.2.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='drew/js/bootstrap.min.js') }}"></script>
+		<!--<script src="{{ url_for('static', filename='drew/js/respimage.min.js') }}"></script>-->
+		<script src="{{ url_for('static', filename='drew/js/jpreloader.min.js') }}"></script>
+		<!--<script src="{{ url_for('static', filename='drew/js/smoothscroll.min.js') }}"></script>-->
+		<script src="{{ url_for('static', filename='drew/js/jquery.nav.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='drew/js/jquery.inview.min.js') }}"></script>
+		<!--<script src="{{ url_for('static', filename='drew/js/jquery.counterup.min.js') }}"></script>-->
+		<!--<script src="{{ url_for('static', filename='drew/js/jquery.stellar.min.js') }}"></script>-->
+		<script src="{{ url_for('static', filename='inspinia/js/plugins/toastr/toastr.min.js') }}"></script>
+
+		<!-- MAIN SCRIPT
+		================================= -->
+		<script src="{{ url_for('static', filename='conferency/drew/js/script.js') }}"></script>
+		<!-- Jquery Validate -->
+    	<script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+
+		<script>
+	    if (document.location.hostname == "conferency.com" || document.location.hostname == "www.conferency.com") {
+	        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	        ga('create', 'UA-126223-7', 'auto');
+	        ga('require', 'linkid');
+	        ga('set', 'userId', {{ current_user.id|default('0') }});
+	        ga('send', 'pageview');
+	    } else {
+	        console.log("Running non-production google analytics replacement now");
+	    }
+	    </script>
+
+		<script>
+		// Randomly choose a header image
+		var images = [
+				'{{url_for('static', filename='img/landing_page/bg-computer.jpg')}}', '{{url_for('static', filename='img/landing_page/bg-macbookair.jpg')}}', '{{url_for('static', filename='img/landing_page/bg-desktop.jpg')}}'
+			];
+		$("#header-bg").attr('src', images[Math.floor(Math.random() * images.length)]);
+		//$("#header-bg").attr('src', 'https://source.unsplash.com/random/800x600');
+
+		</script>
+		{{ macros.handle_notifications(get_flashed_messages(with_categories=true)) }}
+        {{ moment.include_moment(local_js=url_for('static', filename="conferency/js/moment-with-locales.min.js")) }}
+		{% endblock %}
+	</body>
+
+</html>

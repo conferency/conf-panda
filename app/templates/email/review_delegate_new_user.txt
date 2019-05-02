@@ -1,0 +1,3 @@
+{{ content }}
+For your convenience, the paper is now available on conferency.com in your account, which you can log in with your current email address and password: {{ password }}. You can download the document or review it directly on our site.
+We highly recommend you to update the password after the first-time login.

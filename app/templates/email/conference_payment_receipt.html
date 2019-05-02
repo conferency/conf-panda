@@ -1,0 +1,282 @@
+{% extends "/email/email_base.html" %}
+{% block head %}
+    {{ super() }}
+    <style>
+
+        /* Let's make sure all tables have defaults */
+        table td {
+            vertical-align: top;
+        }
+
+        /* -------------------------------------
+            BODY & CONTAINER
+        ------------------------------------- */
+
+        .container {
+            display: block !important;
+            max-width: 600px !important;
+            margin: 0 auto !important;
+            /* makes it centered */
+            clear: both !important;
+        }
+
+        .content {
+            max-width: 600px;
+            margin: 0 auto;
+            display: block;
+            padding: 20px;
+        }
+
+        /* -------------------------------------
+            HEADER, FOOTER, MAIN
+        ------------------------------------- */
+        .main {
+            background: #fff;
+            border: 1px solid #e9e9e9;
+            border-radius: 3px;
+        }
+
+        .content-wrap {
+            padding: 20px;
+        }
+
+        .content-block {
+            padding: 0 0 20px;
+        }
+
+        .header {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .footer {
+            width: 100%;
+            clear: both;
+            color: #999;
+            padding: 20px;
+        }
+
+        .footer a {
+            color: #999;
+        }
+
+        .footer p, .footer a {
+            font-size: 12px;
+        }
+
+        /* -------------------------------------
+            TYPOGRAPHY
+        ------------------------------------- */
+        h1, h2, h3 {
+            font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+            margin: 40px 0 0;
+            line-height: 1.2;
+            font-weight: 400;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 500;
+        }
+
+        h2 {
+            font-size: 24px;
+        }
+
+        h3 {
+            font-size: 18px;
+        }
+
+        h4 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        p, ul, ol {
+            margin-bottom: 10px;
+            font-weight: normal;
+        }
+
+        p li, ul li, ol li {
+            margin-left: 5px;
+            list-style-position: inside;
+        }
+
+        /* -------------------------------------
+            LINKS & BUTTONS
+        ------------------------------------- */
+        a {
+            color: #1ab394;
+            text-decoration: underline;
+        }
+
+        /* -------------------------------------
+            OTHER STYLES THAT MIGHT BE USEFUL
+        ------------------------------------- */
+        .last {
+            margin-bottom: 0;
+        }
+
+        .first {
+            margin-top: 0;
+        }
+
+        .aligncenter {
+            text-align: center;
+        }
+
+        .alignright {
+            text-align: right;
+        }
+
+        .alignleft {
+            text-align: left;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        /* -------------------------------------
+            INVOICE
+            Styles for the billing table
+        ------------------------------------- */
+        .confirmation {
+            margin: 0px auto 40px;
+            text-align: center;
+            width: 80%;
+        }
+
+        .invoice {
+            margin: 40px auto;
+            text-align: left;
+            width: 80%;
+        }
+
+        .invoice td {
+            padding: 5px 0;
+        }
+
+        .invoice .invoice-items {
+            width: 100%;
+        }
+
+        .invoice .invoice-items td {
+            border-top: #eee 1px solid;
+        }
+
+        .invoice .invoice-items .total td {
+            border-top: 2px solid #333;
+            border-bottom: 2px solid #333;
+            font-weight: 700;
+        }
+
+        /* -------------------------------------
+            RESPONSIVE AND MOBILE FRIENDLY STYLES
+        ------------------------------------- */
+        @media only screen and (max-width: 640px) {
+            h1, h2, h3, h4 {
+                font-weight: 600 !important;
+                margin: 20px 0 5px !important;
+            }
+
+            h1 {
+                font-size: 22px !important;
+            }
+
+            h2 {
+                font-size: 18px !important;
+            }
+
+            h3 {
+                font-size: 16px !important;
+            }
+
+            .container {
+                width: 100% !important;
+            }
+
+            .content, .content-wrap {
+                padding: 10px !important;
+            }
+
+            .invoice {
+                width: 100% !important;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <tbody class="confirmation">
+        <tr>
+            <td class="content-block text-center">
+                <h2>{{ title }}</h2>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="content-block text-center">
+                <h4>{{ conference.name }}</h4>
+                <p><i class="fa fa-calendar"></i> {{ conference.start_date }} to {{ conference.end_date }}</p>
+                <p><i class="fa fa-map-marker"></i> {{ conference.city }}, {% if conference.state %}{{ conference.state }}, {% endif %}{{ conference.country }}</p>
+                    {% if conference.website %}
+                        <p><a href="http://{{ conference.website }}" target="_blank">Website</a></p>
+                    {% endif %}
+            </td>
+        </tr>
+
+        <tr>
+            <td class="content-block text-center">
+                <p>Have a question or need help? <a href="mailto:support@conferency.com" target="_blank">Send us an email</a>.</p>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="invoice">
+                {% for addon in addons %}
+                <table class="invoice-items" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>{{ addon.name }}:</td>
+                        <td class="alignright">{{ addon.price }} USD</td>
+                    </tr>
+                </table>
+                {% endfor %}
+                {% if promo_code %}
+                    <table class="invoice-items" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td>Promo Code:</td>
+                            <td class="alignright">{{ promo_code.promo_code }}</td>
+                        </tr>
+                    </table>
+                {% endif %}
+                <table class="invoice-items" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>Payment method:</td>
+                        <td class="alignright">XXXX-XXXXXXXX-{{ card_number[-4:] }}</td>
+                    </tr>
+                </table>
+                <table class="invoice-items" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>Name on card:</td>
+                        <td class="alignright">{{ holder_name }}</td>
+                    </tr>
+                </table>
+                <table class="invoice-items" cellpadding="0" cellspacing="0">
+                    <tr class="total">
+                        <td>Total:</td>
+                        <td class="alignright"> {{ price }} {{ currency }}</td>
+                    </tr>
+                </table>
+                {% if refund %}
+                <table class="invoice-items" cellpadding="0" cellspacing="0">
+                    <tr class="total">
+                        <td>Refund:</td>
+                        <td class="alignright"> {{ price }} {{ currency }}</td>
+                    </tr>
+                </table>
+                {% endif %}
+            </td>
+        </tr>
+    </tbody>
+{% endblock %}

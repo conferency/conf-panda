@@ -1,0 +1,1 @@
+A new guest {{ user.first_name }} has joined the conference {{ url_for('main.conf_index', conf_name=conference.short_name, _external=True) }}.

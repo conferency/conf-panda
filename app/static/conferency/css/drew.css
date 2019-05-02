@@ -1,0 +1,15 @@
+@media (max-width: 991px)
+.navigation {
+    position: fixed;
+    bottom: 100%;
+    left: 50%;
+    width: 50%;
+    max-height: none!important;
+    margin: 0!important;
+    display: block!important;
+    opacity: 0;
+    padding-top: 80px;
+    text-align: center;
+    -webkit-transition: all ease .25s!important;
+    transition: all ease .25s!important;
+}

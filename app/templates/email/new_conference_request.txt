@@ -1,0 +1,4 @@
+{{ conference.requester.first_name }} {{ conference.requester.last_name }}</a> has requested a new conference "{{ conference.name }}".
+
+
+Check pending requests: {{ url_for('conf_admin.admin_requests') }}

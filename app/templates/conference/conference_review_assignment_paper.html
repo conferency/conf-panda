@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "review_menu" %}
+{% set active_second_subpage = "manual-assignment" %}
+{% set page_title = "Review Assignment" %}
+
+{% block head %}
+    {{ super() }}
+    <style media="screen">
+        .autocomplete-suggestions {
+            border: 0px;
+        }
+
+        .autocomplete-suggestion {
+            float: left;
+            width: 97%;
+            padding: 0px;
+            padding: 4px 12px 4px 12px;
+            background: #FAFAFB;
+            border: 1px solid #e7eaec;
+            margin: 5px;
+            border-radius: 2px;
+        }
+
+        @media only screen and (min-width: 1024px) {
+            .autocomplete-suggestion {
+                width: 23.7%;
+            }
+        }
+
+        @media only screen and (min-width: 768px) and (max-width: 1023px){
+            .autocomplete-suggestion {
+                width: 47.0%;
+            }
+        }
+
+        .suggestion-item {
+            display: table-row;
+            width: 100%;
+        }
+
+        .review_yes {
+            border-left: 3px solid #1ab394;
+        }
+
+        .review_no {
+            border-left: 3px solid #ed5565;
+        }
+
+        .autocomplete-group {
+            width: 100%;
+            overflow: auto;
+        }
+
+        .suggestion-org {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 170px;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+        .fa-check {
+            color: #1ab394
+        }
+
+        .for-padding {
+            padding: 15px 15px 0px 15px;
+        }
+
+        .selected {
+            cursor: not-allowed;
+            opacity: .65;
+            box-shadow: none;
+        }
+
+        #reviewer_list .autocomplete-suggestion {
+            cursor: default;
+        }
+
+        .click_remove {
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Conference', '#'), (page_title, url_for('conference.conferences_assignment_manual', conference_id=paper.conference.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title" id="accordion">
+                    <div class="row">
+                        <div class="text-center">
+                            <h3>{{ paper.id }} {{ paper.title }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <dl class="dl-horizontal">
+                                <dt>ID: </dt>
+                                <dd> {{ paper.id }}</dd>
+
+                                <dt>Submitted by:</dt>
+                                <dd> {{ paper.uploader.first_name }} {{ paper.uploader.last_name }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-lg-6">
+                            <dl class="dl-horizontal">
+                                <dt>Status:</dt>
+                                <dd>
+                                    {% if paper.status == "Under Review" %}
+                                        <span class="label label-warning">{{ paper.status }}</span>
+                                    {% elif paper.status == "Rejected" %}
+                                        <span class="label label-danger">{{ paper.status }}</span>
+                                    {% elif paper.status == "Accepted" %}
+                                        <span class="label label-primary">{{ paper.status }}</span>
+                                    {% else %}
+                                        <span class="label label-default">{{ paper.status }}</span>
+                                    {% endif %}
+                                </dd>
+
+                                <dt>Last Updated:</dt>
+                                <dd> {{ moment(paper.last_updated).format('MMMM Do YYYY, h:mm:ss a') }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <dl class="dl-horizontal for-padding">
+                            <dt>Author(s):</dt>
+                            {% for author in paper.authors %}
+                                <dd><a href="{{ url_for('main.user', id=author.id) }}">{{ author.first_name }} {{ author.last_name }}</a> - {{ author.organization }}</dd>
+                            {% endfor %}
+                        </dl>
+                    </div>
+                    <div class="row">
+                        <dl class="dl-horizontal for-padding">
+                            <dt>Abstract:</dt>
+                            <dd>
+                                {{ paper.abstract }}
+                            </dd>
+                            <dt>Keywords:</dt>
+                            <dd>
+                                {{ paper.keywords }}
+                            </dd>
+                            <dt>Conference:</dt>
+                            <dd>
+                                {{ paper.conference.name }}
+                            </dd>
+                            <dt>
+                                Files:
+                            </dt>
+                            <dd>
+                                {{ render_files_button(paper, paper.files) }}
+                            </dd>
+                            {% if not paper.track.default %}
+                                <dt>Track:</dt>
+                                <dd>
+                                    {{paper.track.name}}
+                                </dd>
+                            {% endif %}
+                            {% if paper.comment %}
+                                <dt>Comment:</dt>
+                                <dd>
+                                    {{ paper.comment }}
+                                </dd>
+                            {% endif %}
+                        </dl>
+                    </div>
+                    <div class="row for-padding">
+                        <div class="form-group">
+                            <h3>Assigned Reviewers</h3>
+                        </div>
+                    </div>
+                    <div class="row for-padding">
+                        <div id="reviewer_list">
+                            {% set conference = paper.conference %}
+                            {% for reviewer in paper.reviewers %}
+                            <div class="autocomplete-suggestion autocomplete-selected">
+                                <div class="pull-left">
+                                    <div class="suggestion-item" data-user-id="{{ reviewer.id }}">
+                                        <h4 class="name {% if paper.if_has_review(reviewer) %}text-info{% else %}text-warning{% endif %}">({{ reviewer.review_assignment_conference(conference) | length }}) {{ reviewer.full_name }}</h4>
+                                        <div class="suggestion-email"><i class="fa fa-envelope"></i> {{ reviewer.email }}</div>
+                                        <div class="suggestion-org"><i class="fa fa-institution"></i> {{ reviewer.organization }}</div>
+                                    </div>
+                                </div>
+                                <div class="status pull-right click_remove"><i class="fa fa-times"></i></div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="row for-padding">
+                        <div class="form-group">
+                            <h3>Select Reviewers</h3>
+                        </div>
+                    </div>
+                    <div class="row for-padding">
+                        <label for="reviewerSearch">The number before the name is the total assigned reviews.</label>
+                        <div class="form-group" style="margin-top: 5px;">
+                            <input id="reviewerSearch" type="text" name="review_name" data-paperid=""
+                                   placeholder="Name or organization of reviewer" class="form-control reviewer_autocomplete">
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label no-padding">Total Number of Assigned Reviews</label>
+
+                            <div class="col-sm-8">
+                                <label class="checkbox-inline"><input type="checkbox" value="all" id="number_all">
+                                    Unlimited
+                                </label>
+                                <label class="checkbox-inline"><input type="checkbox" value="number_0" id="number_0"
+                                                                      data-number="0" checked> 0 </label>
+                                <label class="checkbox-inline"> <input type="checkbox" value="number_1" id="number_1"
+                                                                       data-number="1" checked> 1 </label>
+                                <label class="checkbox-inline"> <input type="checkbox" value="number_2" id="number_2"
+                                                                       data-number="2" checked> 2 </label>
+                                <label class="checkbox-inline"> <input type="checkbox" value="number_3" id="number_3"
+                                                                       data-number="3" checked> 3 </label>
+                                <label class="checkbox-inline"> <input type="checkbox" value="number_4" id="number_4"
+                                                                       data-number="4" checked> >3 </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row for-padding">
+                        <div class="form-group">
+                            <label for="reviewerSearch">Cannot find reviewers in the list?</label> <a href="{{ url_for('conference.send_invitations', conference_id=paper.conference_id) }}" class="btn btn-xs btn-outline btn-primary">Invite PC</a>
+                        </div>
+                    </div>
+                    <div class="row for-padding" id="search_results"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="reviewer_container" style="display:none">
+    <div class="pull-left">
+        <div class="suggestion-item">
+            <h4 class="name"><strong></strong></h4>
+            <div class="suggestion-email"></div>
+            <div class="suggestion-org"></div>
+        </div>
+    </div>
+    <div class="status pull-right"></div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.reviewer_assignment.min.js') }}"></script>
+<script type="text/javascript">
+    function ajaxRemoveReviewer(paper_id, reviewer_id, el, reviewers_json) {
+        swal({
+                title: "Remove user from reviewers list",
+                text: el.find(".name").text() + " will be removed",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Remove",
+                // closeOnConfirm: false
+            }, function () {
+                $.ajax({
+                    url: "/api/papers/" + paper_id + "/reviewers/" + reviewer_id,
+                    type: "DELETE",
+                    success: function(data) {
+                        $('.reviewer_autocomplete').devbridgeAutocomplete().setOptions({'lookup': update_suggestions(reviewers_json, reviewer_id, false)});
+                        // remove element
+                        el.remove();
+                    }
+                }).fail(function (response) {
+                    console.log(response);
+                });
+            }
+        );
+    }
+
+    function ajaxAddReviewer(paper_id, reviewer_id, el, reviewers_json) {
+        $.ajax({
+            url: "/api/papers/" + paper_id + "/reviewers/",
+            type: "POST",
+            contentType: 'application/json;charset=UTF-8',
+            data: JSON.stringify({'user_id': reviewer_id}),
+            success: function (data) {
+                var new_reviewer_el = el.clone();
+                new_reviewer_el.children().last().addClass("click_remove").append("<i class=\"fa fa-times\"></i>");
+                // add text class
+                new_reviewer_el.find(".name").addClass(data.if_has_review?"text-info":"text-warning");
+                $("#reviewer_list").append(new_reviewer_el);
+                // update suggestions
+                $('.reviewer_autocomplete').devbridgeAutocomplete().setOptions({'lookup': update_suggestions(reviewers_json, reviewer_id, true)});
+                // add icon
+                el.children().last().append("<i class=\"fa fa-check fa-2x\"></i>");
+                // add class
+                el.addClass("selected");
+            }
+        });
+    }
+
+    function checkReviewAssignment(paper_id, reviewer_id, el, reviewers_json) {
+        var ajaxOptions = {
+            url: "/api/papers/" + paper_id + "/reviewers/" + reviewer_id,
+            type: "GET",
+            dataType: "TEXT",
+       };
+       // this is asynchronous and doesn't return anything
+       $.ajax(ajaxOptions).done(function (data) {
+           ajaxAddReviewer(paper_id, reviewer_id, el, reviewers_json);
+       }).fail(function (response) {
+           if (response.status === 400) {
+               if (response.responseText.indexOf("Author of this paper") !== -1) {
+                   swal({
+                       title: "Conflict of Interest",
+                       text: "Selected user is an author of this paper",
+                       type: "error",
+                       confirmButtonText: "Okay"
+                   });
+               } else if (response.responseText.indexOf("Reviewer of this paper") !== -1) {
+                   swal({
+                       title: "Error",
+                       text: "User you selected is already a reviewer of this paper",
+                       type: "error",
+                       confirmButtonText: "Okay"
+                   });
+               } else if (response.responseText.indexOf("Not allowed") !== -1) {
+                   swal({
+                       title: "Error",
+                       text: "You are not allowed",
+                       type: "error",
+                       confirmButtonText: "Okay"
+                   });
+               } else {
+                   swal({
+                           title: "Warning",
+                           text: response.responseText.slice(response.responseText.lastIndexOf(":")+3, -2),
+                           type: "warning",
+                           showCancelButton: true,
+                           confirmButtonColor: "#DD6B55",
+                           confirmButtonText: "Add anyway!",
+                           // closeOnConfirm: false
+                       }, function () {
+                           ajaxAddReviewer(paper_id, reviewer_id, el, reviewers_json);
+                       }
+                   );
+               }
+           }
+       });
+    }
+
+    function update_suggestions(suggestions, user_id, status) {
+        // status indicates boolean value of is_reviewer
+        for (var i=0; i < suggestions.length; i++) {
+            if (suggestions[i].data['id'] === user_id) {
+                suggestions[i].data['is_reviewer'] = status;
+                break;
+            }
+        }
+        return suggestions;
+    }
+
+    $(document).ready(function () {
+        var reviewers_json = {{reviewers_json|safe}};
+        var reviewFilter = new Set([0, 1, 2, 3, 4]);
+        $('.reviewer_autocomplete').devbridgeAutocomplete({
+            lookup: reviewers_json,
+            showNoSuggestionNotice: true,
+            noSuggestionNotice: "<div class=\"alert alert-danger\" role=\"alert\">No Result. Consider altering your filter or keyword or <a href=\"{{ url_for('conference.send_invitations', conference_id=paper.conference_id) }}\" class=\"btn btn-primary btn-sm\">Invite PC</a></div>",
+            lookupFilter: function (suggestion, originalQuery, queryLowerCase) {
+                // default selection
+                if (!originalQuery.length && reviewFilter.size === 5) {
+                    return true;
+                }
+                // name or organization
+                if (suggestion.data.name.toLowerCase().indexOf(queryLowerCase) !== -1 || suggestion.data.organization.toLowerCase().indexOf(queryLowerCase) !== -1 || !originalQuery.length) {
+                    return reviewFilter.has(suggestion.data.reviewed_count) || (suggestion.data.reviewed_count > 3 && reviewFilter.has(4))
+                }
+            },
+            groupBy: 'review_preference',
+            minChars: 0,
+            formatGroup: function (suggestion, category) {
+                if (category == 0) {
+                    var str = '<h3 class="text-success">Bidding Answer: Yes</h3>';
+                } else if (category == 1) {
+                    var str = '<h3 class="text-warning">Bidding Answer: Maybe</h3>';
+                } else if (category == 2) {
+                    var str = '<h3 class="text-danger">Bidding Answer: No</h3>';
+                } else {
+                    var str = "<h3>No paper bidding result, go to <a href=\"{{ url_for('conference.conference_review_setting', conference_id=paper.conference_id) }}\">Review Settings</a> to enable paper bidding</h3>";
+                }
+                return '<div class="autocomplete-group">' + str + '</div>';
+            },
+            appendTo: $('#search_results'),
+            beforeRender: function (container) {
+                $(container).css({"position": "relative", "width": "100%", "max-height": 'none', 'z-index': 2000});
+            },
+            formatResult: function (suggestion, currentValue) {
+                var template = $("#reviewer_container").clone();
+                template.find(".name").text("(" + suggestion.data.reviewed_count + ") " + suggestion.data.name);
+                template.find(".suggestion-item").attr("data-user-id", suggestion.data.id);
+                if (suggestion.data.is_reviewer) {
+                    template.find(".status").append("<i class=\"fa fa-check fa-2x\"></i>");
+                }
+                template.find(".suggestion-email").html('<i class="fa fa-envelope"></i> ' + suggestion.data.email);
+                if (suggestion.data.organization === null) {
+                    template.find(".suggestion-org").html('<i class="fa fa-institution"></i> ');
+                } else {
+                    template.find(".suggestion-org").html('<i class="fa fa-institution"></i> ' + suggestion.data.organization);
+                }
+                return template.html();
+            },
+            onSelect: function (suggestion) {
+                // console.log(this.selectedIndex);
+                var container = $(this)[0];
+                // console.log(suggestion);
+                $("#search_results").on("click", ".autocomplete-suggestion", function (e) {
+                    var el = $(this);
+                    if (!el.hasClass("selected")) {
+                        // ajax
+                        checkReviewAssignment({{paper.id}}, suggestion.data.id, el, reviewers_json);
+                    }
+                    $("#search_results").unbind("click");
+                });
+            }
+        });
+
+        $("#reviewer_list").on("click", ".click_remove", function(e) {
+            var el = $(this).parent();
+            ajaxRemoveReviewer({{paper.id}},
+                el.find(".suggestion-item").data("user-id"), el, reviewers_json);
+        });
+
+        $("#number_all").change(function () {
+            if ($(this).is(':checked')) {
+                reviewFilter = new Set([0, 1, 2, 3, 4]);
+                $("input[value^='number_']").each(function () {
+                    $(this).prop('disabled', true).prop('checked', true);
+                })
+            } else {
+                $("input[value^='number_']").each(function () {
+                    $(this).prop('disabled', false);
+                })
+            }
+            setTimeout(function () {
+                $('.reviewer_autocomplete').devbridgeAutocomplete().setOptions();
+            }, 100);
+        });
+
+        $("input[value^='number_']").change(function () {
+            if (!$("#number_all").is(':checked')) {
+                // $('#reviewerSearch').focusout();
+                if ($(this).is(':checked')) {
+                    reviewFilter.add($(this).data('number'));
+                } else {
+                    if (reviewFilter.size === 1) {
+                        $(this).prop('checked', true);
+                        swal({
+                            title: "Illegal Filter",
+                            text: "You should leave at least one filter of total number reviews.",
+                            type: "warning",
+                            confirmButtonText: "Okay"
+                        });
+                    } else {
+                        reviewFilter.delete($(this).data('number'));
+                    }
+                }
+                $('.reviewer_autocomplete').devbridgeAutocomplete().setOptions();
+            }
+        });
+    });
+</script>
+
+{% endblock %}

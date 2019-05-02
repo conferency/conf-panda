@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "member_menu" %}
+{% set active_second_subpage = "conference-member" %}
+{% set page_title = "Conference Members" %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/ladda/ladda-themeless.min.css') }}"
+          rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/cropper/cropper.css') }}" rel="stylesheet">
+    <style>
+        td {
+            display: table-cell;
+            vertical-align: middle !important;
+        }
+    </style>
+{% endblock %}
+
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.conferences_members', conference_id=current_user.curr_conf_id))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Added Members</h5>
+                    <div class="ibox-tools">
+                        <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#addMember">Add one member</button>
+                        <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#importExcel">Import members</button>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny"
+                           data-page-size="20">
+                        <thead>
+                        <tr>
+                            <th data-sort-ignore="true"></th>
+                            <th class="col-lg-3">Name</th>
+                            <th class="col-lg-3">Email</th>
+                            <th data-hide="phone" class="col-lg-3">Organization</th>
+                            <th class="col-lg-3">Role</th>
+                            <th class="hide" data-hide="all">Select Profile</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for member in members %}
+                            <tr>
+                                <td></td>
+                                <td>
+                                    <a class="text-info" href="{{ url_for('main.user', id=member.id) }}">
+                                        {{ member.full_name }}
+                                    </a>
+                                </td>
+                                <td>{{ member.email }}</td>
+                                <td>{{ member.organization }}</td>
+                                <td>
+                                    {% set role = member.get_conference_role(conference) %}
+                                    <select class="form-control role_select" name="role"
+                                            data-id="{{ member.id }}">
+                                        <option value="Chair" {% if  role.name == "Chair" %}selected{% endif %}>
+                                            Chair
+                                        </option>
+                                        <option value="PC"
+                                                {% if  role.name == "Program Committee" %}selected{% endif %}>
+                                            Program Committee
+                                        </option>
+                                        <option value="Author"
+                                                {% if role.name == "Author" %}selected{% endif %}>Author
+                                        </option>
+                                    </select>
+                                </td>
+                                <td class="hide">
+                                    <button type="button" class="btn btn-success btn-sm edit_profile" data-user-id="{{ member.id }}">Edit</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {{ macros.pagination_widget(pagination, 'conference.conferences_add_members', conference_id=conference.id, search_keyword=search_keyword, search_type=search_type, role=role) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal inmodal" id="addMember" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                </div>
+                <div class="modal-body">
+                    <form class="" method="post" id="new_member">
+                        <div class="form-group">
+                            <img data-height="64" data-width="64" data-font-size="20" data-font-weight="700" data-char-count="2" radius="2"
+                                class="img-circle img-md img-responsive center-block open-avatar-modal" id="new_member-avatar"
+                                src="https://dummyimage.com/64x64/74ebd1/ffffff.png&text=Click"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="first_name">First Name *</label>
+                            <input class="form-control required" id="first_name" name="first_name" placeholder="Required" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Last Name *</label>
+                            <input class="form-control required" id="last_name" name="last_name" placeholder="Required" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Email *</label>
+                            <input class="form-control required email" id="email" name="email" placeholder="Required" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Role *</label>
+                            <select class="form-control required" id="role" name="role">
+                                <option value="Author">Author</option>
+                                <option value="Chair">Chair</option>
+                                <option value="Program Committee">Program Committee</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="organization">Organization *</label>
+                            <input class="form-control required organization" id="organization" name="organization" placeholder="Please input the formal name of the affiliation without department, college, etc." type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="location">City *</label>
+                            <input class="form-control required" id="location" name="location" placeholder="Required" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="state">State/Province</label>
+                            <input class="form-control" id="state" name="state" placeholder="Optional" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="country">Country *</label>
+                            <select class="form-control required" name="country" id="country">
+                                {{ macros.generate_country_options()}}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="website">Website</label>
+                            <input class="form-control" id="website" name="website" placeholder="Optional" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="about_me">About me</label>
+                            <textarea class="form-control" id="about_me" name="about_me" placeholder="Optional" ></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save-new-member">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal inmodal fade" id="importExcel" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <p>Please download the excel template and fill members' information in it. Columns with * are required.</p>
+                        <a href="{{ url_for('static', filename='conferency/files/add_members.xlsx') }}" class="btn btn-primary btn-sm">Download excel file</a>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="search_keywords">Upload file</label>
+                        <input type="file" name="excel-file" id="excel-file" class="btn btn-default btn-sm" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                    </div>
+                    <div class="form-group">
+                        <p class="text-danger" id="file_errors"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                    <button type="button" class="ladda-button btn btn-primary" data-style="zoom-in" id="upload-excel">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal inmodal" id="editProfile" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Edit Profile</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="text-center">Member's public profile</h4>
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="text-center">Member's profile for this conference. <small>Can be edited by chairs of this conference.</small></h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <img data-name="" data-height="64" src="" data-width="64" data-font-size="20" data-font-weight="700" data-char-count="2" radius="2"
+                                    class="img-circle img-md img-responsive center-block" id="user_profile_pic"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="first_name">First Name *</label>
+                                <input class="form-control required" disabled value="" name="user_profile_first_name">
+                            </div>
+                            <div class="form-group">
+                                <label for="last_name">Last Name *</label>
+                                <input class="form-control required" disabled value="" name="user_profile_last_name">
+                            </div>
+                            <div class="form-group">
+                                <label for="organization">Organization *</label>
+                                <input class="form-control required" disabled value="" name="user_profile_organization">
+                            </div>
+                            <div class="form-group">
+                                <label for="location">City *</label>
+                                <input class="form-control required" disabled value="" name="user_profile_location">
+                            </div>
+                            <div class="form-group">
+                                <label for="state">State/Province</label>
+                                <input class="form-control required" disabled value="" name="user_profile_state">
+                            </div>
+                            <div class="form-group">
+                                <label for="country">Country *</label>
+                                <input class="form-control required" disabled value="" name="user_profile_country">
+                            </div>
+                            <div class="form-group">
+                                <label for="website">Website *</label>
+                                <input class="form-control required" disabled value="" name="user_profile_website">
+                            </div>
+                            <div class="form-group">
+                                <label for="about_me">About me</label>
+                                <textarea class="form-control required" disabled name="user_profile_about_me"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <form action="" id="editform" role="form" method="post">
+                                <input type="hidden" name="user_profile_user_id" id="user_profile_user_id" value="">
+                                <div class="form-group">
+                                    <img data-height="64" data-width="64" data-font-size="20" data-font-weight="700" data-char-count="2" radius="2"
+                                        class="img-circle img-md img-responsive center-block open-avatar-modal" id="profile_pic"/>
+                                </div>
+                                <div class="form-group">
+                                    <label for="first_name">First Name *</label>
+                                    <input class="form-control required" id="first_name" name="first_name" placeholder="Required" type="text" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="last_name">Last Name *</label>
+                                    <input class="form-control required" id="last_name" name="last_name" placeholder="Required" type="text" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="organization">Organization *</label>
+                                    <input class="form-control required organization" id="organization" name="organization" placeholder="Please input the formal name of the affiliation without department, college, etc." type="text" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="location">City *</label>
+                                    <input class="form-control required" id="location" name="location" placeholder="Required" type="text" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="state">State/Province</label>
+                                    <input class="form-control" id="state" name="state" placeholder="Optional" type="text" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="country">Country *</label>
+                                    <select class="form-control required" name="country" id="country">
+                                        {{ macros.generate_country_options()}}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="website">Website</label>
+                                    <input class="form-control" id="website" name="website" placeholder="Optional" type="text" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="about_me">About me</label>
+                                    <textarea class="form-control" id="about_me" name="about_me" placeholder="Optional" ></textarea>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="text-center">Choose one profile to display in schedule or other pages for this conference.</h4>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group text-center">
+                                <label><input type="radio" name="use_conference_profile" id="self" value="false"> Use this profile</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group text-center">
+                                <label><input type="radio" name="use_conference_profile" id="conference_profile" value="true"> Use this profile</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" type="submit" id="profile_update">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="upload_pic_modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" value="" name="avatar-operation" id="avatar-operation">
+                    <div style="form-group">
+                        <img id="profile_image" src="/static/avatar/default.png" style="max-width: 100%">
+                    </div>
+                    <div class="form-group m-t-md">
+                        <label title="Upload image file" for="inputImage" class="btn btn-default">
+                            <input type="file" accept="image/*" name="file" id="inputImage" class="hide">
+                            Upload new image
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save_profile_img">Save Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <!-- Image Cropper -->
+    <script src="{{ url_for('static', filename='conferency/inspinia/js/cropper/cropper.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/spin.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/ladda.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/ladda.jquery.min.js') }}"></script>
+
+    <script type="text/javascript">
+        function get_cropper() {
+            $("#profile_image").cropper({
+                aspectRatio: 1,
+            });
+            return $("#profile_image");
+        }
+
+        function avatar_data64(element) {
+            var cropped_canvas = element.cropper("getCroppedCanvas", {
+                width: 320,
+                height: 320
+            });
+            return cropped_canvas.toDataURL('image/png');
+        }
+
+        function render_modal(data, modal) {
+            modal.find("input, textarea").not("[type=radio]").val("");
+            if (data.avatar) {
+                modal.find("#user_profile_pic").attr("src", data.avatar + "?" + Math.random());
+            } else {
+                modal.find("#user_profile_pic").data("name", data.first_name[0] + data.last_name[0]);
+                modal.find("#user_profile_pic").initial();
+            }
+            modal.find("[name='user_profile_user_id']").val(data.id);
+            modal.find("[name='user_profile_first_name']").val(data.first_name);
+            modal.find("[name='user_profile_last_name']").val(data.last_name);
+            modal.find("[name='user_profile_organization']").val(data.organization);
+            modal.find("[name='user_profile_location']").val(data.city);
+            modal.find("[name='user_profile_state']").val(data.state);
+            modal.find("[name='user_profile_country']").val(data.country);
+            modal.find("[name='user_profile_website']").val(data.website);
+            modal.find("[name='user_profile_about_me']").val(data.about_me);
+            if (Object.keys(data.conference_profile).length > 0) {
+                modal.find("#first_name").val(data.conference_profile.first_name);
+                modal.find("#last_name").val(data.conference_profile.last_name);
+                modal.find("#organization").val(data.conference_profile.organization);
+                modal.find("#location").val(data.conference_profile.location);
+                modal.find("#state").val(data.conference_profile.state);
+                modal.find("#country").val(data.conference_profile.country);
+                modal.find("#website").val(data.conference_profile.website);
+                modal.find("#about_me").val(data.conference_profile.about_me);
+                modal.find("input[name=use_conference_profile][value="+data.conference_profile.use_conference_profile.toString()+"]").prop("checked", true);
+                if (data.conference_profile.avatar) {
+                    modal.find("#profile_pic").attr("src", data.conference_profile.avatar + "?" + Math.random());
+                } else {
+                    modal.find("#profile_pic").data("name", data.conference_profile.first_name[0] + data.conference_profile.last_name[0]);
+                    modal.find("#profile_pic").initial();
+                }
+            } else {
+                modal.find("#first_name").val(data.first_name);
+                modal.find("#last_name").val(data.last_name);
+                modal.find("#organization").val(data.organization);
+                modal.find("#location").val(data.city);
+                modal.find("#state").val(data.state);
+                modal.find("#website").val(data.website);
+                modal.find("#about_me").val(data.about_me);
+                modal.find("input[name=use_conference_profile][value=false]").prop("checked", true);
+                if (data.country) {
+                    modal.find("#country").val(data.country);
+                } else {
+                    modal.find("#country").val("United States");
+                }
+                if (data.avatar) {
+                    modal.find("#profile_pic").attr("src", data.avatar + "?" + Math.random());
+                } else {
+                    // modal.find("#profile_pic").data("name", data.first_name[0] + data.last_name[0]);
+                    modal.find("#profile_pic").attr("src", "https://dummyimage.com/64x64/74ebd1/ffffff.png&text=Click");
+                }
+            }
+        }
+
+        function change_conference_role_ajax(conference_id, user_id, new_role) {
+            $.ajax({
+                url: '/api/conferences/' + conference_id + '/users/' + user_id + '/roles/' + new_role,
+            }).done(function () {
+                swal({
+                    title: 'Role is updated to ' + new_role + '!',
+                    type: "success",
+                    timer: 3000,
+                    showConfirmButton: true
+                });
+                return true;
+            }).fail(function (r) {
+                // select current role if operation failed
+                // $('#role_select').val(current_role).trigger('chosen:updated');
+                swal({title: r.responseText, type: 'error', timer: 3000, showConfirmButton: true});
+                return false;
+            });
+        }
+
+        function xhrHelper(method, url, data) {
+            var XHR = new XMLHttpRequest();
+            var form_data  = new FormData();
+            // Push our data into our FormData object
+            for(name in data) {
+              form_data.append(name, data[name]);
+            }
+            var upload_button = $("#upload-excel").ladda();
+
+            XHR.onreadystatechange = function()
+            {
+                if (XHR.readyState == 4 && XHR.status == 201)
+                {
+                    upload_button.ladda("stop");
+                    $("#importExcel").modal("hide");
+                    if (XHR.response !== "Success") {
+                        var text = "You can find them in members page.\n";
+                        var response_json = JSON.parse(XHR.response);
+                        for(var member_email in response_json) {
+                            text += (response_json[member_email] + " <" + member_email + ">\n");
+                        }
+                        swal(
+                            {
+                                title: "Some members in the excel have already joined the conference",
+                                text: text,
+                                type: "info",
+                                showCancelButton: false,
+                                confirmButtonText: "Yes, I got it",
+                                closeOnConfirm: true,
+                            },
+                            function (isConfirm) {
+                                window.location.reload();
+                            }
+                        );
+                    } else {
+                        window.location.reload();
+                    }
+                } else if (XHR.readyState == 4 && XHR.status != 200) {
+                    upload_button.ladda("stop");
+                    $("#file_errors").html("Lines: " + XHR.responseText + " contain errors.");
+                }
+            };
+            XHR.open(method, url);
+            XHR.send(form_data);
+            upload_button.ladda("start");
+        }
+
+        $(document).ready(function() {
+            $("#new_member").validate();
+            $("#editform").validate();
+            $('.footable').footable({});
+
+            $("#importExcel").on('hide.bs.modal', function (event) {
+                document.getElementById("excel-file").value= "";
+                $("#file_errors").html("");
+            });
+
+            $("#upload-excel").click(function(event) {
+                xhrHelper("POST", "{{url_for('conference.conferences_add_members', conference_id=conference.id)}}", {
+                    "file": document.getElementById("excel-file").files[0],
+                    "type": "excel"
+                })
+            });
+
+            $("#save-new-member").click(function(event) {
+                event.preventDefault();
+                if ($("#new_member").valid()) {
+                    var new_member = {"type": "form"};
+                    $("#new_member").serializeArray().map(function(x){new_member[x.name] = x.value;});
+                    if (document.getElementById("new_member-avatar").src.startsWith("data:")) {
+                        new_member["avatar"] = document.getElementById("new_member-avatar").src;
+                    }
+                    xhrHelper("POST", "{{url_for('conference.conferences_add_members', conference_id=conference.id)}}", new_member);
+                }
+            });
+
+            $('.role_select').change(function () {
+                // console.log($(this).val());
+                change_conference_role_ajax({{conference.id}}, $(this).data("id"), $(this).val());
+            });
+
+            var profile_json;
+            $(".edit_profile").click(function (event) {
+                var user_id = $(this).data("user-id");
+                $.ajax({
+                    type: "GET",
+                    url: "/api/conferences/{{conference.id}}/users/" + user_id,
+                }).success(function (response) {
+                    profile_json = response;
+                    $("#editProfile").modal("show");
+                }).fail(function (r) {
+                    profile_json = null;
+                });
+            });
+
+            $("#editProfile").on("show.bs.modal", function (event) {
+                render_modal(profile_json, $(this));
+            });
+
+            $("#addMember").on("show.bs.modal", function (event) {
+                $("#avatar-operation").val("new_member");
+            });
+
+            $("#addMember").on("hidden.bs.modal", function (event) {
+                $("#avatar-operation").val("");
+            });
+
+            $("#profile_update").click(function (event) {
+                event.preventDefault();
+                if ($("#editform").valid() || ($("input[name=use_conference_profile]:checked").val() === "false")) {
+                    var conference_profile = {
+                        'use_conference_profile': ($("input[name=use_conference_profile]:checked").val() === "true"),
+                        'first_name': $("#first_name").val(),
+                        'last_name': $("#last_name").val(),
+                        'organization': $("#organization").val(),
+                        'location': $("#location").val(),
+                        'state': $("#state").val(),
+                        'country': $("#country").val(),
+                        'website': $("#website").val(),
+                        'about_me': $("#about_me").val()
+                    };
+                    $.ajax({
+                        type: "PUT",
+                        url: "/api/conferences/{{conference.id}}/users/" + $("#user_profile_user_id").val(),
+                        contentType: "application/json",
+                        data: JSON.stringify(conference_profile),
+                        success: function (response) {
+                            swal({  title: "Saved", type: "success", timer: 1000, showConfirmButton: false});
+                            $("label.error").remove();
+                            $("input.error").removeClass("error");
+                            $("#editProfile").modal("hide");
+                        }
+                    });
+                }
+            });
+
+            $(".open-avatar-modal").click(function (event) {
+                // show modal
+                $("#upload_pic_modal").modal("show");
+            });
+
+            $("body").on('hidden.bs.modal', function () {
+                if ($('.modal.in').length > 0)
+                {
+                    $('body').addClass('modal-open');
+                }
+            });
+
+            var inputImage = $("#inputImage");
+            if (window.FileReader) {
+                inputImage.change(function() {
+                    var fileReader = new FileReader(),
+                        files = this.files,
+                        file;
+                    if (!files.length) {
+                        return;
+                    }
+                    file = files[0];
+                    if (/^image\/\w+$/.test(file.type)) {
+                        fileReader.readAsDataURL(file);
+                        fileReader.onload = function () {
+                            inputImage.val("");
+                            // document.getElementById("image").setAttribute('src', this.result);
+                            get_cropper().cropper("reset", true).cropper("replace", this.result);
+                        };
+                    } else {
+                        showMessage("Please choose an image file.");
+                    }
+                });
+            } else {
+                inputImage.addClass("hide");
+            }
+
+            document.getElementById("save_profile_img").addEventListener("click", function(event) {
+                var new_url = avatar_data64($("#profile_image"));
+                if($("#avatar-operation").val() == "new_member") {
+                    document.getElementById("new_member-avatar").src = new_url;
+                    $("#upload_pic_modal").modal("hide");
+                } else {
+                    $.ajax({
+                        type: "PUT",
+                        contentType: "application/json",
+                        data: JSON.stringify({dataUrl: new_url}),
+                        url: "/api/conferences/{{conference.id}}/users/" + $("#user_profile_user_id").val() + "/img",
+                        success: function () {
+                            document.getElementById("profile_pic").src = new_url;
+                            $("#profile_image").cropper("destroy");
+                            swal({
+                                title: "Updated!",
+                                text: "Avatar has been updated.",
+                                type: "success",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            $("#upload_pic_modal").modal("hide");
+                        }
+                    })
+                        .fail(function (data, textStatus, error) {
+                            swal({
+                                title: "Oops...",
+                                text: "Update failed. We are very sorry. Please contact the customer service.",
+                                type: "error",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        });
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "auth/base_auth.html" %}
+
+{% block title %}Conferency | Confirm your accont{% endblock %}
+
+{% block main_form %}
+	<h3>Welcome, {{ email }}. You are invited to join Conferency as a {% if role == 'Administrator' %}Chair{% else %}{{ role }}{% endif %}</h3>
+	<h3>Do you really want to decline the invitation?</h3>
+	<div class="col-md-4">
+	    <form role="form" method="post">
+			<input class="btn btn-danger" id="submit" name="submit" type="submit" value="Decline">
+	    </form>
+	</div>
+{% endblock %}

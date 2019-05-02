@@ -1,0 +1,85 @@
+{% extends "auth/base_auth.html" %}
+
+{% block title %}Conferency | Sign Up{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='conferency/css/login.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+{% block main_form %}
+    <div class="form">
+        <h3>Welcome. You are invited to join <a href="{{ url_for('main.conf_index', conf_name=conference.short_name) }}"><b>{{ conference.name }}</b></a>
+            as <b>{{ role }}</b>{% if not track.default %} of {{ track.name }}{% endif %}, please create your account.
+        </h3>
+        <form class="m-t" role="form" method="post">
+            {{ form.hidden_tag() }}
+            <div class="form-group ">
+                <input class="form-control" name="email" id="email" readonly type="text" value="{{ email }}">
+            </div>
+            {{ macros.render_field(form.firstname, "First Name") }}
+            {{ macros.render_field(form.lastname, "Last Name") }}
+            {{ macros.render_field(form.password, "Password at least 8 characters") }}
+            {{ macros.render_field(form.password2, "Confirm Password") }}
+            {{ macros.render_field(form.organization, "Organization") }}
+            {{ macros.render_field(form.location, "City") }}
+            {{ macros.render_field(form.state, "State/Province") }}
+            <div class="form-group">
+                <select class="form-control" id="country" name="country" placeholder="">
+                    {{ macros.generate_country_options() }}
+                </select>
+            </div>
+            <div class="form-group">
+                <textarea class="form-control" name="note" rows="5" placeholder="Optional message to the inviter"></textarea>
+            </div>
+            {{ form.submit(class="btn btn-primary block full-width m-b") }}
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Autocomplete -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+
+    <script>
+        function setUpAutocomplete(selector, data) {
+            $(selector).devbridgeAutocomplete({
+                lookup: data,
+                lookupLimit: 10,
+            });
+        }
+
+        // function country_option(selector, data) {
+        //     $.each(data, function (index, value) {
+        //         if (value.value !== 'United States') {
+        //             $(selector).append("<option value='" + value.data + "'>" + value.value + "</option>");
+        //         } else {
+        //             $(selector).append("<option value='" + value.data + "' selected>" + value.value + "</option>");
+        //         }
+        //     })
+        // }
+
+        $(document).ready(function () {
+
+            var countries = [], all_univ_names = [];
+            //var country_list = [];
+
+            $.getJSON("{{ url_for('static', filename='json/affiliations.json')}}", function (data) {
+                all_univ_names = data;
+                setUpAutocomplete('#organization', data);
+            });
+
+            // $.getJSON("{{ url_for('static', filename='json/countries.json')}}", function (data) {
+            //     countries = data;
+            //     country_option($('select[id="country"]'), data);
+            // });
+
+
+        }); //end of ready
+
+
+    </script>
+
+{% endblock %}

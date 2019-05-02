@@ -1,0 +1,76 @@
+{% extends "conference/conference_report_detail_base.html" %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        FooTable.FilterByRegistration = FooTable.Filtering.extend({
+            construct: function (instance) {
+                this._super(instance);
+                this.statuses = ["Registered", "Unsure", "Unregistered"];
+                this.options = ["Registered", "Maybe Registered", "Not Registered"];
+                this.def = "Any Registration Status";
+                this.$status = null;
+            },
+            $create: function () {
+                this._super();
+                var self = this,
+                    $form_grp = $("<div/>", {"class": "form-group"})
+                        .append($("<label/>", {"class": "sr-only", text: "Registration Status"}))
+                        .prependTo(self.$form);
+
+                self.$status = $("<select/>", {"class": "form-control"})
+                    .on("change", {self: self}, self._onStatusDropdownChanged)
+                    .append($("<option/>", {text: self.def}))
+                    .appendTo($form_grp);
+
+                $.each(self.statuses, function (i, status) {
+                    self.$status.append($("<option/>").text(self.options[i]).val(status));
+                });
+            },
+            _onStatusDropdownChanged: function (e) {
+                var self = e.data.self,
+                    selected = $(this).val();
+                if (selected !== self.def) {
+                    self.addFilter("Registration Status", new FooTable.Query(selected, "AND", true, false), ["Registration Status"]);
+                } else {
+                    self.removeFilter("Registration Status");
+                }
+                self.filter();
+            },
+            draw: function () {
+                this._super();
+                var status = this.find("Registration Status");
+                if (status instanceof FooTable.Filter) {
+                    this.$status.val(status.query.val());
+                } else {
+                    this.$status.val(this.def);
+                }
+            }
+        });
+        FooTable.components.register("filtering", FooTable.FilterByRegistration);
+
+        $(document).ready(function () {
+            $(".footable").footable({
+                "columns": [
+                    {"name": "empty", "title": "", "filterable": false},
+                    {"name": "Full Name", "title": "Full Name"},
+                    {"name": "Affiliation", "title": "Affiliation"},
+                    {"name": "Email", "title": "Email"},
+                    {"name": "Country", "title": "Country"},
+                    {"name": "Registration Status", "title": "Registration Status", "filterable": false},
+                    {"name": "Paper ID", "title": "Paper ID", "breakpoints": "all"},
+                    {"name": "Paper Title", "title": "Paper Title", "breakpoints": "all"},
+                    {"name": "Paper Status", "title": "Paper Status", "breakpoints": "all"}
+                ],
+                "rows": $.get("{{ url_for('api.get_report_author', conference_id=conference.id) }}"),
+                "paging": {
+                    "enabled": true,
+                    "size": 10
+                },
+                "filtering": {
+                    "enabled": true
+                }
+            });
+        });
+    </script>
+{% endblock %}

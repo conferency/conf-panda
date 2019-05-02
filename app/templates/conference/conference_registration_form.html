@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceRegistration" %}
+{% set active_subpage = "set_registration_form" %}
+{% set page_title = "Registration Form" %}
+
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Registration', '#'), (page_title, url_for('conference.set_registration_form', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/switchery/switchery.css') }}" rel="stylesheet">
+    <style>
+		.panel-heading h5 {
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 0 7px;
+            padding: 0;
+            text-overflow: ellipsis;
+            float: left;
+        }
+        .padding-bottom-5 {
+            padding-bottom: 5px;
+        }
+        @media (min-width: 1050px) {
+            .para-button-align {
+                display: inline-block; margin-bottom:0px;
+            }
+            .button-para-align {
+                position:relative;top: -25px;
+            }
+        }
+        @media (max-width: 1050px) {
+            .para-button-align {
+                display: block;
+            }
+            .button-para-align {
+                display: inline-block;
+            }
+            .div-button-align {
+                display: table;
+                padding-right: 15px;
+                padding-left: 15px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="wrapper animated fadeInRight">
+        <div class="row">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    {% if endpoint == 'add_registration_form_questions' %}
+                        <li class=""><a href="{{ url_for('conference.set_registration_form', conference_id=conference.id) }}"><h3>Registration Form</h3></a></li>
+                        <li class="active"><a data-toggle="tab" href="#tab-2"><h3>Custom Questions</h3></a></li>
+                    {% elif endpoint =='set_registration_form' %}
+                        <li class="active"><a data-toggle="tab" href="#tab-1"><h3>Registration Form</h3></a></li>
+                        <li class=""><a href="{{ url_for('conference.add_registration_form_questions', conference_id=conference.id) }}"><h3>Custom Questions</h3></a></li>
+                    {% else %}
+                        <li class=""><a href="{{ url_for('conference.set_registration_form', conference_id=conference.id) }}"><h3>Registration Form</h3></a></li>
+                        <li class=""><a href="{{ url_for('conference.add_registration_form_questions', conference_id=conference.id) }}"><h3>Custom Questions</h3></a></li>
+                    {% endif %}
+                        <li class="pull-right">
+                            <input class="btn btn-primary" type="button" onclick="window.open('{{ url_for('main.registration_preview', conf_name=conference.short_name) }}')" value="Preview" />
+                        </li>
+                </ul>
+                <div class="tab-content">
+                    <div id="tab-1" class="tab-pane {% if endpoint == 'set_registration_form' %}active{% endif %}">
+                        <div class="panel-body">
+                            <div class="col-md-12 row">
+                                <p>Choose the questions you want to include in the registration form</p>
+                                <div class="hr-line-dashed"></div>
+                                <div class="questions col-md-8 col-md-offset-2">
+                                    <div class="form-group" >
+                                        <div class="input-group col-md-11">
+                                                <div class="col-md-8">
+
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label for="">Include</label>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label for="">Require</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" >
+                                            <div class="input-group col-md-11">
+                                                <div class="col-md-8">
+                                                    <label for="">Attendee's first name</label>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" >
+                                            <div class="input-group col-md-11">
+                                                <div class="col-md-8">
+                                                    <label for="">Attendee's last name</label>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" >
+                                            <div class="input-group col-md-11">
+                                                <div class="col-md-8">
+                                                    <label for="">Attendee's email</label>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" >
+                                            <div class="input-group col-md-11">
+                                                <div class="col-md-8">
+                                                    <label for="">Affiliation</label>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- use for to render the questions -->
+                                        {% for question in conference.registration.configuration['questions'] %}
+                                            <div class="form-group" >
+                                                <div class="input-group col-md-11 form-question conf" data-question-index="{{  question['id'] }}" data-question-type="{{ question['ques_type'] }}" data-question-options="{{ question['options'] }}" private="false">
+                                                    <div class="col-md-8">
+                                                        <label for="{{  question['id'] }}">{{ question['desc'] }}</label>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <input type="checkbox" id="{{  question['id'] }}_include" class="switch-button include" {% if question.get('include', false) %}checked{% endif %}/>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <input type="checkbox" id="{{  question['id'] }}_require" class="switch-button require" {% if question.get('require', false) %}checked{% endif %}/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                        {% for id, question in conference.registration.private_question.items() if question['deleted'] != True %}
+                                            <div class="form-group">
+                                                <div class="input-group col-md-11 form-question" data-question-index="{{ id }}" data-question-type="{{question['ques_type']}}" data-question-options="{% if question['ques_type'] < 2 %}{{ question['options'] }}{% else %}[]{% endif %}" private="true">
+                                                    <div class="col-md-8">
+                                                        <label for="{{  id }}">{{ question['desc'] }}</label>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <input type="checkbox" id="{{  id }}_include" class="switch-button include" {% if question['include'] %}checked{% endif %}/>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <input type="checkbox" id="{{  id }}_require" class="switch-button require" {% if question['require'] %}checked{% endif %}/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                        <div class="form-group">
+                                            <div class="input-group col-md-11 col-sm-12 left-padding-15">
+                                                <a class="btn btn-primary" href="{{ url_for('conference.add_registration_form_questions', conference_id=conference.id) }}">Add Custom Questions</a>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-group col-md-11 col-sm-12 left-padding-15">
+                                                <label for="abstract">Message shown at the top of the form</label>
+                                                <textarea class="form-control" id="instruction" name="instruction" placeholder="Optional" style="overflow: hidden; word-wrap: break-word; resize: horizontal; height: 100px; width: 95%" aria-required="true">{{ conference.registration.configuration_setting['instruction'] }}</textarea>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="form-group">
+                                            <div class="input-group col-md-9 col-sm-12 col-md-offset-1 left-padding-15">
+                                                <label for="abstract">Abstract *</label>
+                                                <textarea class="form-control required" id="abstract" name="abstract" placeholder="Paper Abstract" style="overflow: hidden; word-wrap: break-word; resize: horizontal; height: 74px;" aria-required="true"></textarea>
+                                            </div>
+                                        </div> -->
+                                        <div class="form-group">
+                                            <button id="save-button" class="btn btn-primary center-block" style="">Save</button>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab-2" class="tab-pane {% if endpoint == 'add_registration_form_questions' %}active{% endif %}">
+                        <div class="panel-body">
+                            <div class="col-md-12 row">
+                            	<p>Add or Update custom questions in the registration form.</p>
+                                <div class="hr-line-dashed"></div>
+                                <form id="questions-edit">
+                                    <div class="ibox">
+                                        <div id="ques_list" class="questions col-xs-12 col-md-8">
+                                            {{ macros.render_customized_questions(conference.registration.private_question) }}
+                                            <div class="form-group">
+                                                <p class="text-center">Click the buttons on the right to create questions</p>
+                                                <button id="questions-submit" class="btn btn-primary center-block">Save Questions</button>
+                                            </div>
+                                        </div>
+                                        <div class="question-types col-xs-6 col-xs-offset-3 col-md-3 col-md-offset-1">
+                                            <ul class="nav nav-stacked">
+                                              <li>
+                                                <button class="btn btn-warning btn-block" onclick="return add_question(0)">Single Choice</button>
+                                              </li>
+                                              <li>
+                                                <button class="btn btn-info btn-block" onclick="return add_question(1)">Multiple Choice</button>
+                                              </li>
+                                              <li>
+                                              <button class="btn btn-primary btn-block" onclick="return add_question(2)">Single-line Textbox</button>
+                                              </li>
+                                              <li>
+                                                <button class="btn btn-success btn-block" onclick="return add_question(3)">Essay Textbox</button>
+                                              </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </form>
+            				</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- Switchery -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/switchery/switchery.js') }}"></script>
+    <!-- custom question -->
+    <script src="{{ url_for('static', filename='conferency/js/custom_question.js') }}" type="text/javascript"></script>
+    <script>
+        $(document).ready(function () {
+            // tooltip in the modal
+            $('#tips').tooltip();
+            // initialize switchery  javascript
+            var elems = Array.prototype.slice.call(document.querySelectorAll('.switch-button'));
+            elems.forEach(function(elem) {
+                if (elem.getAttribute("name") === "disabled") {
+                    var switchery = new Switchery(elem, { color: '#1AB394', size: 'large', disabled: true });
+                } else {
+                    var switchery = new Switchery(elem, { color: '#1AB394', size: 'large' });
+                }
+            });
+            //tooltip in the default questions in the registration form
+            $("[name='disabled']").mouseover(function () {
+                $(this).tooltip({title:"It can not be changed"});
+                $(this).tooltip("show");
+            });
+            // validate form
+            $('#questions-edit').validate();
+            $('#questions-submit').click(function(event) {
+                event.preventDefault();
+                if ($("#questions-edit").valid()) {
+                    var last_question =- 1;
+                    var review_questions = [];
+                    // get new ques_id
+                    while(document.getElementById("ques_"+(last_question+1)+".div") !=null) last_question++;
+                    if (last_question>-1) {
+                        var last_question_elem = document.getElementById("ques_"+last_question+".div");
+                        while (last_question >= 0) {
+                            if (document.getElementById("new_"+last_question+".delete")) {
+                                document.getElementById("new_"+last_question+".delete").removeAttribute('id');
+                            }
+                            var review_question = {
+                                'ques_type': document.getElementById("ques_"+last_question+".type").value,
+                                'require': JSON.parse(document.getElementById("ques_"+last_question+".type").getAttribute("data-reuqire")),
+                                'include': JSON.parse(document.getElementById("ques_"+last_question+".type").getAttribute("data-include")),
+                                'desc': document.getElementById("ques_"+last_question+".description").value,
+                                'uuid': $('[data-question-id=' + last_question + ']').attr("name"),
+                                'numid': last_question
+                            };
+                            // get question info
+                            if (review_question["ques_type"]<2) {
+                                var option_count = 0;
+                                var options = [];
+                                var current_option = document.getElementById("ques_"+last_question+".option_"+option_count);
+                                // handle select without options
+                                while(current_option!=null){
+                                    options.push(current_option.value);
+                                    option_count++;
+                                    for (var i=0; i<option_count-1; i++) {
+                                        if (options[i] === current_option.value) {
+                                            var same_a=document.getElementById("ques_"+last_question+".option_"+i);
+                                            var same_b=document.getElementById("ques_"+last_question+".option_"+(option_count-1));
+                                            same_a.className += " error";
+                                            same_b.className += " error";
+                                            if (! document.getElementById("ques_"+last_question+".same_error")) {
+                                                var error_label = document.createElement("label");
+                                                error_label.setAttribute('id', "ques_" + last_question + ".same_error");
+                                                error_label.setAttribute('class', "error");
+                                                var error_words = document.createTextNode("There are two same options");
+                                                error_label.appendChild(error_words);
+                                                same_b.parentNode.appendChild(error_label);
+                                            }
+                                            return;
+                                        }
+                                    }
+                                    current_option=document.getElementById("ques_"+last_question+".option_"+option_count);
+                                }
+                                review_question["options"] = options;
+                                if (document.getElementById("ques_"+last_question+".same_error")) {
+                                    document.getElementById("ques_"+last_question+".same_error").remove();
+                                }
+                            }
+                            review_questions.push(review_question);
+                            last_question--;
+                            last_question_elem = document.getElementById("ques_"+last_question+".div");
+                        }
+                    } else {
+                        // no customized question
+                        review_questions.push({});
+                    }
+                    // console.log(review_questions);
+                    $.ajax({
+                        type: "PUT",
+                        url: "{{ url_for('api.update_registration_question', conference_id=conference.id) }}",
+                        contentType: "application/json",
+                        data: JSON.stringify(review_questions),
+                        success: function (response) {
+                            $.each(response, function(key, value) {
+                                $('[data-question-id="' + key + '"]').attr("name", value);
+                            });
+                            swal({title: "Updated!", text: "Custom questions has been updated.", type: "success", timer: 2000,   showConfirmButton: false});
+                        }
+                    })
+                        .fail(function(data, textStatus, error) {
+                            // console.log(data);
+                            swal({title: "Oops...", text: "Update failed. We are very sorry. Please contact the customer service.", type: "error", timer: 2000,   showConfirmButton: false});
+                    });
+                }
+            });
+
+            $('#save-button').click(function() {
+                var questions = [];
+                $('.form-question').each(function() {
+                    // console.log($(this).find('.include')[0].checked);
+                    // if ($(this).find('.include')[0].checked || $(this).find('.require')[0].checked) {
+                        var question = {
+                            'id': $(this).data('question-index'),
+                            'private': $(this).attr('private'),
+                            'desc': desc = $(this).find('label').text(),
+                            'include': $(this).find('.include')[0].checked,
+                            'require': $(this).find('.require')[0].checked,
+                            'ques_type': $(this).data('question-type'),
+                            'options': option_convert($(this).data('question-options'))
+                        };
+                        // console.log(question);
+                        questions.push(question);
+                    // }
+                });
+                var registration_update = {
+                    'configuration_setting': {
+                        'questions': questions,
+                        'instruction': $('#instruction').val()
+                    }
+                };
+                // console.log(registration_update);
+                // console.log(JSON.stringify(registration_update));
+                $.ajax({
+                    type: "PUT",
+                    url: "{{ url_for('api.update_registration', conference_id=conference.id) }}",
+                    contentType: "application/json",
+                    data: JSON.stringify(registration_update),
+                    success: function (response) {
+                        swal({title: "Success!", type: "success", timer: 2000, showConfirmButton: false});
+                        // console.log(response);
+                    }
+                })
+                    .fail(function(data, textStatus, error) {
+                                        // console.log(data);
+                                        // console.log(textStatus);
+                                        // console.log(error);
+                    });
+            });
+
+            var question_type_initial_absolute_height = 280;
+            var question_type_initial_relative_height = 64;
+            $(window).scroll(function() {
+                if($(window).width() > 768) {
+                    var scroll = $(window).scrollTop();
+                    if(scroll > question_type_initial_absolute_height) {
+                        var height = scroll - question_type_initial_absolute_height + question_type_initial_relative_height;
+                        $('.question-types').css("top", height + "px")
+                    }else{
+                        $('.question-types').css("top", "0")
+                    }
+            }});
+        });
+    </script>
+{% endblock %}

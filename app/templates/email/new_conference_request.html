@@ -1,0 +1,43 @@
+{% extends "/email/email_base.html" %}
+
+{% block page_content %}
+<tbody>
+    <tr>
+        <td style="font-family: Helvetica, arial, sans-serif; font-size: 14px; color: #95a5a6; text-align:left;line-height: 30px;" st-content="fulltext-paragraph">
+            <a href="{{url_for('main.user', id=conference.requester_id, _external=True)}}" target="_blank">{{ conference.requester.first_name }} {{ conference.requester.last_name }}</a> has requested a new conference "{{ conference.name }}".<br>
+            Conference name: {{ conference.name }}<br>
+            Conference short name: {{ conference.short_name }}<br>
+            Website: {{ conference.website }}<br>
+            Contact Email: {{ conference.contact_email }}<br>
+            Contact Phone Number: {{ conference.contact_phone }}<br>
+            City: {{ conference.city }}<br>
+            State/Province: {{ conference.state }}<br>
+            Country: {{ conference.country }}<br>
+            Venue: {{ conference.address }}<br>
+            Start date and end date: {{ conference.start_date | string }} - {{ conference.end_date | string }}<br>
+            Subjects: {{ conference.subjects }}<br>
+            Tags: {{ conference.tags }}<br>
+            Conference information: <br>{{ conference.info }}<br>
+        </td>
+    </tr>
+    <tr>
+        <td width="100%" height="10"></td>
+    </tr>
+    <tr>
+        <td>
+            <table height="36" align="center" valign="middle" border="0" cellpadding="0" cellspacing="0" class="tablet-button" st-button="edit">
+                <tbody>
+                    <tr>
+                        <td width="auto" align="center" valign="middle" height="36" style=" background-color:#1AB394; border-top-left-radius:4px; border-bottom-left-radius:4px;border-top-right-radius:4px; border-bottom-right-radius:4px; background-clip: padding-box;font-size:14px; font-family:Helvetica, arial, sans-serif; text-align:center;  color:#ffffff; font-weight: 300; padding-left:25px; padding-right:25px;">
+                            <span style="color: #ffffff; font-weight: 300;">
+                                <a style="color: #ffffff; text-align:center;text-decoration: none;" href="{{ url_for('conf_admin.admin_requests', _external=True) }}">Check pending requests</a>
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    <!-- End of content -->
+</tbody>
+{% endblock %}

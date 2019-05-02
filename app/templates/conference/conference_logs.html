@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "logs" %}
+{% set page_title = "Logs" %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.logs', conference_id=conference_id))]) }}
+{% endblock %}
+
+{% block page_content %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-content">
+                        <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny" data-page-size="20">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th data-type="numeric" class="col-md-2">Time</th>
+                                    <th class="col-md-8">Event</th>
+                                    <th class="col-md-2">Member</th>
+                                    <th data-hide="all">Detail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                    <tr>
+                                        <td></td>
+                                        <td>{{ log.timestamp.strftime('%x %X') }}</td>
+                                        <td>{{ log.event['subject'] | safe }}</td>
+                                        <td>{% if log.user_id %}<a href="{{url_for('main.user', id=log.user_id)}}">{{ log.user.full_name }}</a>{% endif %}</td>
+                                        <td class="hide">
+                                            {% for key, value in log.event['detail'].items() if key != 'Medium' %} {# Temporary hack to hide 'Medium' #}
+                                                <p>{{ key }}: {% if value %}{{ value | safe }}{% endif %}</p>
+                                            {% endfor %}
+                                            {% if log.paper_id and log.review_id %}
+                                                <p>Paper: <a href="{{ url_for('paper.paper_reviews', paper_id=log.paper_id) }}">{{ log.paper.title }}</a></p>
+{#                                                <p>Authors: {% for author in log.paper.authors %}<a href="{{ url_for('main.user', id=author.id) }}">{{ author.full_name }}</a>{{ ", " if not loop.last }}{% endfor %}</p>#}
+                                                <p>Authors: {% for author in log.paper.authors %}<a href="{{ url_for('main.user', id=author.id) }}">{{ author.full_name }}</a>{{ ", " if not loop.last }}{% endfor %}</p>
+{#                                                <p>Authors: {{ macros.generate_paper_authors(log.paper.authors_list) }}</p>#}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                            {{ macros.pagination_widget(pagination, 'conference.logs', conference_id=conference_id) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('.footable').footable();
+        });
+    </script>
+
+{% endblock %}

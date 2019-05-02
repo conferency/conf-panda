@@ -1,0 +1,6 @@
+Dear {{ user.first_name }},
+A paper titled: "{{ title }}" with you as a co-author has been submitted to "{{conference}}".
+
+{{ url_for('paper.get_paper_info', paper_id=paper_id, _external=True) }}
+Sincerely,
+Conferency

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% set active_page = "" %}
+{% set page_title = "Notifications" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), (page_title, url_for('main.notifications'))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <style media="screen">
+        .unread {
+            background-color: #f5f5f5;
+        }
+
+        .vote-actions {
+            width: 100px;
+            text-align: center;
+            margin-right: 0px;
+        }
+
+        .vote-actions a {
+            color: #999c9e;
+        }
+
+        .feed-element {
+            padding: 15px;
+            /*padding-top: 15px;
+            padding-bottom: 15px;
+            padding-left: 15px;*/
+            margin-top: 0px !important;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="row">
+        <div class="col-lg-8 col-lg-offset-2 col-md-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>Notifications</h5>
+                        <div class="ibox-tools">
+                            <a href="#">
+                                <i class="fa fa-dot-circle-o"></i> <span style="color:#676a6c;"> Mark all as read</span>
+                            </a>
+                            <a href="#">
+                                <i class="fa fa-wrench"></i> <span style="color:#676a6c;"> Settings</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        {% if notifications | length %}
+                        <div class="feed-activity-list m-b-md">
+                            {% for notification in notifications %}
+                            <div class="feed-element {% if notification.status == 'Unread' %}unread{% endif %}">
+                                <a href="{{ url_for('main.user', id=notification.sender.id) }}" class="pull-left">
+                                    <img data-name="{{ notification.sender.first_name[0]+ notification.sender.last_name[0] }}" data-height="64" {% if notification.sender.avatar %}src="{{ notification.sender.avatar }}"{% endif %}
+                                        data-width="64" data-font-size="20" data-font-weight="700" data-char-count="2" radius="2" style="width: 64px; height: 64px; border-radius: 32px"
+                                        class="profile-avatar img-circle"/>
+                                </a>
+                                <div class="media-body">
+                                    <div class="vote-actions pull-right hidden-xs">
+                                        <div>
+                                            <small class="">{{ moment(notification.timestamp).fromNow() }}</small>
+                                        </div>
+                                        <div>
+                                            <a href="#" data-toggle="tooltip" title="Hide this notification">
+                                                <i class="fa fa-times fa-lg"> </i>
+                                            </a>
+                                        </div>
+                                        <div>
+                                            <a href="#" data-toggle="tooltip" title="Mark as read">
+                                                <i class="fa fa-dot-circle-o fa-lg"> </i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9 col-md-9">
+                                        <strong>{{ notification.sender.full_name }}</strong> {{ notification.display['headline'] }} <br>
+                                        <p class="hidden-sm-up"> {{ moment(notification.timestamp).fromNow() }} </p>
+                                        <p> {{ notification.display['content'] | safe }} </p>
+                                        <div class="actions">
+                                        {% for item in notification.display['html_element'] %}
+                                            {% if item['type'] == 'button' %}
+                                            <a class="btn btn-xs {{ item['class'] }} btn-click" data-url="{{ item['url'] }}"> {{ item['text'] }} </a>
+                                            {% endif %}
+                                        {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {{ macros.pagination_widget(pagination, 'main.notifications') }}
+                        {% else %}
+                        <div class="text-center">
+                            <i class="fa fa-grav fa-spin fa-5x" style="font-size:15em;"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">
+        function ajax_invitation(url, data) {
+            $.ajax({
+                type: "POST",
+                url: url,
+                contentType: "application/json",
+                data: JSON.stringify({'data': data}),
+                success: function (response) {
+                    swal("Thank you!", response, "success");
+                }
+            }).fail(function(data, textStatus, error) {
+                swal({title: "OOps!", text: data.responseJSON.message, type: "error", timer: 4000, showConfirmButton: false});
+            });
+        }
+
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+
+            $(".btn-click").click(function(event) {
+                ajax_invitation($(this).data('url'));
+                // $.ajax({
+                //     type: "GET",
+                //     url: $(this).data('url'),
+                //     success: function (response) {
+                //         swal("Thank you!", response, "success");
+                //     }
+                // }).fail(function(data, textStatus, error) {
+                //     swal({title: "OOps!", text: data.responseJSON.message, type: "error", timer: 4000, showConfirmButton: false});
+                // });
+            });
+        });
+    </script>
+{% endblock %}

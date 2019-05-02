@@ -1,0 +1,414 @@
+{% extends "/site/home_base.html" %}
+{% block head %}
+	{{ super() }}
+	<link href="{{ url_for('static', filename='drew/css/portal.css') }}" rel="stylesheet">
+
+	<style>
+	label.error {
+		color: red;
+	}
+	</style>
+{% endblock %}
+
+{% block page_content %}
+
+			<!-- HEADER
+			================================= -->
+			<header id="header" class="header-section section section-dark navbar navbar-fixed-top">
+
+				<div class="container-fluid">
+
+					<div class="navbar-header navbar-left">
+
+						<!-- RESPONSIVE MENU BUTTON -->
+						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigation" aria-expanded="false">
+							<span class="sr-only">Toggle navigation</span>
+						</button>
+
+						<!-- HEADER LOGO -->
+						<div class="navbar-logo">
+							<a href="https://www.conferency.com"><div class="logo-image floating"></div></a>
+						</div>
+
+					</div>
+
+					<nav id="navigation" class="navigation navbar-collapse collapse navbar-right">
+
+						<!-- NAVIGATION LINKS -->
+						<ul id="header-nav" class="nav navbar-nav">
+
+							<li><a id="home_link_main_page" href="#home">Home</a></li>
+							<li><a id="feature_link_main_page" href="#features">Features</a></li>
+							<li><a id="product_link_main_page" href="#product">Product</a></li>
+							<li><a id="customer_link_main_page" href="#customers">Customers</a></li>
+							<li><a id="contact_link_main_page" href="#contact">Contact Us</a></li>
+							<!--
+							<li><a href="http://conferency.zendesk.com">Support</a></li>
+							-->
+							<!-- HEADER ACTION BUTTON -->
+							<li class="header-action-button"><a id="login_button_main_home" href="/auth/login" class="btn btn-primary">Login</a></li>
+							<li class="header-action-button"><a id="signup_button_main_home" href="/auth/register" class="btn btn-primary">Signup</a></li>
+
+						</ul>
+
+					</nav>
+
+				</div>
+
+			</header>
+
+			<!-- HERO
+			================================= -->
+			<section id="home" class="hero-section hero-layout-simple hero-fullscreen section section-dark">
+				<div class="section-background">
+
+					<!-- IMAGE BACKGROUND -->
+					<div class="section-background-image parallax" data-stellar-ratio="0.4">
+						<img id="header-bg" src="{{url_for('static', filename='img/landing_page/bg-computer.jpg')}}" alt="" style="opacity: 0.3;">
+					</div>
+				</div>
+
+				<div class="container">
+					<div class="hero-content">
+						<div class="hero-content-inner">
+							<div class="text-center row">
+								<div class="col-md-8 col-md-offset-2">
+										<h1 class="hero-title">Academic Conferences Made Easy</h1>
+										<p class="hero-tagline">All-in-one simple conference solution made by academics for academics</p>
+									<p class="hero-buttons text-center">
+										<a id="learn_more_main_page" href="#headline" class="btn btn-lg btn-default">Learn More</a>
+										<a href="#contact" id="register-conf-button" name="register-conf-button" class="btn btn-lg btn-primary">Request Your Conference!</a>
+									</p>
+								</div>
+							</div>
+
+						</div>
+					</div>
+				</div>
+				<!-- HERO START LINK -->
+				<a href="#headline" class="hero-start-link anchor-link"><span class="fa fa-angle-double-down"></span></a>
+			</section>
+
+			<!-- HEADLINE
+			================================= -->
+			<section id="headline" class="headline-section section">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-10 col-md-offset-1">
+							<p class="headline-text">
+							Website, paper review, registration, mobile app...tired of system silos and the complexity?<br>
+ 							<strong>Conferency</strong> is the one-stop solution to run your conferences easily with seamless user experience.
+							</p>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section id="features" class="benefits-section section-gray section">
+
+				<div class="container">
+
+					<h2 class="section-heading text-center">Features</h2>
+
+					<div class="benefits-row row">
+
+						<div class="col-sm-6 col-md-4">
+							<div class="benefit">
+								<span class="benefit-icon fa fa-code"></span>
+								<h4 class="benefit-title">Simple and Elegant Website</h4>
+								<p class="benefit-description">
+								Kickstart your conference website in no time with various templates. Customize the content and launch!</p>
+							</div>
+						</div>
+
+						<div class="col-sm-6 col-md-4">
+							<div class="benefit">
+								<span class="benefit-icon fa fa-pagelines"></span>
+								<h4 class="benefit-title">Intuitive Review System</h4>
+								<p class="benefit-description">
+									Intuitive interface and workflows make paper management an easy task</p>
+							</div>
+						</div>
+
+						<div class="col-sm-6 col-md-4">
+							<div class="benefit">
+								<span class="benefit-icon fa fa-paperclip"></span>
+								<h4 class="benefit-title">Simple Registration System</h4>
+								<p class="benefit-description">
+									Simple registration and affordable payment system designed specifically for academic conferences</p>
+							</div>
+						</div>
+
+						<div class="col-sm-6 col-md-4">
+							<div class="benefit">
+								<span class="benefit-icon fa fa-eye"></span>
+								<h4 class="benefit-title">Modern Web Technologies</h4>
+								<p class="benefit-description">No more "old school" look and feel! We use modern web design practices: responsive, retina ready, HTML5, CSS3, etc.</p>
+							</div>
+						</div>
+
+						<div class="col-sm-6 col-md-4">
+							<div class="benefit">
+								<span class="benefit-icon fa fa-mobile"></span>
+								<h4 class="benefit-title">Mobile App Ready</h4>
+								<p class="benefit-description">Easy access to various conference information via our native iOS and Android mobile app.</p>
+							</div>
+						</div>
+
+						<div class="col-sm-6 col-md-4">
+							<div class="benefit">
+								<span class="benefit-icon fa fa-sitemap"></span>
+								<h4 class="benefit-title">Reliable and Scalable</h4>
+								<p class="benefit-description">Our system is hosted in the Amazon Cloud using reliable and scalable AWS services to support conferences with all sizes.</p>
+							</div>
+						</div>
+
+
+						<!--
+						<div class="col-sm-6 col-md-4">
+							<div class="benefit">
+								<span class="benefit-icon fa fa-smile-o"></span>
+								<h4 class="benefit-title">Superior Customer Support</h4>
+								<p class="benefit-description">Found any issue or got stuck on something? Our knowledgeable customer support experts are always ready to help!</p>
+							</div>
+						</div>
+					-->
+					</div>
+
+				</div>
+
+			</section>
+
+			<section id="product" class="success-stories-section section">
+
+							<div class="container">
+
+								<div class="row">
+									<div class="col-md-8 col-md-offset-2">
+										<h2 class="section-heading text-center">Product Showcase</h2>
+									</div>
+								</div>
+
+								<div class="success-stories-slider">
+									<ul class="success-stories-rslides clearfix rslides rslides1">
+
+										<li class="story rslides1_on" id="rslides1_s0" style="display: block; float: left; position: relative; opacity: 1; z-index: 2; -webkit-transition: opacity 500ms ease-in-out; transition: opacity 500ms ease-in-out;">
+											<div class="story-image">
+												<img src="{{url_for('static', filename='img/landing_page/screenshots/ds2017.jpg')}}" alt="">
+											</div>
+											<div class="story-text">
+												<div class="story-author">
+													<div class="story-author-name">Conference Website</div>
+												</div>
+												<p class="story-content">We provide templates specially prepared for academic conferences and easy-to-follow tutorials so that a beautiful website can be quickly launched without coding.</p>
+
+											</div>
+										</li>
+										<li class="story" id="rslides1_app" style="display: table; float: none; position: absolute; opacity: 0; z-index: 1; -webkit-transition: opacity 500ms ease-in-out; transition: opacity 500ms ease-in-out;">
+											<div class="story-image">
+												<img src="{{url_for('static', filename='img/landing_page/screenshots/app-screens.png')}}" alt="">
+											</div>
+
+											<div class="story-text">
+												<div class="story-author">
+													<div class="story-author-name">Mobile App</div>
+												</div>
+												<p class="story-content">No need to pay third-party providers to develop your program mobile app. Just design your program using our intuitive UI and your program will show up in both iOS and Android apps.</p>
+											</div>
+										</li>
+										<li class="story" id="rslides1_s1" style="display: table; float: none; position: absolute; opacity: 0; z-index: 1; -webkit-transition: opacity 500ms ease-in-out; transition: opacity 500ms ease-in-out;">
+											<div class="story-image">
+												<img src="{{url_for('static', filename='img/landing_page/screenshots/dashboard.png')}}" alt="">
+											</div>
+
+											<div class="story-text">
+												<div class="story-author">
+													<div class="story-author-name">Main Dashboard</div>
+												</div>
+												<p class="story-content">Everything you need for your conference is just one-click away: papers, reviews, registrations…</p>
+											</div>
+										</li>
+										<li class="story" id="rslides1_s2" style="display: table; float: none; position: absolute; opacity: 0; z-index: 1; -webkit-transition: opacity 500ms ease-in-out; transition: opacity 500ms ease-in-out;">
+											<div class="story-image">
+												<img src="{{url_for('static', filename='img/landing_page/screenshots/reviewform.png')}}" alt="">
+											</div>
+											<div class="story-text">
+												<div class="story-author">
+													<div class="story-author-name">Paper Review Form</div>
+												</div>
+												<p class="story-content">With our in-browser PDF viewer, you can work on the reviews without leaving the system. If you prefer offline reading, you can also download the file.</p>
+											</div>
+										</li>
+										<li class="story" id="rslides1_s3" style="display: table; float: none; position: absolute; opacity: 0; z-index: 1; -webkit-transition: opacity 500ms ease-in-out; transition: opacity 500ms ease-in-out;">
+											<div class="story-image">
+												<img src="{{url_for('static', filename='img/landing_page/screenshots/reviews.png')}}" alt="">
+											</div>
+											<div class="story-text">
+												<div class="story-author">
+													<div class="story-author-name">Paper Review Details</div>
+												</div>
+												<p class="story-content">All reviews are beautifully presented and organized for easy paper management.</p>
+
+											</div>
+										</li>
+										<li class="story" id="rslides1_s4" style="display: table; float: none; position: absolute; opacity: 0; z-index: 1; -webkit-transition: opacity 500ms ease-in-out; transition: opacity 500ms ease-in-out;">
+											<div class="story-image">
+												<img src="{{url_for('static', filename='img/landing_page/screenshots/salessummary.png')}}" alt="">
+											</div>
+											<div class="story-text">
+												<div class="story-author">
+													<div class="story-author-name">Registration Summary</div>
+												</div>
+												<p class="story-content">You can setup a registration page and start collecting payments securely in a few minutes. All registration information is also at your fingertips in real time.</p>
+
+											</div>
+										</li>
+									</ul>
+								</div>
+
+							</div>
+							<h3 id="app" class="text-center">Download Our Mobile App</h3>
+							<div class="sponsors-row">
+								<a href="https://itunes.apple.com/us/app/conferency/id1246305811?mt=8" target="_blank"><img src="{{url_for('static', filename='img/landing_page/apple.png')}}" srcset="{{url_for('static', filename='img/landing_page/apple@2x.png')}} 2x" alt="Apple App Store"></a>
+								<a href="https://play.google.com/store/apps/details?id=com.conferency.main" target="_blank"><img src="{{url_for('static', filename='img/landing_page/google.png')}}" srcset="{{url_for('static', filename='img/landing_page/google@2x.png')}} 2x" alt="Google Play"></a>
+								<a href="http://android.myapp.com/myapp/detail.htm?apkName=com.conferency.main" target="_blank"><img src="{{url_for('static', filename='img/landing_page/tencent.png')}}" srcset="{{url_for('static', filename='img/landing_page/tencent@2x.png')}} 2x" alt="Tencent App Store"></a>
+							</div>
+
+						</section>
+
+			<!-- TESTIMONIALS
+			================================= -->
+			<section id="customers" class="testimonial-section section-gray section">
+
+				<div class="container">
+
+					<h2 class="section-heading text-center">Customer Highlights</h2>
+
+					<div class="sponsors-row">
+						<a href="https://www.acm.org" target="_blank"><img src="{{url_for('static', filename='img/landing_page/acm.png')}}" alt="ACM"></a>
+						<a href="https://www.udel.edu" target="_blank"><img src="{{url_for('static', filename='img/landing_page/ud.png')}}" alt="University of Delaware"></a>
+						<a href="https://www.ust.hk" target="_blank"><img src="{{url_for('static', filename='img/landing_page/hkust.png')}}" alt="HKUST"></a>
+					</div>
+
+					<div class="testimonial-row row">
+
+						<!-- TESTIMONIAL ITEM 1 -->
+						<div class="col-sm-6">
+							<div class="testimonial">
+								<blockquote class="testimonial-quote">
+									<p>I really liked the system and will recommend it to others!...It is great, and the customer service is unprecedented.</p>
+								</blockquote>
+								<cite class="testimonial-cite">Ben and Hui, University of Delaware</cite>
+							</div>
+						</div>
+
+						<!-- TESTIMONIAL ITEM 2 -->
+						<div class="col-sm-6">
+							<div class="testimonial">
+								<blockquote class="testimonial-quote">
+									<p>Thank you so much for saving us so much money and the great service to our workshop.</p>
+								</blockquote>
+								<cite class="testimonial-cite">Han, Georgia Institute of Technology</cite>
+							</div>
+						</div>
+
+					</div>
+
+				</div>
+
+			</section>
+
+			<!-- CONTACT + MAPS
+			================================= -->
+			<section id="contact" class="contact-maps-section section">
+				<div class="section-background">
+
+					<!-- IMAGE BACKGROUND -->
+					<div class="section-background-image parallax" data-stellar-ratio="0.4">
+						<img src="{{url_for('static', filename='img/landing_page/phone.jpg')}}" style="opacity: 0.15;">
+					</div>
+
+				</div>
+				<div class="container">
+					<div class="contact-maps-row row">
+						<div class="col-md-6 col-md-offset-3">
+
+							<div class="contact-maps-box" data-animation="fadeIn">
+								<h2 class="section-heading">Contact Us</h2>
+
+								<form name="contact" action="#" method="post" class="form form-ajax-submit">
+									<p>Any questions? please drop us a line here:</p>
+									<div class="form-group">
+										<input type="text" id="contact-name" name="contact-name" class="form-control required" placeholder="Your Name">
+									</div>
+									<div class="form-group">
+										<input type="text" id="contact-email" name="contact-email" class="form-control required email" placeholder="Email Address">
+									</div>
+									<div class="form-group">
+										<input type="text" id="contact-subject" name="contact-subject" class="form-control required" placeholder="Subject">
+									</div>
+									<div class="form-group">
+										<textarea id="contact-message" name="contact-message" class="form-control required" placeholder="Message" rows="5"></textarea>
+									</div>
+									<div class="form-group">
+										<button class="btn btn-primary btn-lg btn-block submit">Send Message</button>
+									</div>
+								</form>
+
+							</div>
+
+						</div>
+					</div>
+				</div>
+
+			</section>
+
+	<div id="alert_info" class="hide">
+		<div class="benefit" style="background-color:rgba(255,255,255,0.9)">
+			<span class="benefit-icon fa fa-check-circle bounceIn"></span>
+			<h2 class="benefit-title">We got your message!</h2>
+			<p class="benefit-description">Thank you for contacting us.</p>
+		</div>
+	</div>
+	{% endblock %}
+
+	{% block scripts %}
+		{{ super() }}
+		<script src="{{ url_for('static', filename='drew/js/responsiveslides.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='drew/js/portal.js') }}"></script>
+		<!-- Jquery Validate -->
+		<script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+
+		<script>
+			"use strict";
+			$(document).ready(function() {
+				$(".form-ajax-submit").validate();
+				$(".submit").click(function(event) {
+					event.preventDefault();
+					if($(".form-ajax-submit").valid()) {
+						var contact_form_json = {
+							"name": $("#contact-name").val(),
+							"email": $("#contact-email").val(),
+							"subject": $("#contact-subject").val(),
+							"message": $("#contact-message").val()
+						};
+
+						$.ajax({
+	                        type: "POST",
+	                        url: "{{ url_for('api.support_email') }}",
+	                        contentType: "application/json",
+	                        data: JSON.stringify(contact_form_json),
+	                        success: function (response) {
+								$(".contact-maps-box").empty();
+								$(".contact-maps-box").append($('#alert_info').children().clone());
+	                        }
+	                    })
+	                        .fail(function(data, textStatus, error) {
+								console.log(error);
+	                        });
+					}
+				});
+
+			});
+		</script>
+	{% endblock %}

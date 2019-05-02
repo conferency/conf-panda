@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "review_menu" %}
+{% set active_second_subpage = "review_request_list" %}
+{% set page_title = "Review Request" %}
+
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.review_request_list', conference_id=current_user.curr_conf_id))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-content">
+                        {% if pagination.total %}
+                        <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny" data-page-size="20">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th class="col-md-1">ID</th>
+                                    <th class="col-md-6">Paper</th>
+                                    <th class="col-md-2">Subreviewer</th>
+                                    <th class="col-md-2">PC</th>
+                                    <th class="col-md-1">Requested</th>
+                                    <th class="col-md-1">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for review_delegation in review_delegations %}
+                                <tr>
+                                    <td></td>
+                                    <td>{{ review_delegation.paper.id }}</td>
+                                    <td>
+                                        <a class="text-info" href="{{ url_for('conference.conferences_assignment_manual', conference_id=conference_id) }}?search_type=1&search_keyword={{ review_delegation.paper.title }}">{{ review_delegation.paper.title }}</a>
+                                    </td>
+                                    <td>
+                                        <a class="text-info" href="{{ url_for('main.user', id=review_delegation.delegatee.id) }}">{{ review_delegation.delegatee.first_name }} {{ review_delegation.delegatee.last_name }}</a>
+                                    </td>
+                                    <td>
+                                        <a class="text-info" href="{{ url_for('main.user', id=review_delegation.delegator.id) }}">{{ review_delegation.delegator.first_name }} {{ review_delegation.delegator.last_name }}</a>
+                                    </td>
+                                    <td>{{ moment(review_delegation.timestamp).fromNow() }}</td>
+                                    <td>
+                                        {% if review_delegation.status == 'Pending' %}
+                                        <span class="label">{{ review_delegation.status }}</span>
+                                        {% elif review_delegation.status == 'Revoked' %}
+                                        <span class="label label-warning">{{ review_delegation.status }}</span>
+                                        {% elif review_delegation.status == 'Declined' %}
+                                        <span class="label label-danger">{{ review_delegation.status }}</span>
+                                        {% elif review_delegation.status == 'Submitted' %}
+                                        <span class="label label-info">{{ review_delegation.status }}</span>
+                                        {% elif review_delegation.status == 'Approved' %}
+                                        <span class="label label-success">{{ review_delegation.status }}</span>
+                                        {% elif review_delegation.status == 'Accepted' %}
+                                        <span class="label label-primary">{{ review_delegation.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {{ macros.pagination_widget(pagination, 'conference.review_request_list', conference_id=conference_id) }}
+                        {% else %}
+                            <div class="middle-box text-center animated" style="margin-bottom: 140px;">
+                                <h3 class="font-bold">There isn't sub-review.</h3>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('.footable').footable();
+        });
+    </script>
+
+{% endblock %}

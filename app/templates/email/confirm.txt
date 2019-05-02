@@ -1,0 +1,18 @@
+Dear {{ user.first_name }},
+
+Welcome to Conferency!
+
+To confirm your account, please click on the following button:
+
+{{ url_for('auth.confirm', token=token, _external=True) }}
+
+Button not working? Paste the following link into your browser:
+
+{{ url_for('auth.confirm', token=token, _external=True) }}
+
+
+Sincerely,
+
+Conferency
+
+

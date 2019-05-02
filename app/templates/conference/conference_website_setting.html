@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceWebsite" %}
+{% set page_title = "Conference Website" %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/ladda/ladda-themeless.min.css') }}"
+          rel="stylesheet">
+
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.website_management', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-content">
+                        {% if conference.configuration.get("website_type", "self_hosted") != "hosted_wordpress" %}
+                            <div id="wordpress_activation">
+                                <p>You are now using your own website.</p>
+                                <form id="use_owned_website">
+                                    <label for="website_url">Website URL:</label>
+                                    <div class="input-group"><input type="url" class="form-control" name="website_url"
+                                                                    value="{{ conference.website }}"> <span
+                                            class="input-group-btn"> <button
+                                            type="button" class="btn btn-primary" id="use_self_hosted">Change
+                                        </button> </span></div>
+                                </form>
+                                <div class="hr-line-dashed"></div>
+                                <p>
+                                    You may activate our hosted WordPress service.
+                                    By activating, you will be able to build a pretty website for your conference
+                                    using WordPress. </p>
+                                <p>
+                                    Your WordPress website will have a domain {{ conference.short_name }}.conferency.com,
+                                    and you can bind your owned domain in the WordPress Dashboard.
+                                </p>
+                                <button id="wordpress_activate" class="btn btn-primary m-t-n-xs">
+                                    <i class="fa fa-wordpress" aria-hidden="true"></i>
+                                    Activate WordPress Service
+                                </button>
+                            </div>
+                        {% else %}
+                            <div id="wordpress_login">
+                                {% if conference.configuration['wordpress_user_password'] %}
+                                <p>You are now using our hosted WordPress service. You can visit it using this
+                                    domain: <a
+                                            href="http://{{ conference.short_name }}.conferency.com">{{ conference.short_name }}.conferency.com</a>
+                                </p>
+                                <p>
+                                    The Paper management and registration system address is:
+                                    <a href="{{ url_for('main.conf_index', conf_name=conference.short_name, _external=True) }}">{{ url_for('main.conf_index', conf_name=conference.short_name, _external=True) }}</a>
+                                    .
+                                </p>
+                                <p>
+                                    To manage your website, please use the following credentials:
+                                </p>
+                                <p>Username: <span id="conf_username">{{ conference.short_name }}</span>
+                                </p>
+                                <p>Password: <input readonly type="password" id="conf_password"
+                                                    value="{{ conference.configuration['wordpress_user_password'] }}">
+                                    <a id="show_password">[Show]</a>
+                                </p>
+                                <p>Dashboard URL: <a id="conf_wp_dashboard"
+                                                     href="http://{{ conference.short_name }}.conferency.com/wp-login.php">http://{{ conference.short_name }}.conferency.com/wp-login.php</a>
+
+                                </p>
+                                <a class="btn btn-sm btn-primary m-t-n-xs"
+                                   href="http://{{ conference.short_name }}.conferency.com/wp-login.php">
+                                    <i class="fa fa-wordpress" aria-hidden="true" target="_blank"></i>
+                                    Open WordPress Dashboard
+                                </a>
+                                <!-- <a class="btn btn-sm btn-primary m-t-n-xs" id="email_login">
+                                    <i class="fa fa-envelope" aria-hidden="true"></i>
+                                    Email Login Instruction
+                                </a>
+                                <a class="btn btn-sm btn-primary m-t-n-xs"
+                                   href="{{ url_for("api.download_instruction", conference_id=conference.id) }}">
+                                    <i class="fa fa-download" aria-hidden="true"></i>
+                                    Download Login Instruction
+                                </a> -->
+                                {% else %}
+                                <p> Please wait for the approval from admin.</p>
+                                {% endif %}
+                                <div class="hr-line-dashed"></div>
+                                <p>Want to use your owned website? Enter your website domain here.</p>
+                                <label for="website_url">Website URL:</label>
+                                <form class="" id="use_owned_website">
+                                    <div class="input-group">
+                                        <input class="form-control required"
+                                               name="website_url" id="website_url"
+                                               value="{{ conference.website }}"
+                                               aria-required="true"
+                                               required>
+                                        <span class="input-group-btn">
+                                            <button type="button" class="btn btn-primary" id="use_self_hosted">
+                                                Deactivate WordPress and Use Your Owned Website
+                                            </button>
+                                        </span>
+
+                                    </div>
+                                    <label id="website_url-error" class="error" for="website_url"></label>
+
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- ladda -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/spin.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/ladda.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/ladda.jquery.min.js') }}"></script>
+
+    <!-- Clipboard -->
+    <script src="{{ url_for('static', filename='conferency/js/clipboard.min.js') }}"></script>
+
+    <script>
+        $(document).ready(function () {
+            const regex = /^(([A-Za-z]{3,9}):\/\/)?([-;:&=\+\$,\w]+@{1})?(([-A-Za-z0-9]+\.)+[A-Za-z]+)(:\d+)?((\/[-\+~%/\.\w]+)?\/?([&?][-\+=&;%@\.\w]+)?(#[\w]+)?)?$/;
+
+            var website_type = "{{ conference.configuration.get("website_type", "self_hosted") }}";
+
+            $('form').submit(function (e) {
+                e.preventDefault();
+            });
+            $("input[name='website_url']").keyup(function () {
+                var value = $("input[name='website_url']").val();
+                if (value !== "" && regex.test(value)) {
+                    $("input[name='website_url']").removeClass("error");
+                    $("#website_url-error").html("");
+                } else {
+                    $("input[name='website_url']").addClass("error");
+                    $("#website_url-error").html("Please enter a valid URL.");
+                }
+            });
+
+            if (website_type === "hosted_wordpress") {
+                $("#show_password").click(function () {
+                    if ($("#conf_password").attr("type") == "password") {
+                        $("#conf_password").attr("type", "text");
+                        $("#show_password").text("[Hide]");
+
+                    } else {
+                        $("#conf_password").attr("type", "password");
+                        $("#show_password").text("[Show]");
+                    }
+                });
+                var l_s = $('#use_self_hosted').ladda();
+                l_s.click(function () {
+                    var input = $("input[name='website_url']").val();
+                    if (input !== "") {
+                        if (regex.exec(input)) {
+                            l_s.ladda("start");
+
+                            $.ajax({
+                                contentType: 'application/json',
+                                method: "PUT",
+                                url: "{{ url_for("api.use_self_hosted_site", conference_id=conference.id) }}",
+                                data: JSON.stringify({'url': input})
+                            }).success(function (response) {
+                                l_s.ladda('stop');
+                                console.log(response);
+                                swal({
+                                    title: "WordPress Deactivated!",
+                                    text: "You have already switched to your hosted website for the conference.",
+                                    type: "success",
+                                    showConfirmButton: true
+                                }, function () {
+                                    location.reload();
+                                });
+                            }).fail(function (data, textStatus, error) {
+                                l_s.ladda('stop');
+                                console.log(data);
+                                swal({
+                                    title: "Oops...",
+                                    text: "Switch failed. Please contact with customer service.",
+                                    type: "error",
+                                    showConfirmButton: true
+                                })
+                            });
+                        } else {
+                            $("input[name='website_url']").addClass("error");
+                            $("#website_url-error").html("Please enter a valid URL.");
+                        }
+                    } else {
+                        $("input[name='website_url']").addClass("error");
+                        $("#website_url-error").html("Please enter a valid URL.");
+                    }
+                });
+
+                $("#email_login").click(function () {
+                    $.ajax({
+                        contentType: 'application/json',
+                        method: "GET",
+                        url: "{{ url_for("api.email_instruction", conference_id=conference.id) }}"
+                    }).success(function (response) {
+                        l_s.ladda('stop');
+                        console.log(response);
+                        swal({
+                            title: "Email Sent!",
+                            text: "The login instruction has been sent.",
+                            type: "success",
+                            showConfirmButton: true
+                        }, function () {
+                            location.reload();
+                        });
+                    }).fail(function (data, textStatus, error) {
+                        l_s.ladda('stop');
+                        console.log(data);
+                        swal({
+                            title: "Oops...",
+                            text: "Email failed to sent. Please contact with customer service.",
+                            type: "error",
+                            showConfirmButton: true
+                        })
+                    });
+                })
+            } else {
+                var l_w = $('#wordpress_activate').ladda();
+                l_w.click(function () {
+                    l_w.ladda('start');
+                    $.ajax({
+                        type: "GET",
+                        url: "{{ url_for('api.use_hosted_wordpress', conference_id=conference.id) }}",
+                        success: function (response) {
+                            l_w.ladda('stop');
+                            console.log(response);
+                            swal({
+                                title: "WordPress request has been sent to admin.",
+                                text: "Admin will contact you as soon as possible.",
+                                type: "success",
+                                showConfirmButton: true
+                            }, function () {
+                                // location.reload();
+                            });
+                        }
+                    }).fail(function (data, textStatus, error) {
+                        l_w.ladda('stop');
+                        console.log(data);
+                        swal({
+                            title: "Oops...",
+                            text: "Request failed. Please contact with customer service.",
+                            type: "error",
+                            showConfirmButton: true
+                        })
+                    });
+                });
+
+                var l_s = $('#use_self_hosted').ladda();
+                l_s.click(function () {
+                    var input = $("input[name='website_url']").val();
+                    if (input !== "") {
+                        if (regex.exec(input)) {
+                            l_s.ladda("start");
+
+                            $.ajax({
+                                contentType: 'application/json',
+                                method: "POST",
+                                url: "{{ url_for("api.use_self_hosted_site", conference_id=conference.id) }}",
+                                data: JSON.stringify({'url': input})
+                            }).success(function (response) {
+                                l_s.ladda('stop');
+                                console.log(response);
+                                swal({
+                                    title: "Domain Changed!",
+                                    text: "You have already changed the website for the conference.",
+                                    type: "success",
+                                    showConfirmButton: true
+                                }, function () {
+                                    location.reload();
+                                });
+                            }).fail(function (data, textStatus, error) {
+                                l_s.ladda('stop');
+                                console.log(data);
+                                swal({
+                                    title: "Oops...",
+                                    text: "Change failed. Please contact with customer service.",
+                                    type: "error",
+                                    showConfirmButton: true
+                                })
+                            });
+                        } else {
+                            $("input[name='website_url']").addClass("error");
+                            $("#website_url-error").html("Please enter a valid URL.");
+                        }
+                    } else {
+                        $("input[name='website_url']").addClass("error");
+                        $("#website_url-error").html("Please enter a valid URL.");
+                    }
+                });
+
+            }
+
+
+        });
+
+    </script>
+
+{% endblock %}

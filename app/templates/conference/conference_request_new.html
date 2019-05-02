@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% set active_page = "conferences" %}
+{% set active_subpage = "request-conferences" %}
+{% set page_title = "Conference Requests" %}
+
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Conferences', '#'), (page_title, url_for('conference.request_conference', conference_id=conference_id))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <style media="screen">
+        .info {
+            background-color: #23c6c8 !important;
+            border-color: #23c6c8 !important;
+        }
+
+        .grey {
+            background-color: #b8bdc1 !important;
+            border-color: #b8bdc1 !important;
+        }
+
+        .pricing-price span {
+            font-weight: 700;
+            font-size: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+<div class="row landing-page">
+    <div class="ibox">
+        <div class="ibox-content clearfix">
+            <div class="col-lg-4 wow zoomIn animated">
+                <ul class="pricing-plan list-unstyled">
+                    <li class="pricing-title grey">
+                        Community
+                    </li>
+                    <li class="pricing-desc">
+                        For small conferences, basic functions are free of charge.
+                    </li>
+                    <li class="pricing-price">
+                        <span style="color: #b8bdc1;">Free</span>
+                    </li>
+                    <li>
+                        Paper Submission and Management
+                    </li>
+                    <li>
+                        Review Assignment and Management
+                    </li>
+                    <li>
+                        Online Proceedings
+                    </li>
+                    <li>
+                        Registration System (charged separately)
+                    </li>
+                    <li>
+                        Community Forum Support
+                    </li>
+                    <li>
+                        <a class="btn btn-primary grey" href="{{ url_for('conference.request_new_conference', type='free') }}">Select</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4 wow zoomIn animated">
+                <ul class="pricing-plan list-unstyled">
+                    <li class="pricing-title">
+                        Professional
+                    </li>
+                    <li class="pricing-desc">
+                        For conferences which need more sophisticated functions, professinal edition gives chairs more flexibility.
+                    </li>
+                    <li class="pricing-price">
+                        <span>${{ price }} USD</span>
+                    </li>
+                    <li>
+                        Everything included in Community Plan
+                    </li>
+                    <li>
+                        Track and Sub-track Support
+                    </li>
+                    <li>
+                        Custom Submission and Review Forms
+                    </li>
+                    <li>
+                        Online Program with PDF export
+                    </li>
+                    <li>
+                        <strong>Mobile App</strong>
+                    </li>
+                    <li>
+                        <strong>Email Support</strong>
+                    </li>
+                    <li class="plan-action">
+                        <a class="btn btn-primary" href="{{ url_for('conference.request_new_conference', type='pro') }}">Select</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-lg-4 wow zoomIn">
+                <ul class="pricing-plan list-unstyled">
+                    <li class="pricing-title info">
+                        Enterprise
+                    </li>
+                    <li class="pricing-desc">
+                        For the large conferences with over 1000 submissions, enterprise edition can provide best services.
+                    </li>
+                    <li>Everything included in Community Plan</li>
+                    <li><strong>Phone Support</strong></li>
+                    <li>
+                        <a class="btn btn-primary info" href="mailto:support@conferency.com?Subject=Enterprise%20Package%20Inquiry">Product Inquiry</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/wow/wow.min.js') }}"></script>
+    <script type="text/javascript">
+    $(document).ready(function () {
+        new WOW().init();
+    });
+    </script>
+{% endblock %}

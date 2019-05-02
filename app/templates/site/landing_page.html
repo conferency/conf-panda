@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Conferency - Your conference experience starts here</title>
+    <link rel="shortcut icon" href="/static/img/favicons/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/static/img/favicons/favicon.ico" type="image/x-icon">
+
+    <!-- Bootstrap core CSS -->
+    <link href="{{ url_for('static', filename='inspinia/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="/static/inspinia/font-awesome/css/font-awesome.css" rel="stylesheet">
+    <!-- Animation CSS -->
+    <link href="{{ url_for('static', filename='inspinia/css/animate.css') }}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{{ url_for('static', filename='inspinia/css/style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/landingpage.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/datepicker/datepicker3.css') }}" rel="stylesheet">
+    <style>
+    .larger-font-size {
+        font-size: 18px;
+    }
+    input {
+        max-width: 100%;
+    }
+    .truncate {
+        height: 45px;
+     }
+
+     /*label.error {
+        color: white;
+     }*/
+    </style>
+</head>
+<body id="page-top" class="landing-page">
+<div class="navbar-wrapper">
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header page-scroll">
+                    <!-- <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button> -->
+                    <a class="navbar-brand navbar-brand-conferency center" id="conferency-logo-white" href="/"></a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        {#
+                        <li><a class="page-scroll" href="#page-top">Home</a></li>
+                        <li><a class="page-scroll" href="#features">Features</a></li>
+                        <li><a class="page-scroll" href="#team">Team</a></li>
+                        <li><a class="page-scroll" href="#testimonials">Testimonials</a></li>
+                        <li><a class="page-scroll" href="#pricing">Pricing</a></li>
+                        <li><a class="page-scroll" href="#contact">Contact</a></li>
+                        <li><a href="/auth/register">Sign Up</a></li>
+                        <li><a href="/auth/login">Sign In</a></li>
+                       #}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+</div>
+<div class="hero-banner">
+    <div class="header-back one"></div>
+    <div class="container">
+        <div class="hero-banner-text">
+            <h1 class="hero-title text-center">Find your next conference</h1>
+            <div class="form-group">
+                <form action="/conference/search" id="searchform" method="get">
+                    <div class="col-lg-3 col-md-3 col-sm-10 remove-col-padding">
+                            <input type="text" placeholder="Keywords" name="keywords" class="form-control input-lg larger-font-size">
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-10 remove-col-padding">
+                            <input type="text" placeholder="Location" name="location" class="form-control input-lg larger-font-size" value={{location}}>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-10 remove-col-padding input-daterange date-range-control">
+                        <input type="text" placeholder="From" class="form-control input-lg larger-font-size" name="start_date" value="" id="datepicker-start">
+                        <span class="input-group-addon" style="max-width: 22px; max-height:46px !important;"><i class="fa fa-arrow-right"></i></span>
+                        <input type="text" placeholder="To" class="form-control input-lg larger-font-size" name="end_date" value="" id="datepicker-end">
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-10 remove-col-padding">
+                        <button type="submit" class="btn btn-lg search-button-control btn-primary btn-search">
+                            <i class="fa fa-search" style=""></i> Search</button>
+                    </div>
+                </form>
+            </div>
+            <h2 class="hero-subtitle text-center">20,000+ conferences in over 100 countries (and counting…)</h2>
+        </div>
+    </div>
+</div>
+
+{# <div id="inSlider" class="carousel carousel-fade" data-ride="carousel">
+    <ol class="carousel-indicators">
+        <li data-target="#inSlider" data-slide-to="0" class="active"></li>
+        <li data-target="#inSlider" data-slide-to="1"></li>
+    </ol>
+    <div class="carousel-inner" role="listbox">
+        <div class="item active">
+            <div class="container">
+            </div>
+            <!-- Set background for slide in css -->
+            <div class="header-back two"></div>
+
+        </div>
+        <div class="item">
+            <div class="container">
+            </div>
+            <div class="header-back two"></div>
+        </div>
+    </div>
+    <a class="left carousel-control" href="#inSlider" role="button" data-slide="prev">
+        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="right carousel-control" href="#inSlider" role="button" data-slide="next">
+        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+    </a>
+</div> #}
+
+
+<div class="wrapper wrapper-content animated fadeInRight container" style="padding: 20px 10px 0px; !important">
+    <div class="featured-conferences">
+        <h2>Featured Conferences</h1>
+        <div class="conferences-listing row">
+            <div class="col-md-4 col-sm-6">
+                <div class="ibox">
+                    <div class="ibox-content product-box">
+                        <div class="product-imitation conferency-img-dublin">
+                        </div>
+                        <div class="product-desc">
+                            {# <span class="product-price">
+                                $10
+                            </span> #}
+                            <small class="text-muted">December 11, 2016</small>
+                            <a href="conference/5" class="product-name truncate">2016 International Conference on Information Systems</a>
+                            <div class="small m-t-xs">
+                                Convention Centre, Dublin, Ireland
+                            </div>
+                            <div class="m-t text-righ">
+
+                                <a href="conference/5" class="btn btn-xs btn-outline btn-primary">Detail <i class="fa fa-long-arrow-right"></i> </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="ibox">
+                    <div class="ibox-content product-box">
+
+                        <div class="product-imitation conferency-img-shanghai">
+                        </div>
+                        <div class="product-desc">
+                            {# <span class="product-price">
+                                $10
+                            </span> #}
+                            <small class="text-muted">June 16, 2016</small>
+                            <a href="conference/11" class="product-name truncate">2016 INFORMS Marketing Science Conference</a>
+                            <div class="small m-t-xs">
+                                Shanghai, China
+                            </div>
+                            <div class="m-t text-righ">
+
+                                <a href="conference/11" class="btn btn-xs btn-outline btn-primary">Detail <i class="fa fa-long-arrow-right"></i> </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="ibox">
+                    <div class="ibox-content product-box">
+
+                        <div class="product-imitation conferency-img-berlin">
+                        </div>
+                        <div class="product-desc">
+                            {# <span class="product-price">
+                                $10
+                            </span> #}
+                            <small class="text-muted">September 17, 2016</small>
+                            <a href="conference/20" class="product-name truncate">Strategic Management Society (SMS) Annual Conference 2016</a>
+                            <div class="small m-t-xs">
+                                InterContinental Hotel, Berlin, Germany
+                            </div>
+                            <div class="m-t text-righ">
+
+                                <a href="conference/20" class="btn btn-xs btn-outline btn-primary">Detail <i class="fa fa-long-arrow-right"></i> </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-sm-6">
+                <div class="ibox">
+                    <div class="ibox-content product-box">
+
+                        <div class="product-imitation conferency-img-istanbul">
+                        </div>
+                        <div class="product-desc">
+                            {# <span class="product-price">
+                                $10
+                            </span> #}
+                            <small class="text-muted">June 12, 2016</small>
+                            <a href="conference/4" class="product-name truncate">2016 European Conference on Information Systems</a>
+                            <div class="small m-t-xs">
+                                Boğaziçi University, Istanbul, Turkey
+                            </div>
+                            <div class="m-t text-righ">
+
+                                <a href="conference/4" class="btn btn-xs btn-outline btn-primary">Detail <i class="fa fa-long-arrow-right"></i> </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="ibox">
+                    <div class="ibox-content product-box">
+
+                        <div class="product-imitation conferency-img-sanfrancisco">
+                        </div>
+                        <div class="product-desc">
+                            {# <span class="product-price">
+                                $10
+                            </span> #}
+                            <small class="text-muted">January 3, 2016</small>
+                            <a href="conference/15" class="product-name truncate">American Finance Association (AFA) Annual Conference 2016</a>
+                            <div class="small m-t-xs">
+                                Marriott Marquis, San Francisco, USA
+                            </div>
+                            <div class="m-t text-righ">
+
+                                <a href="conference/15" class="btn btn-xs btn-outline btn-primary">Detail <i class="fa fa-long-arrow-right"></i> </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="ibox">
+                    <div class="ibox-content product-box">
+
+                        <div class="product-imitation conferency-img-auckland">
+                        </div>
+                        <div class="product-desc">
+                            {# <span class="product-price">
+                                $10
+                            </span> #}
+                            <small class="text-muted">June 29, 2016</small>
+                            <a href="conference/9" class="product-name truncate">Manufacturing and Services Operations Management (MSOM) Annual Conference</a>
+                            <div class="small m-t-xs">
+                                University of Auckland, Auckland, New Zealand
+                            </div>
+                            <div class="m-t text-righ">
+
+                                <a href="conference/9" class="btn btn-xs btn-outline btn-primary">Detail <i class="fa fa-long-arrow-right"></i> </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center">
+        <a class="btn btn-primary btn-lg" href="{{url_for('conference.conferences_search')}}"><i class="fa fa-th-list"></i> Browse Conferences</a>
+    </div>
+</div>
+
+<section id="contact" class="gray-section contact">
+    <div class="container">
+        <div class="row m-b-lg">
+            <div class="col-lg-12 text-center">
+                <div class="navy-line"></div>
+                <h2> Contact Us</h2>
+                <!-- <p>Donec sed odio dui. Etiam porta sem malesuada magna mollis euismod.</p> -->
+            </div>
+        </div>
+        <!-- <div class="row m-b-lg">
+            <div class="col-lg-3 col-lg-offset-3">
+                <address>
+                    <strong><span class="navy">Company name, Inc.</span></strong><br/>
+                    795 Folsom Ave, Suite 600<br/>
+                    San Francisco, CA 94107<br/>
+                    <abbr title="Phone">P:</abbr> (123) 456-7890
+                </address>
+            </div>
+            <div class="col-lg-4">
+                <p class="text-color">
+                    Consectetur adipisicing elit. Aut eaque, totam corporis laboriosam veritatis quis ad perspiciatis, totam corporis laboriosam veritatis, consectetur adipisicing elit quos non quis ad perspiciatis, totam corporis ea,
+                </p>
+            </div>
+        </div> -->
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <a href="mailto:support@conferency.com" class="btn btn-primary"><i class="fa fa-envelope"></i> Email Us</a>
+                <!-- <p class="m-t-sm">
+                    Or follow us on social platform
+                </p>
+                <ul class="list-inline social-icon">
+                    <li><a href="#"><i class="fa fa-twitter"></i></a>
+                    </li>
+                    <li><a href="#"><i class="fa fa-facebook"></i></a>
+                    </li>
+                    <li><a href="#"><i class="fa fa-linkedin"></i></a>
+                    </li>
+                </ul> -->
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 text-center m-t-lg m-b-lg">
+                <p><strong>&copy; 2015 Conferency</strong><!-- <br/> consectetur adipisicing elit. Aut eaque, laboriosam veritatis, quos non quis ad perspiciatis, totam corporis ea, alias ut unde. --></p>
+                <span id="siteseal"><script type="text/javascript" src="https://seal.godaddy.com/getSeal?sealID=AgDK7wO8orY8rJI7HqVnjyc3KSYqJvCOIG4yUzPjHjkPyOyv2jjsGgvuHkwR"></script></span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mainly scripts -->
+<script src="{{ url_for('static', filename='inspinia/js/jquery-2.1.1.js') }}"></script>
+<script src="{{ url_for('static', filename='inspinia/js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='inspinia/js/plugins/metisMenu/jquery.metisMenu.js') }}"></script>
+<script src="{{ url_for('static', filename='inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js') }}"></script>
+
+<!-- Custom and plugin javascript -->
+<script src="{{ url_for('static', filename='inspinia/js/inspinia.js') }}"></script>
+<script src="{{ url_for('static', filename='inspinia/js/plugins/pace/pace.min.js') }}"></script>
+<script src="{{ url_for('static', filename='inspinia/js/plugins/wow/wow.min.js') }}"></script>
+<!-- datepicker -->
+<!-- <script src="{{ url_for('static', filename='inspinia/js/plugins/datepicker/bootstrap-datepicker.js') }}"></script>-->
+<!-- dotdotdot -->
+<script src="{{ url_for('static', filename='conferency/js/jquery.dotdotdot.min.js') }}"></script>
+<!-- Jquery Validate -->
+<script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+
+<script>
+    $(document).ready(function () {
+        // $("#searchform").validate();
+        // $.validator.messages.required = 'Select a date';
+        // var d = new Date();
+        // var today = [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
+        // var end_date = [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
+        // $("input[name='start']").val(today);
+        // $("input[name='end']").val(today);
+
+        $('#datepicker-start').datepicker({
+            keyboardNavigation: false,
+            forceParse: false,
+            autoclose: true,
+            format: 'yyyy-mm-dd',
+            orientation: "bottom",
+            todayHighlight: true
+        });
+
+        $('#datepicker-end').datepicker({
+            keyboardNavigation: false,
+            forceParse: false,
+            autoclose: true,
+            format: 'yyyy-mm-dd',
+            orientation: "bottom",
+            todayHighlight: true
+        });
+        // $('body').scrollspy({
+        //     target: '.navbar-fixed-top',
+        //     offset: 80
+        // });
+
+        // // Page scrolling feature
+        // $('a.page-scroll').bind('click', function(event) {
+        //     var link = $(this);
+        //     $('html, body').stop().animate({
+        //         scrollTop: $(link.attr('href')).offset().top - 50
+        //     }, 500);
+        //     event.preventDefault();
+        // });
+    });
+
+    // var cbpAnimatedHeader = (function() {
+    //     var docElem = document.documentElement,
+    //             header = document.querySelector( '.navbar-default' ),
+    //             didScroll = false,
+    //             changeHeaderOn = 200;
+    //     function init() {
+    //         window.addEventListener( 'scroll', function( event ) {
+    //             if( !didScroll ) {
+    //                 didScroll = true;
+    //                 setTimeout( scrollPage, 250 );
+    //             }
+    //         }, false );
+    //     }
+    //     function scrollPage() {
+    //         var sy = scrollY();
+    //         if ( sy >= changeHeaderOn ) {
+    //             $(header).addClass('navbar-scroll')
+    //         }
+    //         else {
+    //             $(header).removeClass('navbar-scroll')
+    //         }
+    //         didScroll = false;
+    //     }
+    //     function scrollY() {
+    //         return window.pageYOffset || docElem.scrollTop;
+    //     }
+    //     init();
+
+    // })();
+
+    // Activate WOW.js plugin for animation on scrol
+    // new WOW().init();
+
+
+</script>
+
+<!-- Dotdotdot for product box-->
+<script>
+    $(document).ready(function(){
+        $('.truncate').dotdotdot();
+    });
+    $(window).resize(function(){
+        $('.truncate').dotdotdot();
+    });
+</script>
+
+</body>
+</html>

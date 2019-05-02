@@ -1,0 +1,19 @@
+{{ title }}
+
+{{ conference.start_date }} to {{ conference.end_date }}
+{% if conference.address %}
+	{{ conference.address }}, {% endif %}{{ conference.city }}, {% if conference.state %}{{ conference.state }}, {% endif %}{{ conference.country }}
+{% if conference.website %}
+Website: {{ conference.website }}
+{% endif %}
+
+Order Summary
+{% for addon in addons %}
+{{ addon.name }}: {{ addon.price }} USD
+{% endfor %}
+{% if promo_code %}
+Promo code: {{ promo_code.promo_code }}
+{% endif %}
+Subtotal: {{ price }} {{ currency }}
+Payment method: XXXX-XXXXXXXX-{{ card_number[-4:]}}
+Card holder's name: {{ holder_name }}

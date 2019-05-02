@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% set active_page = "reviews" %}
+{% set active_subpage = "my-reviews" %}
+{% set page_title = "Paper Reviews" %}
+{% import "_macros.html" as macros %}
+
+{% block head %}
+    {{ super() }}
+    <style>
+        .title-box {
+            padding: 9px 12px 6px 12px;
+            background: #f9f9f9;
+            border: 1px solid #f1f1f1;
+            overflow: hidden
+        }
+
+        .paper-title {
+            font-size: 14px;
+            color: #676a6c;
+            font-weight: 600;
+        }
+
+        /*.progress-label {
+            float: right;
+            margin-right: 1em;
+        }*/
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>Status</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <h1 class="no-margins">{{ paper.status }}</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ibox-content forum-post-container">
+            <div class="title-box">
+                <div class="col-md-1 project-title">
+                    {{ paper.id }}
+                </div>
+                <div class="col-md-10">
+                    <div class="project-title">
+                        {{ paper.title }}
+                    </div>
+                    <div>
+                        {{ macros.generate_paper_authors(paper.authors_list) }}
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    {{ render_files_button(paper, paper.files) }}
+                </div>
+            </div>
+            {% set eval_desc = {1: 'Reject', 2: 'Weak Reject', 3: 'Boderline', 4: 'Weak Accept', 5: 'Accept'} %}
+            {% set conf_desc = {1: 'None', 2: 'Low', 3: 'Medium', 4: 'High', 5: 'Expert'} %}
+            {% if review != None %}
+                <div id="reviews">
+                {% set eval_percent = ((review.evaluation/eval_desc|length)*100)|int %}
+                {% set conf_percent = ((review.confidence/conf_desc|length)*100)|int %}
+                <div class="media">
+                    <a class="forum-avatar" href="{{ url_for('main.user', id=review.reviewer.id) }}">
+                        <img src="{{ review.reviewer.gravatar(size=60) }}" class="img-circle" alt="image">
+                        <div class="author-info">
+                            {{ review.reviewer.first_name }} {{ review.reviewer.last_name }}
+                            </br>
+                            <strong>Reviewed:</strong> April 11.2015<br>
+                        </div>
+                    </a>
+                    <div class="media-body">
+
+                        <h5>Evaluation: {{ review.evaluation }} out of 5</h5>
+                        <div class="progress progress-bar-default" style="width:50%;">
+                            <div style="width: {{ eval_percent }}%" aria-valuemax="100" aria-valuemin="0"
+                                 aria-valuenow="{{ eval_percent }}" role="progressbar"
+                                 class="progress-bar progress-bar-success">
+                                <span>{{ eval_desc[review.evaluation] }}</span>
+                            </div>
+                        </div>
+
+                        <h5>Confidence: {{ review.confidence }} out of 5</h5>
+                        <div class="progress progress-bar-default" style="width:50%;">
+                            <div style="width: {{ conf_percent }}%" aria-valuemax="100" aria-valuemin="0"
+                                 aria-valuenow="{{ conf_percent }}" role="progressbar" class="progress-bar">
+                                <span>{{ conf_desc[review.confidence] }}</span>
+                            </div>
+                        </div>
+
+                        <h4 class="media-heading">Review</h4>
+                        {{ review.review_body | safe }}
+                        <br><br>
+
+                        <h4 class="media-heading">Confidential Remarks</h4>
+                        {{ review.confidential_comments }}
+                        {{ review.evaluation_percent }}
+                    </div>
+                </div>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+{% endblock %}

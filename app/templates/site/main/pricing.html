@@ -1,0 +1,202 @@
+{% extends "/site/home_base.html" %}
+{% block title %}Pricing - {% endblock %}
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='conferency/css/dragdealer.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/pricing.min.css') }}" rel="stylesheet">
+    <style type="text/css">
+        .jumbotron {
+            background: url('{{ url_for('static', filename='img/landing_page/bg-pricing.jpg') }}');
+            background-size: 100%;
+        }
+    </style>
+{% endblock %}
+{% block page_content %}
+
+    <!-- HEADER
+    ================================= -->
+    <header id="header" class="header-section section section-dark navbar navbar-fixed-top">
+
+        <div class="container-fluid">
+
+            <div class="navbar-header navbar-left">
+
+                <!-- RESPONSIVE MENU BUTTON -->
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigation">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                <!-- HEADER LOGO -->
+                <div class="navbar-logo">
+                    <a href="https://www.conferency.com">
+                        <div class="logo-image floating"></div>
+                    </a>
+                </div>
+
+            </div>
+
+            <nav id="navigation" class="navigation navbar-collapse collapse navbar-right">
+
+                <!-- NAVIGATION LINKS -->
+                <ul id="header-nav" class="nav navbar-nav">
+                    <li><a id="home_link_main_page" href="/">Home</a></li>
+                    <li><a id="product_link_main_page" href="/#product">Product</a></li>
+                    <li class="current"><a id="pricing_link_main_page" href="#pricing">Pricing</a></li>
+
+                    <!--
+                    <li><a href="http://conferency.zendesk.com">Support</a></li>
+                    -->
+                    <!-- HEADER ACTION BUTTON -->
+                    <li class="header-action-button"><a id="login_button_main_home" href="/auth/login"
+                                                        class="btn btn-primary">Login</a></li>
+                    <li class="header-action-button"><a id="signup_button_main_home" href="/auth/register"
+                                                        class="btn btn-primary">Signup</a></li>
+
+                </ul>
+
+            </nav>
+
+        </div>
+
+    </header>
+
+    <!-- banner
+    ================================= -->
+
+    <div class="jumbotron banner-conf-title">
+        <div class="container padding-left-none">
+            <h1 class="price-tag-line text-center">We've made fees as low as possible</h1>
+        </div>
+    </div>
+
+
+    <section id="pricing" class="pricing-section section">
+        <div class="container">
+            <p class="lead text-center">Free for free conferences or low-cost pricing model below</p>
+            <div class="container" id="fee-calc">
+
+                {#                <h2 class="heading">Fee Calculator</h2>#}
+
+                <div class="row">
+                    <div class="col-sm-12 col-md-4 col-md-offset-2 fee-calc-left">
+                        <h3 class="text-center">TICKET PRICE</h3>
+                        <div id="price-slider" class="dragdealer">
+                            <div class="handle bar"><span id="price-value">$150</span></div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 col-md-4">
+                        <h3 class="text-center">TICKETS SOLD</h3>
+                        <div id="tickets-slider" class="dragdealer">
+                            <div class="handle bar"><span id="tickets-value">1</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 30px;">
+                    <div id="free-event">
+                        <div class="col-md-8 col-md-offset-2 text-center">
+                            <p>Your event is free? Great, nothing you will need to pay.</p>
+                        </div>
+                    </div>
+                    <div id="non-free-table">
+                        <div class="col-sm-12 col-md-4 col-md-offset-2">
+                            <table class="table price-table">
+
+                                <tr>
+                                    <td class="odd">
+                                        Total Fee per Ticket
+                                    </td>
+                                    <td class="even">
+                                        <span class="fee" id="buyer-price">1.00</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="odd">
+                                        Total Fee
+                                    </td>
+                                    <td class="even">
+                                        <span class="fee" id="total-cost">1.00</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="odd">
+                                        Total Revenue
+                                    </td>
+                                    <td class="even">
+                                        <span class="fee" id="holder-get">1.00</span>
+                                    </td>
+                                </tr>
+
+                            </table>
+                        </div>
+                        <div class="col-sm-12 col-md-4 ">
+                            <table class="table price-table">
+                                <tr>
+                                    <td class="odd warning">
+                                        Saving over <span class="fee-compare" id="span-eventbrite">Eventbrite</span>
+                                    </td>
+                                    <td class="even warning">
+                                        <span class="fee-compare-num" id="saving-eventbrite">1.00</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="odd warning">
+                                        Saving over <span class="fee-compare" id="span-ticketleap">Ticketleap</span>
+                                    </td>
+                                    <td class="even warning">
+                                        <span class="fee-compare-num" id="saving-ticketleap">1.00</span>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="odd warning">
+                                        Saving over <span class="fee-compare" id="span-regonline">RegOnline</span>
+                                    </td>
+                                    <td class="even warning">
+                                        <span class="fee-compare-num" id="saving-regonline">1.00</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    </div>
+                    <div id="non-free-inf">
+                        <div class="col-md-8 col-md-offset-2 text-center">
+                            <p>Conferency Service Fee of 1$ per ticket, and credit card fee of 3%<br><a href="#">Contact
+                                us</a> for more details</p>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-md-4 col-md-offset-2">
+                        <div class="benefit">
+                            <span class="benefit-icon fa fa-smile-o" data-animation="bounceIn"></span>
+                            <h4 class="benefit-title">Service Fee</h4>
+                            <p class="benefit-description">$1 per ticket</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="benefit">
+                            <span class="benefit-icon fa fa-credit-card" data-animation="bounceIn"></span>
+                            <h4 class="benefit-title">Credit Card Fee</h4>
+                            <p class="benefit-description">3% per ticket</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='conferency/js/dragdealer.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/pricing.min.js') }}"></script>
+{% endblock %}

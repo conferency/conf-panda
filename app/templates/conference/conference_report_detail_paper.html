@@ -1,0 +1,58 @@
+{% extends "conference/conference_report_detail_base.html" %}
+
+{% block contents_before_table %}
+    <!-- <div class="row" style="margin-bottom: 5px;">
+        <div class="col-lg-3">
+            <div class="form-group">
+                <label class="control-label" for="display_option" style="padding-top: 7px;">Display Option</label>
+                <select id="display_option" name="display_option" class="form-control">
+                    <option value="group_by_paper" selected>Group by Paper (Default)</option>
+                    <option value="sort_by_papers_reviewed">Sort by Papers Reviewed</option>
+                    <option value="sort_by_review_quality">Sort by Review Quality</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-lg-9"></div>
+    </div> -->
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+            // var $displayOption = $("#display_option");
+            // $displayOption.val("{{ display_option }}");
+            // $displayOption.change(function () {
+            //     location.href = "?display_option=" + $displayOption.val();
+            // });
+            $('.table').footable({
+                "columns":[
+                    {"name": "empty", "title":"", "breakpoints":"xs sm md", "type":"text", "sortable": false, "filterable":false},
+                    {"name": "id", "title":"ID", "breakpoints":"", "type":"number"},
+                    {"name": "title", "title":"Title", "breakpoints":"xs sm md", "type":"text"},
+                    {"name": "author", "title":"Author", "breakpoints":"", "type": "html", "sortable": false},
+                    {"name": "submitted_by", "title": "Submitted by", "breakpoints": "all", "type": "html", "sortable": false},
+                    {"name": "abstract", "title":"Abstract", "breakpoints":"all", "type":"text", "sortable": false},
+                    {"name": "keywords", "title":"Keywords", "breakpoints":"all", "type":"text", "sortable": false},
+                    {"name": "submission_time", "title":"Submission time", "breakpoints":"all", "type":"date", "formatString":"YYYY-MM-DD"},
+                    {"name": "reviews_button", "title":"Reviews", "breakpoints":"all", "type":"html", "sortable": false, "filterable": false},
+                    {"name": "files_button", "title":"Files", "breakpoints":"all", "type":"html", "sortable": false, "filterable": false},
+                    {"name": "hide", "title":"Details", "breakpoints":"all", "type":"html", "sortable": false, "attributes": {"colspan": "2"}}
+                ],
+                "rows": $.get("{{ url_for('api.get_submissions', conference_id=conference.id, status='Normal') }}"),
+                "paging": {
+                    "enabled": true,
+                    "size": 20
+                },
+                "filtering": {
+                    "enabled": true
+                },
+                "sorting": {
+                    "enabled": true
+                }
+            });
+            $("[data-toggle=\"tooltip\"]").tooltip();
+
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% set active_page = "reviews" %}
+{% set active_subpage = "bidding-reviews" %}
+{% set page_title = "Review preferences" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Reviews', '#'), (page_title, request.path)]) }}
+{% endblock %}
+
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-tagsinput.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <style>
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius:0px;
+            box-shadow: none;
+        }
+
+        .bootstrap-tagsinput input {
+            width: 100% !important;
+        }
+
+        .btn-outline {
+            border: 1px solid #e7eaec;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="wrapper animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>Review preference</h5>
+                    </div>
+                    <div class="ibox-content clearfix review_preference">
+                        <div class="col-md-8 col-md-offset-2">
+                            <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label class="control-label" for="assigned_reviews_max">Max number of papers you would like to review</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Max number of papers you would like to review."></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <input type="number" id="assigned_reviews_max" name="assigned_reviews_max" class="form-control" style="margin-bottom: 10px;" min="0" value="{{review_preference.assigned_reviews_max}}"/>
+                                </div>
+                            </div>
+                            <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label class="control-label" for="">Preferred keyworks</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Reviewer prefers to review papers with such keywords."></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <input type="text" id="preferred_keywords" name="preferred_keywords" data-role="tagsinput" class="form-control" placeholder="Separated by commas or semi-colons" value="{{review_preference.preferred_keywords}}"/>
+                                </div>
+                            </div>
+                            <!-- <div class="input-group col-md-12">
+                                <div class="col-md-7">
+                                    <label class="control-label" for="">Rejected keywords</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Reviewer prefers to review papers without such keywords."></i>
+                                </div>
+                                <div class="col-md-4 col-md-offset-1">
+                                    <input type="text" id="rejected_keywords" name="rejected_keywords" data-role="tagsinput" class="form-control" placeholder="Separated by commas or semi-colons" value="{{review_preference.rejected_keywords}}"/>
+                                </div>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+                {% if pagination %}
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>Paper biddings</h5>
+                    </div>
+                    <div class="ibox-content">
+                       <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny" data-page-size="20">
+                           <thead>
+                               <tr>
+                                    <th></th>
+                                    <th>Title</th>
+                                    {% if not conference.configuration['hide_author'] %}
+                                    <th data-hide="phone">Author</th>
+                                    {% endif %}
+                                    <th data-hide="phone" class="pull-right">Would you like to review this paper?</th>
+                                    <!-- <th data-hide="phone"> </th> -->
+                                    <th class="hide" data-hide="all">Abstract</th>
+                                    <th class="hide" data-hide="all">Keywords</th>
+                                    <th class="hide" data-hide="all">Track</th>
+                                    <th class="hide" data-hide="all">File</th>
+                               </tr>
+                           </thead>
+                           <tbody>
+                                {% for paper in pagination.items %}
+                                   <tr>
+                                        <td></td>
+                                        <td>{{ paper.title }}</td>
+                                        {% if not conference.configuration['hide_author'] %}
+                                        <td>{{ macros.generate_paper_authors(paper.authors_list) }}</td>
+                                        {% endif %}
+                                        <td>
+                                            {% if current_user not in paper.authors %}
+                                            {% set bid = paper.get_bid(current_user) %}
+                                            <div class="btn-group pull-right bidding" data-toggle="buttons" data-paper-id="{{paper.id}}">
+                                                <label class="btn btn-sm btn-outline btn-primary {% if bid == 0 %}active{% endif %}">
+                                                    <input type="radio" name="bid_options_{{paper.id}}" autocomplete="off" value="0" {% if bid == 0 %}checked{% endif %}> Yes
+                                                </label>
+                                                <label class="btn btn-sm btn-outline btn-default {% if bid == 1 %}active{% endif %}">
+                                                    <input type="radio" name="bid_options_{{paper.id}}" autocomplete="off" value="1" {% if bid == 1 %}checked{% endif %}> Maybe
+                                                </label>
+                                                <label class="btn btn-sm btn-outline btn-danger {% if bid == 2 %}active{% endif %}">
+                                                    <input type="radio" name="bid_options_{{paper.id}}" autocomplete="off" value="2" {% if bid == 2 %}checked{% endif %}> No
+                                                </label>
+                                            </div>
+                                            {% else %}
+                                            <p class="pull-right">Conflict of Interest</p>
+                                            {% endif %}
+                                        </td>
+                                        <td class="hide">{{ paper.abstract }}</td>
+                                        <td class="hide">{{ paper.keywords }}</td>
+                                        <td class="hide">{{ paper.track.name }}</td>
+                                       <td class="hide">
+                                           {{ render_files_button(paper, paper.files) }}
+                                       </td>
+                                   </tr>
+                               {% endfor %}
+                           </tbody>
+                        </table>
+                            {{ macros.pagination_widget(pagination, 'conference.paper_biddings', conference_id=conference.id) }}
+                    </div>
+                </div>
+                {% else %}
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>Paper biddings</h5>
+                    </div>
+                    <div class="ibox-content clearfix">
+                        <p>Paper bidding is not enabled by the chair yet.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <!-- Tag Input -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-tagsinput.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+
+            $('.footable').footable({});
+
+            // bidding change
+            $(".bidding input[type=radio]").on("change", function(event) {
+                var paper_id = $(this).parent().parent().data("paper-id");
+                $.ajax({
+                    type: "POST",
+                    url: "/api/conferences/{{conference.id}}/papers/" + paper_id + "/biddings",
+                    contentType: "application/json",
+                    data: JSON.stringify({"bidding": $(this).val(), "user_id": {{current_user.id}}}),
+                    success: function (response) {
+                        // swal({title: "Updated!", text: "Review configuration updated.", type: "success", timer: 2000,   showConfirmButton: false});
+                    }
+                })
+                    .fail(function(data, textStatus, error) {
+                        swal({title: "Oops...", text: "Update failed. We are very sorry. Please contact with customer service.", type: "error", timer: 2000,   showConfirmButton: false});
+                });
+            });
+
+            $(".review_preference input").on("change", function(event) {
+                var _json = {};
+                _json[$(this).attr("name")] = $(this).val();
+                // var paper_id = $(this).parent().parent().data("paper-id");
+                $.ajax({
+                    type: "PUT",
+                    url: "/api/conferences/{{conference.id}}/review_preference/{{current_user.id}}",
+                    contentType: "application/json",
+                    data: JSON.stringify(_json),
+                    success: function (response) {
+                        // swal({title: "Updated!", text: "Review configuration updated.", type: "success", timer: 2000,   showConfirmButton: false});
+                    }
+                })
+                    .fail(function(data, textStatus, error) {
+                        swal({title: "Oops...", text: "Update failed. We are very sorry. Please contact with customer service.", type: "error", timer: 2000,   showConfirmButton: false});
+                });
+            });
+        });
+    </script>
+{% endblock %}

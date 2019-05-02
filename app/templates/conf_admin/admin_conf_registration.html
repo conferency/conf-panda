@@ -1,0 +1,639 @@
+{% extends "base.html" %}
+{% set active_page = "conferences" %}
+{% set active_subpage = "admin-registrations" %}
+{% set page_title = "Conference Registrations" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Admin', '#'), (page_title, "#"), (conference.short_name.upper(), url_for('conf_admin.admin_conf_registration', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <style>
+        .less-bottom-margin {
+            margin-bottom: 0px;
+        }
+
+        .form-group {
+            margin-bottom: 0px;
+        }
+
+        .form-horizontal .control-label {
+            padding-top: 0px;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            /* display: none; <- Crashes Chrome on hover */
+            -webkit-appearance: none;
+            margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+        }
+
+        label.label-left {
+            text-align: left !important;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <h2>{{ conference.name }}</h2>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <!-- <span class="label label-success pull-right">Monthly</span> -->
+                    <h5>Gross Sales</h5>
+                </div>
+                <div class="ibox-content">
+                    <h1 class="no-margins">
+                        {% set sale_data = conference.registration.get_sale_data() %}
+                        {% for price in sale_data['total_sold_detail'] %}
+                            {% if loop.index0 != 0%}
+                            /
+                            {% endif %}
+                            {{ price[1]|string }} {{  price[0] }}
+                        {% endfor %}
+                        {% if sale_data['total_sold_detail'] | length > 1 %}
+                        <span>&#8776;</span>$ {{ sale_data['total_sold'] }}
+                        {% endif %}
+                    </h1>
+                    <input type="hidden" name="gross_sale" id="gross_sale" value="{{ sale_data['total_sold'] }}">
+                    <!-- <div class="stat-percent font-bold text-success">98% <i class="fa fa-bolt"></i></div> -->
+                    <!-- <small>Total income</small> -->
+                </div>
+            </div>
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <!-- <span class="label label-primary pull-right">Today</span> -->
+                    <h5>Tickets Sold</h5>
+                </div>
+                <div class="ibox-content">
+                    <h1 class="no-margins"><a href="{{url_for('conference.registration_recent_orders', conference_id=conference.id)}}">{{ sale_data['transaction_num'] }}</a></h1>
+                    <input type="hidden" name="transaction_num" id="transaction_num" value="{{ sale_data['transaction_num'] }}">
+                        <!-- <div class="stat-percent font-bold text-navy">44% <i class="fa fa-level-up"></i></div> -->
+                        <!-- <small>New visits</small> -->
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Registration</h5>
+                </div>
+                <div class="ibox-content clearfix">
+                    <div class="form-horizontal" id="ticket_charge_form">
+                        <div class="form-group">
+                            <label class="col-lg-6 col-md-6 control-label label-left">Charge per registration</label>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="input-group m-b">
+                                    <span class="input-group-addon">$</span>
+                                    <input type="number" class="form-control" value="1" id="CPR">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-lg-6 col-md-6 control-label label-left">Process fee per registration</label>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="input-group m-b">
+                                    <input type="number" class="form-control" value="3" id="PPR">
+                                    <span class="input-group-addon">%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-lg-6 col-md-6 control-label label-left">Total registration fee</label>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="input-group m-b">
+                                    <span class="input-group-addon">$</span>
+                                    <input disabled type="number" class="form-control" value="{{ (sale_data['total_sold'] * 0.03) | round(2) + sale_data['transaction_num'] }}" id="total_fee">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="form-horizontal m-t-lg">
+                            <p class="formula">{{ sale_data['total_sold'] }} - (<span id="PPR_formula">3</span>% * {{ sale_data['total_sold'] }}) - (<span id="CPR_formula">1</span> * {{ sale_data['transaction_num'] }}) = <span id="net_sale_formula">{{ (sale_data['total_sold'] * 0.97) | round(2) - sale_data['transaction_num'] }}</span></p>
+                        </div> -->
+                    </div>
+                    <!-- <h2 class="no-margins">Net Sales : $ <span id="net_sale">{{ (sale_data['total_sold'] * 0.97) | round(2) - sale_data['transaction_num'] }}</span></h2> -->
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <!-- <span class="label label-primary pull-right">Today</span> -->
+                    <h5>Submission</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="form-horizontal" id="submission_charge_form">
+                        <div class="form-group">
+                            <label class="col-lg-6 col-md-6 control-label label-left">Setup</label>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="input-group m-b">
+                                    <span class="input-group-addon">$</span>
+                                    <input type="number" class="form-control" value="300" id="setup_fee">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="form-group">
+                            <label class="col-lg-6 col-md-6 control-label label-left">Website host</label>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="input-group m-b">
+                                    <span class="input-group-addon">$</span>
+                                    <input type="number" class="form-control" value="1000" id="web_host">
+                                </div>
+                            </div>
+                        </div> -->
+                        <div class="form-group">
+                            <label class="col-lg-6 col-md-6 control-label label-left">Free submission limit</label>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="input-group m-b">
+                                    <input type="number" class="form-control" value="50" id="free_submission">
+                                </div>
+                            </div>
+                        </div>
+                        {% set total_submissions = conference.get_papers.all() %}
+                        <div class="form-group">
+                            <label class="col-lg-6 col-md-6 control-label label-left">Total submissions</label>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="input-group m-b">
+                                    <input type="number" class="form-control" value="{{ total_submissions | length }}" id="total_submissions">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-lg-6 col-md-6 control-label label-left">Per submission</label>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="input-group m-b">
+                                    <span class="input-group-addon">$</span>
+                                    <input type="number" class="form-control" value="3" id="per_submission_fee">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-lg-6 col-md-6 control-label label-left">Total submission fee</label>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="input-group m-b">
+                                    <span class="input-group-addon">$</span>
+                                    <input disabled type="number" class="form-control" value="{% if total_submissions | length > 50 %}{{ (total_submissions | length - 50) * 3 + 300 }}{% else %}300{% endif %}" id="usage_fee">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Payout</h5>
+                </div>
+                {# check if payout is empty #}
+                {% set payout = conference.registration.payout %}
+                <div class="ibox-content table-responsive">
+                    <!-- <h1>Total $ <span id="payout_total">
+                        {% if total_submissions | length > 50 %}
+                            {{ ((sale_data['total_sold'] * 0.97) | round(2) - sale_data['transaction_num']) - (total_submissions | length - 50 + 300) }}
+                        {% else %}
+                            {{ ((sale_data['total_sold'] * 0.97) | round(2) - sale_data['transaction_num']) - 300 }}
+                        {% endif %}</span></h1> -->
+                    {% if payout.account_name %}
+                    <table class="table table-bordered less-bottom-margin">
+                        <thead>
+                            <tr>
+                                <th>Address</th>
+                                <th>Bank information</th>
+                                <th>Payout Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <address>
+                                            Name on Account: <span id="table_account_name">{{ payout.account_name }}</span><br>
+                                            Address line 1: <span id="table_address_1">{{ payout.street_1 }}</span><br>
+                                            Address line 2: <span id="table_address_2">{% if payout.street_2 %}{{ payout.street_2 }}{% endif %}</span><br>
+                                            City: <span id="table_city">{{ payout.city }}</span><br>
+                                            State: <span id="table_state">{% if payout.state %}{{ payout.state }}{% endif %}</span><br>
+                                            Country: <span id="table_country">{{ payout.country }}</span><br>
+                                            Zipcode: <span id="table_zipcode">{% if payout.zipcode %}{{ payout.zipcode }}{% endif %}</span><br>
+                                    </address>
+                                </td>
+                                <td>
+                                    <address>
+                                            Payment method: <span id="table_payment_method">{{ payout.payment_method }}</span><br>
+                                            <div id="table_payment_status" class="{% if payout.payment_method == 'Check' %}hide{% endif %}">
+                                            Bank name: <span id="table_bank_name">{{ payout.bank_name }}</span><br>
+                                            Account type: <span id="table_account_type">{{ payout.account_type }}</span><br>
+                                            Routing number: <span id="table_routing_number">{{ payout.routing_number }}</span><br>
+                                            Account number: <span id="table_account_number">{{ payout.account_number }}</span><br>
+                                            </div>
+                                    </address>
+                                    <a href="{{url_for('conference.payment_options', conference_id=conference.id)}}" class="btn btn-primary btn-sm">Update</a>
+                                </td>
+                                <td>
+                                    <form class="form-horizontal col-sm-10">
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label">Payout status</label>
+                                            <div class="col-sm-10">
+                                                <select class="form-control m-b payout-information-input" name="payout_status" id="payout_status" disabled>
+                                                    <option value='Pending' {% if payout.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                    <option value="Completed" {% if payout.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label">Amount</label>
+                                            <div class="col-sm-10">
+                                                <input class="form-control payout-information-input" id="payout_amount" name="payout_amount" value="{{payout.amount}}" disabled>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-2 control-label">Last update</label>
+                                            <div class="col-sm-10">
+                                                <p id="payout_last_updated" class="form-control-static">{% if payout.update_timestamp %}{{ moment(payout.update_timestamp).fromNow() }}{% endif %}</p>
+                                                <button type="button" class="btn btn-primary btn-sm payout_update" id="payout-information-update">Edit</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">
+                                    <textarea name="payout_note" id="payout_note" rows="8" class="form-control" disabled>{% if payout.note %}{{ payout.note }}{% endif %}</textarea>
+                                    <button type="button" class="btn btn-primary btn-sm m-t-sm pull-right payout_update" id="payout-note-update">Edit</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center">
+                        <p>No payout information</p>
+                        <a href="{{url_for('conference.payment_options', conference_id=conference.id)}}" class="btn btn-primary btn-sm center">Update payout</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Daily sales</h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <canvas id="daily_sale" height="140"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Sales by ticket type</h5>
+                </div>
+                <div class="ibox-content">
+                    <div>
+                        <canvas id="doughnutChart" height="140"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Sales by ticket type details</h5>
+                </div>
+                <div class="ibox-content table-responsive">
+                    <table class="table table-bordered less-bottom-margin">
+                        <thead>
+                            <tr>
+                                <th>Ticket type</th>
+                                <th>Price</th>
+                                <th>Sold</th>
+                                <th>Status</th>
+                                <!-- <th>Subtotal</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set tickets = conference.registration.tickets.all() %}
+                            {% if tickets | length %}
+                                {% for ticket in tickets %}
+                                    {% set prices = ticket.prices.all() %}
+                                    <tr>
+                                        <td>{{ ticket.name }}</td>
+                                        <td>{{ prices|join(' / ') }}</td>
+                                        <td>{{ prices|join(' / ', attribute='number_of_sold') }}</td>
+                                        <td>{{ ticket.status }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <td class="text-center" colspan="5">Not found any ticket.</td>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Sales by product type details</h5>
+                </div>
+                <div class="ibox-content table-responsive">
+                    <table class="table table-bordered less-bottom-margin">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Sold</th>
+                                <th>Status</th>
+                                <!-- <th>Subtotal</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set products = (conference.registration.products.all() | rejectattr('status', 'equalto', 'Deleted') | list) %}
+                            {% if products | length %}
+                                {% for product in products %}
+                                    {% set options = product.options.all() %}
+                                        {% if (options | length) > 1 %}
+                                            {% for option in options if not option.default %}
+                                                <tr>
+                                                    <td>{{ option.product_name }} -- {{ option.option_name }}</td>
+                                                    <td>$ {{ option.option_price }}</td>
+                                                    <td>{{ option.number_of_sold }}</td>
+                                                    <td>{{ option.status }}</td>
+                                                    <!-- <td>$ </td> -->
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            {% for option in options %}
+                                                <tr>
+                                                    <td>{{ option.product_name }}</td>
+                                                    <td>$ {{ option.option_price }}</td>
+                                                    <td>{{ option.number_of_sold }}</td>
+                                                    <td>{{ option.status }}</td>
+                                                    <!-- <td>$ </td> -->
+                                                </tr>
+                                            {% endfor %}
+                                        {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <td class="text-center" colspan="5">Not found any product.</td>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- ChartJS-->
+    <script src={{ url_for('static', filename='conferency/inspinia/js/chartjs/Chart.min.js') }}></script>
+    <script>
+        // function cal_payout() {
+        //     $("#payout_total").text(parseFloat($("#gross_sale").val()) - parseFloat($("#total_fee").val()) - parseFloat($("#usage_fee").val()));
+        // }
+        $(document).ready(function(){
+            $('#tips').tooltip();
+            $(".payout_update").click(function(event) {
+                if (this.innerHTML === "Edit") {
+                    if (this.id === "payout-information-update") {
+                        $(".payout-information-input").removeAttr('disabled');
+                    }
+                    else {
+                        $("#payout_note").removeAttr('disabled');
+                    }
+                    this.innerHTML = 'Confirm';
+                    return;
+                }
+                else {
+                    if (this.id === "payout-information-update") {
+                        $(".payout-information-input").attr('disabled', 'true');
+                    }
+                    else {
+                        $("#payout_note").attr('disabled', 'true');
+                    }
+                    this.innerHTML = 'Edit';
+                }
+                event.preventDefault();
+                $.ajax({
+                    type : "PUT",
+                    url: "{{url_for('api.update_payout_pay', conference_id=conference.id)}}",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                                            payout_status: $("#payout_status").val(),
+                                            payout_amount: $("#payout_amount").val(),
+                                            payout_note: $("#payout_note").val()
+                                        }),
+                    success: function(response) {
+                        $('#payout_last_updated').text(response.last_updated);
+                        swal({title: "Success!", type: "success", text: "Your information has been saved.", timer: 2000, showConfirmButton: false});
+                    }
+                });
+            });
+
+            $("#ticket_charge_form input").keyup(function() {
+                if ($(this).val() >= 0) {
+                    var gross_sale = $("#gross_sale").val();
+                    var transaction_number = $("#transaction_num").val();
+                    // $("#PPR_formula").text($("#PPR").val());
+                    // $("#CPR_formula").text($("#CPR").val());
+                    $("#total_fee").val((parseFloat($("#PPR").val()) / 100.0 * gross_sale + transaction_number * parseFloat($("#CPR").val())).toFixed(2));
+                    // var result = gross_sale * (1 - parseFloat($("#PPR").val()) / 100.0) - parseFloat($("#CPR").val()) * transaction_number;
+                    // if (result % 1 === 0) {
+                    //     result = result.toFixed(1);
+                    // } else {
+                    //     result = result.toFixed(2);
+                    // }
+                    // $("#net_sale").text(result);
+                    // cal_payout();
+                    // console.log(parseFloat($("#PPR").val())/ 100.0);
+                }
+            });
+
+            $("#submission_charge_form input").keyup(function() {
+                if ($(this).val() >= 0) {
+                    // console.log();
+                    if (parseFloat($("#free_submission").val()) > parseFloat($("#total_submissions").val())) {
+                        charge_submission = 0;
+                    } else {
+                        charge_submission = ($("#total_submissions").val() - $("#free_submission").val());
+                    }
+                    $("#usage_fee").val((parseFloat($("#setup_fee").val()) + parseFloat(charge_submission * $("#per_submission_fee").val())).toFixed(2));
+                    // cal_payout();
+                }
+            });
+
+            $.getJSON("/api/conferences/" + {{conference.id}} + "/ticketsale", function(data){
+
+                // console.log(data);
+                // generate js date objects for chart
+                var dates = [];
+                for (var i=0; i<data.linechart.dates.length; i++) {
+                    dates.push(new Date(data.linechart.dates[i]));
+                }
+
+                if (dates.length == 0){
+                    $('#daily_sale').parent().html('<h2>No sales yet.</h2>');
+                } else {
+                    var salesData = {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: "Daily Ticket Sales",
+                                fill: false,
+                                lineTension: 0,
+                                backgroundColor: "#fff",
+                                borderColor: "rgba(26,179,148,0.7)",
+                                borderCapStyle: 'butt',
+                                borderDash: [],
+                                borderDashOffset: 0.0,
+                                borderJoinStyle: 'miter',
+                                pointBorderColor: "rgba(26,179,148,1.0)",
+                                pointBackgroundColor: "#fff",
+                                pointBorderWidth: 1,
+                                pointHoverRadius: 5,
+                                pointHoverBackgroundColor: "rgba(26,179,148,1.0)",
+                                pointHoverBorderColor: "rgba(220,220,220,1)",
+                                pointHoverBorderWidth: 2,
+                                pointRadius: 3,
+                                pointHitRadius: 10,
+                                data: data.linechart.sales,
+                            }
+                        ]
+                    };
+
+                    // console.log(salesData.labels);
+                    var ctx = document.getElementById("daily_sale").getContext("2d");
+                    var myLineChart = new Chart(ctx, {
+                        type: 'line',
+                        data: salesData,
+                        options: {
+                            showLines: true,
+                            responsive: true,
+                            legend: {display:false},
+                            tooltips: {
+                                    callbacks: {
+                                        label: function(tooltipItem, data) {
+                                            // console.log(data);
+                                            // var value = data.datasets[0].data[tooltipItem.index];
+                                            // var label = data.labels[tooltipItem.index];
+                                            return "Daily Ticket Sales: " + tooltipItem.yLabel;
+                                        }
+                                    }
+                            },
+                            scales: {
+                                xAxes: [{
+                                    type: "time",
+                                    time: {
+                                        displayFormat:'MM/DD',
+                                        tooltipFormat: 'MM/DD/YY'
+                                    }
+                                    // ticks: {
+                                    //     maxRotation: 90
+                                    // }
+                                }],
+                                yAxes: [{
+                                    ticks:{
+                                        userCallback: function(value, index, values) {
+                                            return  '$'+value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                        },
+                                        // stepSize: 1,
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+
+                }
+
+                var saleTypeData = {
+                    labels: data.pie.types,
+                    datasets: [
+                        {
+                            data: data.pie.nums,
+                            backgroundColor: [
+                                "#FF6384",
+                                "#36A2EB",
+                                "#FFCE56",
+                                "#577590",
+                                "#EE964B",
+                                "#F95738",
+                                "#EBEBD3",
+                                "#A7C6DA",
+                                "#FFB86F",
+                                "#576CA8",
+                                "#1B998B",
+                                "#6369D1",
+                                "#E56399",
+                                "#330036",
+                                "#0DBEB2",
+                                "#561D25",
+                                "#3E7CB1",
+                                "#F35F00",
+                                "#A20021",
+                                "#083D77"
+                            ],
+                            hoverBackgroundColor: [
+                                "#FF6384",
+                                "#36A2EB",
+                                "#FFCE56",
+                                "#577590",
+                                "#EE964B",
+                                "#F95738",
+                                "#EBEBD3",
+                                "#A7C6DA",
+                                "#FFB86F",
+                                "#576CA8",
+                                "#1B998B",
+                                "#6369D1",
+                                "#E56399",
+                                "#330036",
+                                "#0DBEB2",
+                                "#561D25",
+                                "#3E7CB1",
+                                "#F35F00",
+                                "#A20021",
+                                "#083D77"
+                            ]
+                        }]
+                };
+                var total=0;
+                $.each(data.pie.nums,function() {
+                    total += this;
+                });
+
+                if (total==0){
+                    //empty states
+                    $('#doughnutChart').parent().html('<h2>No sales yet.</h2>');
+                }
+                else{
+                    var ctx = document.getElementById("doughnutChart").getContext("2d");
+                    var myDoughnutChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: saleTypeData
+                    });
+                }
+
+            });
+
+        });
+
+    </script>
+
+{% endblock %}

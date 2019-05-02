@@ -1,0 +1,3 @@
+The request for "{{ conference.name }}" has been {{conference.status|lower()}}.
+
+Check conference requests: {{ url_for('conf_admin.admin_requests', _external=True) }}

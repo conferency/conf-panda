@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+{% set active_page = "dashboard" %}
+{% import "_macros.html" as macros %}
+{% set page_title = "Dashboard" %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <style>
+        .list-group-item {
+            border: 0;
+            padding-left: 0px;
+        }
+
+        .padding-left-30 {
+            padding-left: 30px
+        }
+
+        .margin-top-30 {
+            margin-top: 30px
+        }
+
+        .hr-line-dashed-bashboard {
+            border-top: 1px dashed #ddd;
+            height: 1px;
+            margin: 20px 0;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    <div class="col-md-12">
+        <!-- <h2>Welcome {{ current_user.first_name }}</h2>
+        <p>Upcoming events {% if current_user.curr_conf_id != 1 %}of {{ current_user.curr_conf.short_name.upper() }}.{% endif %}</p>
+        <ul class="list-group clear-list m-t">
+            <li class="list-group-item fist-item">
+            </li>
+        </ul> -->
+        {% if not current_user.curr_conf_is_main() %}
+        <p>
+            <h2>Welcome to {{ current_user.curr_conf.name }}!</h2>
+        <!-- registration button
+        {% if current_user.curr_conf.registration.status %}<a class="btn btn-w-m btn-warning m-b-sm" href="{{ url_for('main.conf_index', conf_name=current_user.curr_conf.short_name) }}">Register Now</a>{% endif %}
+        -->
+        </p>
+        {% else %}
+        <h2>
+            Welcome to the Main Dashboard!
+        </h2>
+        <h4 class="text-warning">
+            Switch to an individual conference to see more options <a href="https://conferency.zendesk.com/hc/en-us/articles/360000378611"><i class="fa fa-info-circle" aria-hidden="true"></i></a>
+        </h4>
+        {% endif %}
+    </div>
+
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    {% if conf_name == "All Conferences" %}
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <span class="label label-info pull-right">ALL</span>
+                <h5>All My Submissions</h5>
+            </div>
+            <div class="ibox-content total_submissions">
+                <h1 class="no-margins"><a href="{{ url_for('submission.my_submissions') }}">{{ total_submissions }}</a></h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <span class="label label-info pull-right">ALL</span>
+                <h5>All My Reviews</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins"><a href="{{ url_for('review.my_reviews') }}">{{ total_reviews }}</a></h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <span class="label label-info pull-right">ALL</span>
+                <h5>My Conferences</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins"><a href="{{ url_for('conference.my_conference') }}">{{ total_confs }}</a></h1>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <!-- <span class="label label-info pull-right">{{ conf_name.upper() }}</span> -->
+                <h5>My Submissions</h5>
+            </div>
+            <div class="ibox-content">
+                <span class="pull-right"><a class="btn btn-w-m btn-primary m-b-sm" href="{{ url_for('submission.add_submission') }}">Submit Paper</a></span>
+                <h1 class="no-margins"><a href="{{ url_for('submission.my_submissions') }}">{{ total_submissions }}</a></h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <!-- <span class="label label-info pull-right">{{ conf_name.upper() }}</span> -->
+                <h5>My Reviews</h5>
+            </div>
+            <div class="ibox-content">
+              <span class="pull-right"><a class="btn btn-w-m btn-success m-b-sm" href="{{ url_for('review.add_review') }}">Submit Review</a></span>
+                <h1 class="no-margins"><a href="{{ url_for('review.my_reviews') }}">{{ total_reviews }}</a></h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if current_user.is_chair(current_user.curr_conf) %}
+<div class="row">
+    <div class="col-lg-12">
+      <div style="width: 100%; height: 10px; border-bottom: 1px dashed #ddd; text-align: center; margin-bottom: 25px">
+      <span style="font-size: 12px; background-color: #f3f3f4; padding: 0 10px;">
+        Chair Views
+      </span>
+      </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Recent Activities</h5>
+            </div>
+            <div class="ibox-content no-margins">
+                {% if summary['papers_number'] > 0 %}
+                    <ul class="list-group">
+                        {% for log in dashboard_log[::-1] %}
+                            <li class="list-group-item">
+                                {% if log[0] == 'paper' %}
+                                    <p><a class="text-info" href="{{ url_for('main.user', id=log[1].uploader_id) }}">{{ log[1].uploader.first_name }} {{ log[1].uploader.last_name }}</a> submitted a paper: <a class="text-success" href="{{ url_for('paper.get_paper_info', paper_id=log[1].id) }}">{{ log[1].title }}</a>.</p>
+                                    <small class="block text-muted"><i class="fa fa-clock-o"></i> {{ moment(log[1].submitted_time).fromNow() }}</small>
+                                {% elif log[0] == 'review' %}
+                                    <p><a class="text-info" href="{{ url_for('main.user', id=log[1].reviewer_id) }}">{{ log[1].reviewer.first_name }} {{ log[1].reviewer.last_name }}</a> submitted a review on paper: <a class="text-success" href="{{ url_for('paper.get_paper_info', paper_id=log[1].paper_id) }}">{{ log[1].paper.title }}</a>.</p>
+                                    <small class="block text-muted"><i class="fa fa-clock-o"></i> {{ moment(log[1].timestamp).fromNow() }}</small>
+                                {% else %}
+                                    <p><a class="text-info" href="{{ url_for('main.user', id=log[1].buyer_id) }}">{{ log[1].attendee_info['First Name'] }} {{ log[1].attendee_info['Last Name'] }}</a> registered for the conference.</p>
+                                    <small class="block text-muted"><i class="fa fa-clock-o"></i> {{ moment(log[1].timestamp).fromNow() }}</small>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <h5>No activities yet</h5>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Submission Summary</h5>
+            </div>
+            <div class="ibox-content no-margins">
+                {% if summary['papers_number'] > 0 %}
+
+                <div class="row">
+                    <div class="col-xs-6">
+                        <small class="stats-label">Submission</small>
+                        <h4><a class="text-info" href="{{ url_for('conference.conference_submission', conference_id=current_user.curr_conf_id) }}">{{ summary['papers_number'] }}</a></h4>
+                    </div>
+
+                    <div class="col-xs-6">
+                        <small class="stats-label">Under Review</small>
+                        <h4><a class="text-warning" href="{{ url_for('conference.conferences_decision_review', conference_id=current_user.curr_conf_id, status='Under Review') }}">{{ summary['under_review_number'] }}</a></h4>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-6">
+                        <small class="stats-label">Accepted</small>
+                        <h4><a class="text-success" href="{{ url_for('conference.conferences_decision_review', conference_id=current_user.curr_conf_id, status='Accepted') }}">{{ summary['accepted_number'] }}</a></h4>
+                    </div>
+
+                    <div class="col-xs-6">
+                        <small class="stats-label">Rejected</small>
+                        <h4><a class="text-danger" href="{{ url_for('conference.conferences_decision_review', conference_id=current_user.curr_conf_id, status='Rejected') }}">{{ summary['rejected_number'] }}</a></h4>
+                    </div>
+                </div>
+                <div class="row">
+                  <!-- for additional types, such as poster, research-in-progress, etc -->
+                  {% for additional_status,num in summary['additional_status_num'].iteritems() if additional_status %}
+
+                      <div class="col-xs-6">
+                          <small class="stats-label">{{ additional_status }}</small>
+                          <h4><a href="{{ url_for('conference.conferences_decision_review', conference_id=current_user.curr_conf_id, status=additional_status) }}">{{ num }}</a></h4>
+                      </div>
+
+                  {% endfor %}
+                  </div>
+                {% else %}
+                    <h5>No submissions yet</h5>
+                {% endif %}
+            </div>
+        </div>
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Review Summary</h5>
+            </div>
+            <div class="ibox-content no-margins">
+                    <!-- <div>
+                        <canvas id="reviews_chart" height="80"></canvas>
+                    </div> -->
+                {% if summary['papers_number'] > 0 %}
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <small class="stats-label">Review Assignments</small>
+                            <h4><a class="text-info" href="{{ url_for('conference.conferences_assignment_manual', conference_id=current_user.curr_conf_id ) }}">{{ summary['sum_of_review_assignments'] }}</a></h4>
+                        </div>
+
+                        <div class="col-xs-6">
+                            <small class="stats-label">Missing Assignments</small>
+                            <h4><a class="text-warning" href="{{ url_for('conference.conferences_assignment_manual', conference_id=current_user.curr_conf_id, search_type='title', search_keyword='', search_condition='missing-assignments') }}">{{ summary['no_assignment_paper'] }}</a></h4>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <small class="stats-label">Submitted Reviews</small>
+                            <h4><a class="text-success" href="{{ url_for('conference.conferences_assignment_manual', conference_id=current_user.curr_conf_id, search_type='title', search_keyword='', search_condition='completed-reviews') }}">{{ summary['sum_of_reviews'] }}</a></h4>
+                        </div>
+
+                        <div class="col-xs-6">
+                            <small class="stats-label">Missing Reviews</small>
+                            <h4><a  class="text-danger" href="{{ url_for('conference.conferences_assignment_manual', conference_id=current_user.curr_conf_id, search_type='title', search_keyword='', search_condition='missing-reviews') }}">{{ summary['outstanding_reviews_number'] }}</a></h4>
+                        </div>
+                    </div>
+                {% else %}
+                    <h5>No reviews yet</h5>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- {% if total_registration %}    {% endif %} -->
+    <div class="col-lg-4">
+          <div class="ibox float-e-margins">
+              <div class="ibox-title">
+                  <!-- <span class="label label-info pull-right">{{ conf_name.upper() }}</span> -->
+                  <h5>Total Registrations</h5>
+              </div>
+              <div class="ibox-content no-margins">
+                  <h1 class="no-margins"><a href="{{ url_for('conference.registration_summary', conference_id=current_conf.id) }}">{{ total_registration }}</a></h1>
+              </div>
+          </div>
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <span class="pull-right">(hover to see details)</span>
+                <h5>Sales by Type</h5>
+            </div>
+            <div class="ibox-content no-margins">
+                <div>
+                    <canvas id="transactionChart" height="184"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {#<div class="col-lg-6">
+    {% set todo_list = current_user.curr_conf.todo_lists.first().list %}
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Todo list</h5>
+            </div>
+            <div class="ibox-content no-margins">
+                <ul class="todo-list m-t" data-list-id="{{todo_list.id}}">
+                    {% for id, item in todo_list.items() %}
+                    <li class="{% if loop.index > 5 %}collapse{% endif %}">
+                        <input type="checkbox" class="i-checks" data-todo-item-id="{{id}}" {% if item['done'] %}checked{% endif %}/>
+                        <span class="m-l-xs"><a class="text-primary" href="#{{id}}" data-toggle="collapse" aria-expanded="false" aria-controls="{{id}}">{{item['title']}}</a></span>
+                        <p class="collapse padding-left-30" id="{{id}}">{{item['desc']}}</p>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% if todo_list | length > 5 %}
+                <button type="button" class="btn btn-outline btn-primary margin-top-30" onclick="show_todo_all(this)">See all</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>#}
+</div>
+{% endif %} {# if chair #}
+
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+    {{super()}}
+    <script src="{{ url_for('static', filename='conferency/inspinia/js/chartjs/Chart.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+    <script>
+
+    /**
+     * todo list collapse
+     * @param {element} span button
+     * bootstrap collapse doc
+     * https://www.tutorialspoint.com/bootstrap/bootstrap_collapse_plugin.htm
+     */
+    function show_todo_all(button) {
+        $(button.previousElementSibling).find("li.collapse").collapse("toggle");
+        // update Text
+        if (button.textContent === "See all") {
+            button.textContent = "Hide";
+        } else {
+            button.textContent = "See all";
+        }
+
+    }
+
+    {% if current_user.is_chair(current_user.curr_conf) %}
+    // icheck
+    $(".i-checks").iCheck({
+        checkboxClass: "icheckbox_square-green",
+        radioClass: "iradio_square-green"
+    });
+
+    $(".todo-list").sortable({
+        placeholder: "sort-highlight",
+        handle: ".handle",
+        forcePlaceholderSize: true,
+        zIndex: 999999
+    }).disableSelection();
+
+    $(".i-checks").on("ifToggled", function(event){
+        // console.log();
+        // console.log(this.checked);
+        $.ajax({
+            method: "PUT",
+            url: "{{ url_for('api.update_todo_item', todo_id=current_user.curr_conf.todo_lists.first().id)}}",
+            contentType: "application/json",
+            data: JSON.stringify({id: $(this).data("todo-item-id"), done: this.checked})
+        })
+          .done(function( msg ) {
+            // alert( "Data Saved: " + msg );
+          });
+    });
+
+
+    $.getJSON('/api/conferences/{{current_conf.id}}/ticketsale', function(data) {
+        var saleTypeData = {
+            labels: data.pie.types,
+            datasets: [
+                {
+                    data: data.pie.nums,
+                    backgroundColor: [
+                        "#FF6384",
+                        "#36A2EB",
+                        "#FFCE56",
+                        "#577590",
+                        "#EE964B",
+                        "#F95738",
+                        "#EBEBD3",
+                        "#A7C6DA",
+                        "#FFB86F",
+                        "#576CA8",
+                        "#1B998B",
+                        "#6369D1",
+                        "#E56399",
+                        "#330036",
+                        "#0DBEB2",
+                        "#561D25",
+                        "#3E7CB1",
+                        "#F35F00",
+                        "#A20021",
+                        "#083D77",
+                    ]
+                }]
+        };
+        var total=0;
+        $.each(data.pie.nums,function() {
+            total += this;
+        });
+
+        var doughnutOptions = {
+            responsive: true,
+            legend: {
+                display: true,
+                labels: {
+                    filter: function (item, data) {
+                        // hide labels on small screen
+                        if ($(window).width() > 1950) {
+                            return item;
+                        }
+                    },
+                }
+            }
+        };
+
+        if (total==0){
+            //empty states
+            $('#transactionChart').parent().html('<h5>No sales yet</h5>');
+        }
+        else{
+            var ctx = document.getElementById("transactionChart").getContext("2d");
+            var mytransactionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: saleTypeData,
+                options: doughnutOptions
+            });
+        }
+
+    });
+
+    {% endif %}
+    </script>
+{% endblock %}

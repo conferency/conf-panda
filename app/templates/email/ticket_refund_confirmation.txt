@@ -1,0 +1,19 @@
+Refund Confirmation
+
+Original Invoice
+Transaction time: {{ transaction.timestamp }}
+Ticket: {{ transaction.tickets[0].name }}
+{% set product_options = transaction.product_options.all() %}
+{% if product_options %}
+Merchandise:
+{% for product_option_sale in product_options %}
+{% if product_option_sale.product_option.product.options.all()|length == 1%}
+{{product_option_sale.product_option.product_name}}
+{% else %}
+{{product_option_sale.product_option.product_name}}({{product_option_sale.product_option.option_name}})
+{% endif %}
+{% endfor %}
+{% endif %}
+Subtotal: {{ transaction.subtotal }} {{ transaction.currency }}
+Payment method: XXXX-XXXXXXXX-{{ transaction.card_number[-4:]}}
+Card holder's name: {{ transaction.holder_name }}

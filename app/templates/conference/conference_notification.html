@@ -1,0 +1,908 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "notification_menu" %}
+{% if operation == 'author' %}
+    {% set active_second_subpage = "notifications" %}
+{% elif operation == 'pc' %}
+    {% set active_second_subpage = "notification-contact-pc" %}
+{% elif operation == 'member' %}
+    {% set active_second_subpage = "notification-contact-member" %}
+{% elif operation == 'session' %}
+    {% set active_second_subpage = "notification-contact-session" %}
+{% endif %}
+{% set page_title = "Notification" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.send_notification', conference_id=current_user.curr_conf_id, operation=operation))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/summernote/summernote.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/select2.min.css') }}" rel="stylesheet">
+    <style>
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius: 0px;
+            box-shadow: none;
+        }
+
+        .center {
+            float: none;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        .padding-bottom-20 {
+            padding-bottom: 20px;
+        }
+
+        .padding-top-7 {
+            padding-top: 7px;
+        }
+
+        .add_cursor {
+            cursor: pointer;
+        }
+
+        .ulist-padding {
+            padding-left: 0px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox">
+            <div class="ibox-content">
+                <div class="row">
+                    <form id="notification" class="form-horizontal" method="post"
+                              action="{{ url_for('conference.send_notification', conference_id=conference_id, operation=operation) }}">
+                        {{ form.hidden_tag() }}
+                        {% if operation == 'author' %}
+                            <div class="mail-box-header">
+                                <div class="form-group">
+                                    <div class="col-md-2 control-label">
+                                        {{ form.status_select.label }}
+                                    </div>
+                                    <div class="col-sm-10">
+                                        {{ form.status_select(class_='form-control') }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mail-box">
+                                <div class="mail-body">
+                                    <div class="form-group padding-bottom-20">
+                                        <div class="col-md-2 control-label">
+                                            {{ form.email_subject.label }}
+                                        </div>
+                                        <div class="col-sm-10">
+                                            {{ form.email_subject(class_='form-control required', placeholder="Required") }}
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-md-2 control-label">
+                                            <label>Hint</label>
+                                        </div>
+                                        <div class="col-sm-10 padding-top-7 text-info">
+                                            <p>Add template variables by clicking the blue buttons below</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mail-text h-200">
+                                    {{ form.email_content(class_='summernote check_content required hide') }}
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="mail-body text-right tooltip-demo">
+                                    <div id="errorMsg" class="pull-left"></div>
+                                    <button type="button" id="preview" class="btn btn-primary">Preview
+                                    </button>
+                                    {{ form.submit(class_='btn btn-primary') }}
+                                </div>
+                                <!-- <div class="clearfix"></div> -->
+                                <div class="mail-body">
+                                    <button class="btn btn-primary btn-sm check">Check All</button>
+                                    <button class="btn btn-primary btn-sm uncheck">Uncheck All</button>
+                                    <table id="bottom_table" data-sort="false"
+                                           class="footable table table-stripped toggle-arrow-tiny">
+                                        <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th data-type="numeric">ID</th>
+                                            <th>Title</th>
+                                            <th data-hide="phone">Author</th>
+                                            <th data-type="numeric">Average Score</th>
+                                            <th data-hide="phone">Status</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        {% elif operation == 'pc' %}
+                        <div class="mail-box">
+                            <div class="mail-body">
+                                <div class="form-group">
+                                    <div class="col-md-2 control-label">
+                                        {{ form.email_receivers.label }}
+                                    </div>
+                                    <div class="col-sm-10 padding-top-7" style="table-layout: fixed !important">
+                                        <p>You can select receivers by clicking buttons to load them or inputing
+                                            receiver's name.</p>
+                                        <div class="pc-checks">
+                                            <label><input type="radio" value="checkbox_all"
+                                                name="receiver_type" {% if form.receiver_type.data == 'checkbox_all' or form.receiver_type.data == 'None' %}checked{% endif %}>
+                                                Select All PC Members </label>
+                                        </div>
+                                        <div class="pc-checks">
+                                            <label><input type="radio" value="checkbox_missing"
+                                                name="receiver_type" {% if form.receiver_type.data == 'checkbox_missing' %}checked{% endif %}>
+                                                Select All PC Members With
+                                                Missing Reviews </label>
+                                        </div>
+                                        <div class="pc-checks">
+                                            <label><input type="radio" value="checkbox_complete"
+                                                name="receiver_type" {% if form.receiver_type.data == 'checkbox_complete' %}checked{% endif %}> Select All PC Members With
+                                                Complete Reviews </label>
+                                        </div>
+                                        <div class="pc-checks">
+                                            <label><input type="radio" value="checkbox_other"
+                                                name="receiver_type" {% if form.receiver_type.data == 'checkbox_other' %}checked{% endif %}>
+                                                Choose Specific PC Members </label>
+                                        </div>
+
+                                        <select class="form-control required hide" multiple id="email_receivers"
+                                                name="email_receivers" style="width:100%">
+                                            {% for status in status_list %}
+                                                <option class="form-control" value="{{ status[1].id }}"
+                                                        data-status="{{ email_receivers_status[loop.index0] }}" selected> {{ status[1].full_name }} &lt;{{ status[1].email }}&gt;</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-2 control-label">
+                                        {{ form.email_subject.label }}
+                                    </div>
+                                    <div class="col-sm-10" style="table-layout: fixed !important">
+                                        {{ form.email_subject(class_='form-control required', placeholder="Required") }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-2 control-label">
+                                        <label>Hint</label>
+                                    </div>
+                                    <div class="col-sm-10 padding-top-7 text-info">
+                                        <p>Add template variables by clicking the blue buttons below</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mail-text h-200">
+                                {{ form.email_content(class_='summernote required hide') }}
+                                <div class="clearfix"></div>
+                            </div>
+
+                            <div class="mail-body text-right tooltip-demo">
+                                <div id="errorMsg" class="pull-left"></div>
+                                <button type="button" id="preview" class="btn btn-primary">Preview
+                                </button>
+                                {{ form.submit(class_='btn btn-primary') }}
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                        {% elif operation == 'member' %}
+                        <div class="mail-box">
+                            <div class="mail-body">
+                                <div class="form-group">
+                                    <div class="col-md-2 control-label">
+                                        {{ form.email_receivers.label }}
+                                    </div>
+                                    <div class="col-sm-10 padding-top-7" style="table-layout: fixed !important">
+                                        <p>You can select receivers by clicking buttons to load them or inputing
+                                            receiver's name.</p>
+                                        <select class="form-control required hide" multiple id="email_receivers"
+                                                name="email_receivers" style="width:100%">
+                                            {% for member in members %}
+                                                <option class="form-control" value="{{ member.id }}"
+                                                         selected> {{ member.first_name }} {{ member.last_name }} &lt;{{ member.email }}&gt; </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-2 control-label">
+                                        {{ form.email_subject.label }}
+                                    </div>
+                                    <div class="col-sm-10" style="table-layout: fixed !important">
+                                        {{ form.email_subject(class_='form-control required', placeholder="Required") }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-2 control-label">
+                                        <label>Hint</label>
+                                    </div>
+                                    <div class="col-sm-10 padding-top-7 text-info">
+                                        <p>Add template variables by clicking the blue buttons below</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mail-text h-200">
+                                {{ form.email_content(class_='summernote required hide') }}
+                                <div class="clearfix"></div>
+                            </div>
+
+                            <div class="mail-body text-right tooltip-demo">
+                                <div id="errorMsg" class="pull-left"></div>
+                                <button type="button" id="preview" class="btn btn-primary">Preview
+                                </button>
+                                {{ form.submit(class_='btn btn-primary') }}
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                        {% elif operation == 'session' %}
+                        <div class="mail-box">
+                            <div class="mail-body">
+                                <div class="form-group">
+                                    <div class="col-md-2 control-label">
+                                        {{ form.email_receivers.label }}
+                                    </div>
+                                    <div class="col-sm-10 padding-top-7" style="table-layout: fixed !important">
+                                        <p>You can select receivers by clicking buttons to load them or inputing
+                                            receiver's name.</p>
+                                        <div class="session-checks">
+                                            <label><input type="radio" value="checkbox_all"
+                                                name="receiver_type" {% if form.receiver_type.data == 'checkbox_all' or form.receiver_type.data == 'None' %}checked{% endif %}>
+                                                Select Speakers, Moderators, Discussants</label>
+                                        </div>
+                                        <div class="session-checks">
+                                            <label><input type="radio" value="checkbox_speakers"
+                                                name="receiver_type" {% if form.receiver_type.data == 'checkbox_speakers' %}checked{% endif %}>
+                                                Select Speakers</label>
+                                        </div>
+                                        <div class="session-checks">
+                                            <label><input type="radio" value="checkbox_moderators"
+                                                name="receiver_type" {% if form.receiver_type.data == 'checkbox_moderators' %}checked{% endif %}>
+                                                Select Moderators</label>
+                                        </div>
+                                        <div class="session-checks">
+                                            <label><input type="radio" value="checkbox_discussants"
+                                                name="receiver_type" {% if form.receiver_type.data == 'checkbox_discussants' %}checked{% endif %}>
+                                                Select Discussants</label>
+                                        </div>
+                                        <select class="form-control required hide" multiple id="email_receivers"
+                                                name="email_receivers" style="width:100%">
+                                            {% for receiver in receivers %}
+                                                <option class="form-control" value="{{ receiver[0].id }}"
+                                                        data-status="{{ receiver[1] }}" selected> {{ receiver[0].full_name }} &lt;{{ receiver[0].email }}&gt;</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-2 control-label">
+                                        {{ form.email_subject.label }}
+                                    </div>
+                                    <div class="col-sm-10" style="table-layout: fixed !important">
+                                        {{ form.email_subject(class_='form-control required', placeholder="Required") }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-2 control-label">
+                                        <label>Hint</label>
+                                    </div>
+                                    <div class="col-sm-10 padding-top-7 text-info">
+                                        <p>Add template variables by clicking the blue buttons below</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mail-text h-200">
+                                {{ form.email_content(class_='summernote required hide') }}
+                                <div class="clearfix"></div>
+                            </div>
+
+                            <div class="mail-body text-right tooltip-demo">
+                                <div id="errorMsg" class="pull-left"></div>
+                                <button type="button" id="preview" class="btn btn-primary">Preview
+                                </button>
+                                {{ form.submit(class_='btn btn-primary') }}
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <div class="modal inmodal fade" id="previewModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <!-- <div class="ibox-content">
+                        <h2>Email Preview for Paper:</h2>
+                        <select class="form-control" id="paper_select" name="paper_select" aria-required="true"
+                                aria-invalid="false" autocomplete="off">
+                        </select>
+                    </div> -->
+                </div>
+                <div class="modal-body">
+                    <div class="mail-box-header">
+                        <div class="mail-tools tooltip-demo m-t-md">
+                            <h3>
+                                <span id="subject_title" class="font-noraml"></span>
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="mail-box">
+                        <div class="mail-body">
+                            <div class="m-b-md">
+                                <img src="https://s3-us-west-2.amazonaws.com/conferency/img/conferency-email-logo.png"
+                                     width="40" height="40" alt="Conferency" border="0" class="center-block">
+                            </div>
+                            <div id="content" class="m-b-md">
+                                <h3 class="text-center">Loading...</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <form role="form" id="testEmailForm" class="form-inline">
+                        <div class="form-group pull-left">
+                            <input type="email" placeholder="Enter a testing email address" id="testEmail"
+                                   class="form-control required email" style="width:400px">
+                        </div>
+                    </form>
+                    <button class="btn btn-primary" type="submit" id="sendTestEmail">Send a testing email</button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="modal inmodal fade" id="previewModal2" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mail-box-header">
+                        <div class="mail-tools tooltip-demo m-t-md">
+                            <h3>
+                                <span id="subject_title2" class="font-noraml"></span>
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="mail-box">
+                        <div class="mail-body">
+                            <div class="m-b-md">
+                                <img src="https://s3-us-west-2.amazonaws.com/conferency/img/conferency-email-logo.png"
+                                     width="40" height="40" alt="Conferency" border="0" class="center-block">
+                            </div>
+                            <div id="content2" class="m-b-md">
+                            </div>
+                            <div class="text-center">
+                                <a class="btn btn-w-m btn-primary m-sm" href="#" disabled>Email Chair</a>
+                                <p class="text-warning">PLEASE DO NOT REPLY TO THIS MESSAGE</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <form role="form" id="testEmailform" class="form-inline">
+                        <div class="form-group pull-left">
+                            <input type="email" placeholder="Enter a testing email address" id="testEmail2"
+                                   class="form-control required email" style="width:400px">
+                        </div>
+                    </form>
+                    <button class="btn btn-primary" type="submit" id="sendTestEmail2">Send a testing email</button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div> -->
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- custom radio buttons -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+    <!-- footable -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <!-- select -->
+    <script src="{{ url_for('static', filename='conferency/js/select2.full.min.js') }}"></script>
+    <!-- summernote -->
+    <script src="{{ url_for('static', filename='conferency/inspinia/js/summernote/summernote.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/summernote_buttons.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/summernote-cleaner.js') }}"></script>
+
+    <!-- Email Templates -->
+    <script id="review-template" type="text/x-custom-template">
+        <p>Dear *FIRST_NAME*,</p>
+        <p><br></p>
+        <p>Please find below the list of papers assigned to you for reviewing.</p>
+        <p>You can login at *PAPER_REVIEW_SYSTEM* to start the process.</p>
+        <p><br></p>
+        <p>Best regards,</p>
+        <p>{{ current_user.full_name }}</p>
+        <p><br></p>
+        <p>*REVIEW_ASSIGNMENTS*<br></p>
+    </script>
+
+    <script id="review-template-complete" type="text/x-custom-template">
+        <p>Dear *FIRST_NAME*,</p>
+        <p><br></p>
+        <p>Thanks for your reviews on papers listed below.</p>
+        <p>You can login at *PAPER_REVIEW_SYSTEM* to update your review.</p>
+        <p><br></p>
+        <p>Best regards,</p>
+        <p>{{ current_user.full_name }}</p>
+        <p><br></p>
+        <p>*REVIEWED_PAPERS*<br></p>
+    </script>
+
+    <script id="review-template-missing" type="text/x-custom-template">
+        <p>Dear *FIRST_NAME*,</p>
+        <p><br></p>
+        <p>I recently sent your some review assignments but you have not finished them yet.
+            Please find below the list of papers assigned to you for reviewing.</p>
+        <p>You can login at *PAPER_REVIEW_SYSTEM* to start the process.</p>
+        <p><br></p>
+        <p>Best regards,</p>
+        <p>{{ current_user.full_name }}</p>
+        <p><br></p>
+        <p>*MISSING_REVIEWED_PAPERS*<br></p>
+    </script>
+
+    <script id="paper-accepted" type="text/x-custom-template">
+        <p>Dear *FIRST_NAME*,</p>
+        <p><br></p>
+        <p>We are pleased to inform you that your paper titled
+        "*TITLE*" has been accepted for presentation at *CONFERENCE_NAME* and will be
+        published in the workshop proceedings. Your paper
+        acceptance is subject to: (a) receipt of your electronic
+        submission of the final manuscript, and (b) at least one
+        author of your paper registering and participating in *CONFERENCE_SHORTNAME*.
+        The deadline for your final electronic
+        submission is ###. </p><p>Please revise your manuscript based
+        on the reviewers comments, which are attached at the end of
+        this message. The paper preparation must follow the template
+        found at xxx We thank you again for your contribution to
+        *CONFERENCE_SHORTNAME* and look forward to seeing you in ###.</p>
+        <p><br></p>
+        <p>Best Regards,</p>
+        <p>{{ current_user.full_name }}<br></p>
+        <p><br></p>
+        <p>*PAPER_REVIEW*</p>
+    </script>
+
+    <script id="paper-rejected" type="text/x-custom-template">
+        <p>Dear *FIRST_NAME*,</p>
+        <p><br></p>
+        <p>Thank you very much for submitting your paper entitled *TITLE* to *CONFERENCE_NAME*.
+        Based on the reviews shown at the end of this message, I regret to inform you that your paper is rejected.
+         Hope the reviews are helpful for you to improve the paper.</p>
+        <p>Thanks again for submitting your work to *CONFERENCE_SHORTNAME*.</p>
+        <p><br></p>
+        <p>Best Regards,<br></p>
+        <p>{{ current_user.full_name }}<br></p>
+        <p><br></p>
+        <p>*PAPER_REVIEW*</p>
+    </script>
+
+    <script>
+        // first paper with the selected status
+        var first_paper;
+        var receiver_id;
+        var operation = "{{ operation }}";
+        var checked_value = "checkbox_all";
+
+        function data_init() {
+            // fill table
+            {% if operation == 'author' and form.status_select.data == 'None' %}
+                change_content("author_received");
+            {% else %}
+                change_content("{{ template_name }}");
+            {% endif %}
+            {% if operation == 'author' %}
+                $.getJSON("{{ url_for('api.get_papers', conference_id=conference_id, status='Received' if form.status_select.data == 'None' else form.status_select.data) }}", function (data) {
+                    for (var i = 0; i < data.papers.length; i++) {
+                        $('#bottom_table tbody').append('<tr><td><input name="paper_ids" type="checkbox" checked value="' + data.papers[i].id + '"></td><td>' + data.papers[i].id + '</td><td>' + data.papers[i].title + '</td><td>' + render_username(data.papers[i].authors) + '</td><td>' + data.papers[i].avg_score + '</td><td>' + data.papers[i].status + '</td></tr>');
+                        $('#paper_select').append('<option value="' + data.papers[i].id + '">' + data.papers[i].title + '</option>');
+                    }
+                    if (data.papers[0] === undefined) {
+                        // disable the preview and send if there is no papers in the table
+                        $('#preview').prop('disabled', true);
+                        $('#submit').prop('disabled', true);
+                    }
+                });
+            {% endif %}
+        }
+
+        // function render_review(reviews) {
+        //     var reviews_html = '<div>';
+        //     for (var i = 0; i < reviews.length; i++) {
+        //         reviews_html = reviews_html + "<h4> Review " + (i+1) + "</h4><p>" + reviews[i].review_body + "</p>";
+        //     }
+        //     return reviews_html + "</div>";
+        // }
+
+        function render_username(authors) {
+            // console.log(authors)
+            authors_html = "";
+            for (var i = 0; i < authors.length; i++) {
+                authors_html = authors_html.concat('<a class="text-info" href="' + authors[i].url + '" data-user-id="' + authors[i].id + '">' + authors[i].full_name + ' &nbsp;</a>');
+            }
+            return authors_html;
+        }
+
+        // function render_email_content(paper, content) {
+        //     if (paper !== null) {
+        //         return convert_variables2(paper, content);
+        //     } else {
+        //         return convert_variables(first_paper, content);
+        //     }
+        // }
+
+        // function render_email_content(receiver, content) {
+        //     return convert_variables2(receiver, content);
+        // }
+
+        // function convert_variables(paper, content) {
+        //     content = content.replace(/\*TITLE\*/g, paper.title);
+        //     content = content.replace(/\*STATUS\*/g, paper.status);
+        //     content = content.replace(/\*NAME\*/g, paper.authors[0].first_name + ' ' + paper.authors[0].last_name);
+        //     content = content.replace(/\*FIRST_NAME\*/g, paper.authors[0].first_name);
+        //     content = content.replace(/\*LAST_NAME\*/g, paper.authors[0].last_name);
+        //     content = content.replace(/\*CONFERENCE_WEBSITE\*/g, paper.conference_url);
+        //     content = content.replace(/\*PAPER_REVIEW\*/g, render_review(paper.reviews));
+        //     content = content.replace(/\*CONFERENCE_NAME*\*/g, paper.conference_name);
+        //     content = content.replace(/\*CONFERENCE_SHORTNAME*\*/g, paper.conference_shortname);
+        //     content = content.replace(/\*PAPER_REVIEW_SYSTEM\*/g, '<a href="' + "{{ url_for('auth.login', conf=conference_id, _external=True) }}" + '">' + "{{ url_for('auth.login', conf=conference_id, _external=True) }}" + '</a>');
+        //     return content;
+        // }
+        //
+        // function convert_variables2(data, content) {
+        //     var review_assignment_html = '<div><table class="footable table table-stripped"><thead><tr><th>Title</th></tr></thead><tbody>';
+        //     for (var i = 0; i < data.papers_for_review.length; i++) {
+        //         review_assignment_html += '<tr><td>' + data.papers_for_review[i].title + '</td></tr>';
+        //     }
+        //     review_assignment_html += '</tbody></table></div>';
+        //     // console.log(review_assignment_html);
+        //
+        //
+        //     var missing_reviewed_papers_html = '<div><table class="footable table table-stripped"><thead><tr><th>Title</th></tr></thead><tbody>';
+        //     for (var i = 0; i < data.papers_with_missing_review.length; i++) {
+        //         missing_reviewed_papers_html += '<tr><td>' + data.papers_with_missing_review[i].title + '</td></tr>';
+        //     }
+        //     missing_reviewed_papers_html += '</tbody></table></div>';
+        //     // console.log(missing_reviewed_papers_html);
+        //
+        //
+        //     var reviewed_papers_html = '<div><table class="footable table table-stripped"><thead><tr><th>Title</th></tr></thead><tbody>';
+        //     for (var i = 0; i < data.papers_with_complete_review.length; i++) {
+        //         reviewed_papers_html += '<tr><td>' + data.papers_with_complete_review[i].title + '</td></tr>';
+        //     }
+        //     reviewed_papers_html += '</tbody></table></div>';
+        //     content = content.replace(/\*REVIEW_ASSIGNMENTS\*/g, review_assignment_html);
+        //     content = content.replace(/\*MISSING_REVIEWED_PAPERS\*/g, missing_reviewed_papers_html);
+        //     content = content.replace(/\*REVIEWED_PAPERS\*/g, reviewed_papers_html);
+        //     content = content.replace(/\*NAME\*/g, data.reviewer.first_name + ' ' + data.reviewer.last_name);
+        //     content = content.replace(/\*FIRST_NAME\*/g, data.reviewer.first_name);
+        //     content = content.replace(/\*LAST_NAME\*/g, data.reviewer.last_name);
+        //     content = content.replace(/\*CONFERENCE_WEBSITE\*/g, data.conference_url);
+        //     content = content.replace(/\*CONFERENCE_NAME\*/g, data.conference_name);
+        //     content = content.replace(/\*PAPER_REVIEW_SYSTEM\*/g, '<a href="' + "{{ url_for('auth.login', conf=conference_id, _external=True) }}" + '">' + "{{ url_for('auth.login', conf=conference_id, _external=True) }}" + '</a>');
+        //     // console.log(content);
+        //     return content;
+        // }
+
+        function change_content(template_name) {
+            // console.log(template_name);
+            $('#email_content').summernote("code", "");
+            $('#email_subject').val("");
+            var template = {
+                'review_complete': $('#review-template-complete').html(),
+                'review_missing': $('#review-template-missing').html(),
+                'author_rejected': $('#paper-rejected').html(),
+                'author_accepted': $('#paper-accepted').html()
+            };
+
+            // get template
+            $.ajax({
+                    type: "GET",
+                    url: "{{url_for('api.get_email_template', conference_id=conference_id)}}",
+                    contentType: "application/json",
+                    data: {template_name: template_name},
+                    success: function (response) {
+                        $('#email_subject').val(response.subject);
+                        $('#email_content').summernote("code", response.content);
+                    },
+                    error: function () {
+                        $('#email_content').summernote("code", template[template_name]);
+                    }
+                });
+        }
+
+        $(document).ready(function () {
+            $('.pc-checks, .session-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green'
+            });
+
+            $("#email_receivers").select2({
+                placeholder: "Required. You can choose multiple email receivers.",
+                tags: false,
+                closeOnSelect: false
+            });
+
+            {% if operation == 'author' %}
+                var my_buttons = ['title_submission', 'status_submission', 'name_author', 'first_name_author', 'last_name_author', 'conference_website', 'conference_name', 'conference_shortname', 'paper_review', 'paper_review_system'];
+            {% elif operation == 'pc' %}
+                var my_buttons = ['first_name_recipient', 'last_name_recipient', 'name_recipient', 'conference_name', 'conference_website', 'review_assignment', 'missing_reviewed_papers', 'reviewed_papers', 'paper_review_system'];
+            {% elif operation == 'member' %}
+                var my_buttons = ['first_name_recipient', 'last_name_recipient', 'name_recipient', 'conference_name', 'conference_website', 'paper_review_system'];
+            {% elif operation == 'session' %}
+                var my_buttons = ['session_info', 'session_paper_info', 'last_name_recipient', 'name_recipient', 'conference_name', 'conference_website', 'schedule_page_url', 'app_download_link'];
+            {% endif %}
+            summernote_activate($('#email_content'), my_buttons);
+
+            $('.footable').footable();
+
+            $('#notification').validate({
+                errorPlacement: function (error, element) {
+                    $("#errorMsg").html(error);
+                }
+            }).settings.ignore = [];
+            jQuery.validator.messages.required = "Some required fields are missing.";
+            $('#testEmailForm').validate();
+
+            data_init();
+
+            // contact pc select receivers
+            $('.pc-checks').on('ifChecked', function (event) {
+                var option = $(this).find('input').attr('value');
+                var template_name = "";
+                if (option == 'checkbox_all') {
+                    $("#email_receivers > option").prop("selected", "selected");
+                    template_name = "review_all"; // change email content if not modified
+                } else if (option == 'checkbox_missing') {
+                    $("#email_receivers > option[data-status=1]").prop("selected", "selected");
+                    $("#email_receivers > option[data-status=0]").removeAttr("selected");
+                    $("#email_receivers > option[data-status=2]").removeAttr("selected");
+                    template_name = "review_missing"; // change email content if not modified
+                } else if (option == 'checkbox_complete') {
+                    $("#email_receivers > option[data-status=0]").prop("selected", "selected");
+                    $("#email_receivers > option[data-status=1]").removeAttr("selected");
+                    $("#email_receivers > option[data-status=2]").removeAttr("selected");
+                    template_name = "review_complete"; // change email content if not modified
+                } else {
+                    $("#email_receivers > option[data-status=0]").removeAttr("selected");
+                    $("#email_receivers > option[data-status=1]").removeAttr("selected");
+                    $("#email_receivers > option[data-status=2]").removeAttr("selected");
+                    template_name = "review_other"; // change email content if not modified
+                }
+                change_content(template_name);
+                $("#email_receivers").trigger("change");
+            });
+
+            $('.session-checks').on('ifChecked', function (event) {
+                checked_value = event.target.value;
+                var option = $(this).find('input').attr('value');
+                var template_name = "";
+                if (option == 'checkbox_all') {
+                    $("#email_receivers > option").prop("selected", "selected");
+                    template_name = "session_all";
+                } else if (option == 'checkbox_speakers') {
+                    $("#email_receivers > option[data-status=0]").prop("selected", "selected");
+                    $("#email_receivers > option[data-status!=0]").removeAttr("selected");
+                    template_name = "session_speakers";
+                } else if (option == 'checkbox_moderators') {
+                    $("#email_receivers > option[data-status=1]").prop("selected", "selected");
+                    $("#email_receivers > option[data-status!=1]").removeAttr("selected");
+                    template_name = "session_moderators";
+                } else if (option == 'checkbox_discussants') {
+                    $("#email_receivers > option[data-status=2]").prop("selected", "selected");
+                    $("#email_receivers > option[data-status!=2]").removeAttr("selected");
+                    template_name = 'checkbox_discussants';
+                }
+                change_content(template_name);
+                $("#email_receivers").trigger("change");
+            });
+
+            // inject corresponding conferences into the table
+            $('#status_select').change(function () {
+                var select_val = $(this).val();
+                $.getJSON('/api/conferences/' + {{conference_id}} +'/papers/' + select_val, function (data) {
+                    $('#bottom_table tbody').empty();
+                    $('#paper_select').empty();
+                    for (var i = 0; i < data.papers.length; i++) {
+                        $('#bottom_table tbody').append('<tr><td><input name="paper_ids" type="checkbox" checked value="' + data.papers[i].id + '"></td><td>' + data.papers[i].id + '</td><td>' + data.papers[i].title + '</td><td>' + render_username(data.papers[i].authors) + '</td><td>' + data.papers[i].avg_score + '</td><td>' + data.papers[i].status + '</td></tr>');
+                        $('#paper_select').append('<option value="' + data.papers[i].id + '">' + data.papers[i].title + '</option>');
+                    }
+                    // first_paper = data.papers[0];
+                    // disable the preview if there is no papers in the table
+                    if (data.papers[0] !== undefined) {
+                        $('#preview').prop('disabled', false);
+                        $('#submit').prop('disabled', false);
+                    } else {
+                        $('#preview').prop('disabled', true);
+                        $('#submit').prop('disabled', true);
+                    }
+                });
+                var template_name = "";
+                if (select_val === "Accepted") {
+                    template_name = "author_accepted";
+                } else if (select_val === "Rejected") {
+                    template_name = "author_rejected";
+                } else if (select_val === "Under Review") {
+                    template_name = "author_under_review";
+                } else if (select_val === "Received") {
+                    template_name = "author_received";
+                }else {
+                    template_name = select_val;
+                }
+                change_content(template_name);
+            });
+
+            // stop modal showing up automatically
+            $("#preview").on("click", function (e) {
+                e.preventDefault();
+                // disable the send button
+                $("#sendTestEmail").prop("disabled", true);
+                if (operation === "author") {
+                    // first author of the first paper
+                    receiver_id = $("#bottom_table input[name=paper_ids]:checked:first").parent().nextAll("td:eq(2)").find("a").data("user-id");
+                } else {
+                    // first in the email receiver selection
+                    receiver_id = $("#email_receivers").val()[0];
+                }
+                if (receiver_id === undefined) {
+                    swal({
+                        title: "We can't find a receiver!",
+                        text: "To preview the content of the notification, you have to select at least one receiver.",
+                        type: "error",
+                        // timer: 2000,
+                        showConfirmButton: true
+                    });
+                    return false;
+                }
+                if ($("#notification").valid()) {
+                    let preview_json = {
+                        operation: operation,
+                        content: $("#email_content").summernote("code"),
+                        // subject: $("#email_subject").val(),
+                        receiver_id: receiver_id
+                    };
+                    // console.log(preview_json);
+                    if (operation === "session") {
+                        preview_json["type"] = checked_value;
+                        // console.log(checked_value);
+                    }
+
+                    $("#previewModal").modal("show");
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/api/notifications/email_preview",
+                        contentType: "application/json",
+                        data: JSON.stringify(preview_json),
+                        success: function (res) {
+                            // console.log(res);
+                            $('#subject_title').text('Subject: ' + $('#email_subject').val());
+                            $('#content').empty().append(res.content);
+                            $("#sendTestEmail").prop("disabled", false);
+                            // swal({
+                            //     title: "Notification Sent!",
+                            //     text: "Email has been sent.",
+                            //     type: "success",
+                            //     timer: 2000,
+                            //     showConfirmButton: false
+                            // });
+                        }
+                    });
+                }
+            });
+
+            // stop modal showing up automatically
+            // $('#previewModal2').on('show.bs.modal', function (e) {
+            //     if ($('#notification').valid()) {
+            //         $("#email_receivers > option").each(function () {
+            //             if ($(this).prop('selected') == true) {
+            //                 receiver_id = $(this).val();
+            //                 $.getJSON('/api/users/' + $(this).val() + '/conferences/' + {{conference_id}} +'/papers_for_review', function (data) {
+            //                     $('#content2').empty().append(render_email_content(data, $('#email_content').summernote('code')));
+            //                 });
+            //                 return false;
+            //             }
+            //         });
+            //         $('#subject_title2').text('Subject: ' + $('#email_subject').val());
+            //     } else {
+            //         e.stopPropegation();
+            //     }
+            // });
+
+            $('#sendTestEmail').click(function (event) {
+                event.preventDefault();
+                if ($("#testEmailForm").valid()) {
+                    var email_json = {
+                        'email': $('#testEmail').val(),
+                        'subject': $('#email_subject').val(),
+                        'content': $('#content').html(),
+                        'receiver_id': receiver_id,
+                        'operation': operation
+                    };
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/api/notifications/send_testing_email",
+                        contentType: "application/json",
+                        data: JSON.stringify(email_json),
+                        success: function (response) {
+                            swal({
+                                title: "Notification Sent!",
+                                text: "Email has been sent.",
+                                type: "success",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }
+                    });
+                }
+            });
+
+
+
+            // $('#sendTestEmail2').click(function (event) {
+            //     event.preventDefault();
+            //     // console.log($("#notification").valid());
+            //     $('#testEmailform').validate();
+            //
+            //     if ($("#testEmailform").valid()) {
+            //         var email = {
+            //             'address': $('#testEmail2').val(),
+            //             'subject': $('#email_subject').val(),
+            //             'content': $('#email_content').summernote('code'),
+            //             'receiver_id': receiver_id
+            //         };
+            //         // console.log(email);
+            //         $.ajax({
+            //             type: "POST",
+            //             url: "/sendemail2",
+            //             contentType: "application/json",
+            //             data: JSON.stringify(email),
+            //             success: function (response) {
+            //                 swal({
+            //                     title: "Reviewer Notification Sent!",
+            //                     text: "Email has been sent.",
+            //                     type: "success",
+            //                     timer: 2000,
+            //                     showConfirmButton: false
+            //                 });
+            //             }
+            //         });
+            //     }
+            // });
+            $(".uncheck").click(function (event) {
+                event.preventDefault();
+                $("input[name=paper_ids]").prop('checked', false);
+            });
+
+            $(".check").click(function (event) {
+                event.preventDefault();
+                $("input[name=paper_ids]").prop('checked', true);
+            });
+        });
+    </script>
+{% endblock %}

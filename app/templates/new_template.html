@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% set active_page = "" %}
+{% set active_subpage = "" %}
+{% set page_title = "" %}
+
+{% block head %}
+    {{ super() }}
+
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, )]) }}
+{% endblock %}
+
+{% block page_content %}
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
+{% endblock %}

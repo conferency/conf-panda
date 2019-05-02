@@ -1,0 +1,119 @@
+{% extends "/site/home_base.html" %}
+{% block head %}
+    {{ super() }}
+    <style>
+        .buttom-padding {
+            padding-bottom: 20px;
+        }
+
+    </style>
+{% endblock %}
+{% block page_content %}
+
+    <!-- CONTACT
+    ================================= -->
+    <section id="registration" class="section-gray section">
+
+        <div class="container">
+
+            <div class="contact-row row">
+                <div class="col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
+                    <!-- <div class="hidden-xs print-button text-center">
+                        <button class="btn btn-info btn-circle btn-lg" type="button" onclick="window.print();"><i class="fa fa-print"></i>
+                        </button>
+                    </div> -->
+                    <h2 class="section-heading text-center">Registration Complete</h2>
+                    <p class="section-brief text-center">A confirmation has been sent to the following email address:
+                        <strong>{{ attendee_email }}</strong></p>
+                    <div class="row text-center buttom-padding">
+                        <p>{{ conference.name }}</p>
+                        {% if conference.website %}
+                            <p><a href="http://{{ conference.website }}"
+                                  target="_blank">{{ conference.short_name.upper() }} Website</a>
+                            </p>
+                        {% endif %}
+                        <p><i class="fa fa-calendar"></i> {{ conference.start_date }} to {{ conference.end_date }}</p>
+                        <p><i class="fa fa-map-marker"></i>
+                            {% if conference.address %}{{ conference.address }}, {% endif %}{{ conference.city }},
+                            {% if conference.state %}{{ conference.state }}, {% endif %}{{ conference.country }}</p>
+                    </div>
+
+                    <div class="contact-maps-box fadeIn animated done-animation" data-animation="fadeIn">
+                        <p class="hero-tagline">Order Summary</p>
+                        <div class="row">
+                            <address class="col-sm-12">
+                                <strong>{{ moment(transaction.timestamp).format('LLL') }}</strong>
+                                <ul class="fa-ul">
+                                    <li><i class="fa-li fa fa-ticket"></i>Ticket: <span
+                                            class="pull-right">{{ transaction.tickets[0].name }}</span></li>
+                                    {% set product_options = transaction.product_options.all() %}
+                                    {% if product_options %}
+                                        <li><i class="fa-li fa fa-shopping-cart"></i>Merchandise:
+                                            {% for product_option_sale in product_options %}
+                                                <span class="pull-right">
+															{% if product_option_sale.product_option.default == true %}
+                                                                {{ product_option_sale.product_option.product_name }}
+                                                            {% else %}
+                                                                {{ product_option_sale.product_option.product_name }}(
+                                                                {{ product_option_sale.product_option.option_name }})
+                                                            {% endif %}
+															</span>
+                                                <br>
+                                            {% endfor %}
+
+                                        </li>
+                                    {% endif %}
+                                    {% if transaction.promo_code_id %}
+                                        <li><i class="fa-li fa fa-tag"></i>Promo Code: <span
+                                                class="pull-right">{{ transaction.promo_code.promo_code }}</span></li>
+
+                                    {% endif %}
+                                    <li><i class="fa-li fa fa-usd"></i>Subtotal: <span
+                                            class="pull-right"> {{ transaction.subtotal }} {{ transaction.currency }}</span></li>
+                                    {% if transaction.subtotal > 0 %}
+                                        <li><i class="fa-li fa fa-credit-card"></i>Payment method: <span
+                                                class="pull-right">XXXX-XXXXXXXX-{{ transaction.card_number[-4:] }}</span>
+                                        </li>
+                                        <li><i class="fa-li fa fa-user"></i>Card holder's name: <span
+                                                class="pull-right">{{ transaction.holder_name }}</span></li>
+                                    {% endif %}
+                                </ul>
+                            </address>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="contact-row row col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3 col-lg-4 col-lg-offset-4">
+                <a href="{{ url_for('main.conf_index', conf_name=conference.short_name) }}"
+                   class="btn btn-primary btn-lg btn-block button-font" id="back_to_conf_home" name="back_to_conf_home">Back
+                    to Home</a>
+            </div>
+        </div>
+
+    </section>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        // function country_option(selector, data) {
+        //        $.each(data, function(index, value) {
+        //            if (value.value !== 'United States') {
+        //                $(selector).append("<option value='" + value.value + "'>" + value.value + "</option>");
+        //            } else {
+        //                $(selector).append("<option value='" + value.value + "' selected>" + value.value + "</option>");
+        //            }
+        //        });
+        //    }
+
+        // $(document).ready(function () {
+        // 	$("#RegistrationForm").validate();
+
+        // 	$.getJSON("{{ url_for('static', filename='json/countries.json')}}", function(data) {
+        //            country_option($('select[id="country"]'), data);
+        //        });
+
+        // });
+    </script>
+{% endblock %}

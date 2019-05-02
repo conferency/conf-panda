@@ -1,0 +1,3 @@
+Hi, {{ user.first_name }}. A paper titled: "{{ title }}" in conference: "{{conference}}" with you as an author has been updated. For your convenience, we have set up a new account for you. You can log in with your current email address and password: {{ password }}. We highly recommend that you change the password after first-time login.
+
+{{ url_for('auth.login', _external=True) }}

@@ -1,0 +1,502 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "payment" %}
+{% set page_title = "Upgrade" %}
+
+{% block head %}
+    {{ super() }}
+        <link href="{{ url_for('static', filename='inspinia/css/plugins/jasny/jasny-bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+        <style media="screen">
+            .label {
+                font-size: inherit;
+            }
+            .info {
+                background-color: #23c6c8 !important;
+                border-color: #23c6c8 !important;
+            }
+
+            .grey {
+                background-color: #b8bdc1 !important;
+                border-color: #b8bdc1 !important;
+            }
+
+            .pricing-price span {
+                font-weight: 700;
+                font-size: 20px;
+            }
+        </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.payment', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+<div class="row landing-page">
+    <div class="ibox">
+        <div class="ibox-content clearfix">
+            <div class="col-lg-4 wow zoomIn animated animated" style="visibility: visible;">
+                <ul class="pricing-plan list-unstyled">
+                    <li class="pricing-title grey">
+                        Community
+                    </li>
+                    <li class="pricing-desc">
+                        For small conferences, basic functions are free of charge.
+                    </li>
+                    <li class="pricing-price">
+                        <span style="color: #b8bdc1;">Free</span>
+                    </li>
+                    <li>
+                        Paper Submission and Management
+                    </li>
+                    <li>
+                        Review Assignment and Management
+                    </li>
+                    <li>
+                        Online Proceedings
+                    </li>
+                    <li>
+                        Registration System (charged separately)
+                    </li>
+                    <li>
+                        Community Forum Support
+                    </li>
+                    {% if conference.type == 'Free'%}
+                    <li>
+                        <a class="btn btn-primary grey" href="#">Your Current Plan</a>
+                    </li>
+                    {% else %}
+                    <li>
+                        <a class="btn btn-primary grey" href="#">Included in Your Plan</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <div class="col-lg-4 wow zoomIn animated animated" style="visibility: visible;">
+                <ul class="pricing-plan list-unstyled">
+                    <li class="pricing-title">
+                        Professional
+                    </li>
+                    <li class="pricing-desc">
+                        For conferences which need more sophisticated functions, professinal edition gives chairs more flexibility.
+                    </li>
+                    <li class="pricing-price">
+                        <span>${{ professional.price }} USD</span>
+                    </li>
+                    <li>
+                        Everything included in Community Plan
+                    </li>
+                    <li>
+                        Track and Sub-track Support
+                    </li>
+                    <li>
+                        Custom Submission and Review Forms
+                    </li>
+                    <li>
+                        Online Program with PDF export
+                    </li>
+                    <li>
+                        <strong>Mobile App</strong>
+                    </li>
+                    <li>
+                        <strong>Email Support</strong>
+                    </li>
+                    {% if conference.type == 'Free' %}
+                    <li class="plan-action">
+                        <a class="btn btn-primary btn-xs select-plan" href="#">Upgrade</a>
+                    </li>
+                    {% elif conference.type == 'Professional' %}
+                    <li>
+                        <a class="btn btn-primary grey" href="#">Your Current Plan</a>
+                    </li>
+                    {% else %}
+                    <li>
+                        <a class="btn btn-primary grey" href="#">Included in Your Plan</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="col-lg-4 wow zoomIn animated" style="visibility: visible;">
+                <ul class="pricing-plan list-unstyled">
+                    <li class="pricing-title info">
+                        Enterprise
+                    </li>
+                    <li class="pricing-desc">
+                        For the large conferences with over 1000 submissions, enterprise edition can provide best services.
+                    </li>
+                    <li>Everything included in Community Plan</li>
+                    <li><strong>Phone Support</strong></li>
+                    {% if conference.type == 'Enterprise'%}
+                    <li>
+                        <a class="btn btn-primary grey" href="#">Your Current Plan</a>
+                    </li>
+                    {% else %}
+                    <li>
+                      <a class="btn btn-primary info select-plan" href="mailto:support@conferency.com?Subject=Enterprise%20Plan%20Inquiry">Contact Us</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="hide plan-view">
+    <div class="row m-b-md">
+        <div class="col-md-9">
+            <div class="ibox-content">
+                {% if conference.type == 'Free' %}
+                <h2><span class="label label-danger">{{ conference.type }}</span></h2>
+                <p>For small conferences, basic functions are free of charge.</p>
+                {% elif conference.type == 'Professional' %}
+                <h2><span class="label label-success">{{ conference.type }}</span></h2>
+                <p>For conferences which need more sophisticated functions, professinal edition gives chairs more flexibility.</p>
+                {% else %}
+                <h2><span class="label label-primary">{{ conference.type }}</span></h2>
+                <p>For the large conferences with over 1000 submissions, enterprise edition can provide best services.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% if conference.type != 'Enterprise' %}
+        <div class="col-md-3">
+            <div class="ibox-content">
+                <h2>Want Enterprise?</h2>
+                <p>Make an inquriy via email: <a href="mailto:support@conferency.com?Subject=Enterprise%20Package%20Inquiry">support@conferency.com</a></p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% if not conference.type == 'Professional' %}
+    <div class="row">
+        <div class="col-md-9">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Billing</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="table-responsive">
+                        <table class="table shoping-cart-table">
+                            <tbody>
+                                <td class="desc">
+                                    <h3 class="text-navy">
+                                        Upgrade to Professional
+                                    </h3>
+                                    <p class="small">
+                                        For conferences which need more sophisticated functions, professinal edition gives chairs more flexibility.
+                                    </p>
+                                    <dl class="small m-b-none">
+                                        <dt>Except functions in Free, also include:</dt>
+                                        <dd>Track and Sub-track Support</dd>
+                                        <dd>Custom Submission and Review Forms</dd>
+                                        <dd>Online Program with PDF export</dd>
+                                        <dd>Mobile App</dd>
+                                        <dd>Email Support</dd>
+                                        <!-- <dd>50 submissions</dd>
+                                        <dd>Unlimited number of registrations</dd>
+                                        <dd>Unlimited number of tracks</dd>
+                                        <dd>Conference schedule supported</dd>
+                                        <dd>Conference proceddings supported</dd>
+                                        <dd>Reports export</dd> -->
+                                    </dl>
+                                </td>
+                                <td>
+                                    <h4>$<span class="or_price">{{ professional.price }}</span></h4>
+                                </td>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- <div class="ibox-content">
+                    <div class="table-responsive">
+                        <table class="table shoping-cart-table">
+                            <tbody>
+                                <td class="desc">
+                                    <h3 class="text-navy">
+                                        APP Support
+                                    </h3>
+                                    <p class="small">
+                                        desc
+                                    </p>
+                                    <dl class="small m-b-none">
+                                        <dt>Include:</dt>
+                                        <dd>A description list is perfect for defining terms.</dd>
+                                    </dl>
+                                </td>
+                                <td width="65">
+                                    <div class="i-checks">
+                                        <label> <input type="checkbox" value="" checked=""></label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <h4>$500,00</h4>
+                                </td>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="table-responsive">
+                        <table class="table shoping-cart-table">
+                            <tbody>
+                                <td class="desc">
+                                    <h3 class="text-navy">
+                                        Website Support <span class="badge badge-danger">100% off</span>
+                                    </h3>
+                                    <p class="small">
+                                        desc
+                                    </p>
+                                    <dl class="small m-b-none">
+                                        <dt>Include:</dt>
+                                        <dd>A description list is perfect for defining terms.</dd>
+                                    </dl>
+                                </td>
+                                <td width="65">
+                                    <div class="i-checks">
+                                        <label> <input type="checkbox" value="" checked=""></label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <h4>$0,00 <s class="small text-muted">$200,00</s></h4>
+                                </td>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="table-responsive">
+                        <table class="table shoping-cart-table">
+                            <tbody>
+                                <td class="desc">
+                                    <h3 class="text-navy">
+                                        Website Design
+                                    </h3>
+                                    <p class="small">
+                                        desc
+                                    </p>
+                                    <dl class="small m-b-none">
+                                        <dt>Include:</dt>
+                                        <dd>A description list is perfect for defining terms.</dd>
+                                    </dl>
+                                </td>
+                                <td width="65">
+                                    <div class="i-checks">
+                                        <label> <input type="checkbox" value="" checked=""></label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <h4>$500,00</h4>
+                                </td>
+                            </tbody>
+                        </table>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Total Charge Due</h5>
+                </div>
+                <div class="ibox-content">
+                    <span>Total</span>
+                    <h2 class="font-bold">
+                        $<span class="price">{{ professional.price }}</span>
+                    </h2>
+                    <hr>
+                    <div class="m-t-sm">
+                        <h3>Promotional Code</h3>
+                        <div class="input-group">
+                            <input type="text" class="form-control">
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-primary" id="check_promo_code">Apply</button>
+                            </span>
+                        </div>
+                        <div class="form-group text-center" id="promo_code_info">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Credit Card</h5>
+                </div>
+                <div class="ibox-content">
+                    {% set credit_card = conference.conference_payment.last_credit_card() %}
+                    {% if credit_card %}
+                            <!-- <div class="payment-card"> -->
+                    <i class="fa fa-credit-card-alt payment-icon-big text-success"></i>
+                    <h2>
+                        **** **** **** {{ credit_card['card_number'][-4:] }}
+                    </h2>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <small>
+                                <strong>Expiry date:</strong> {{ credit_card['month'] }}/{{ credit_card['year'] }}
+                            </small>
+                        </div>
+                        <div class="col-sm-6 text-right">
+                            <small>
+                                <strong>Name:</strong> {{ credit_card['holder_name'] }}
+                            </small>
+                        </div>
+                    </div>
+                            <!-- </div> -->
+                    {% else %}
+                    <form role="form" id="payment-form" method="post" action="{{ url_for('conference.payment', conference_id=conference.id) }}">
+                        <input type="hidden" name="publishable_key" value="{{publishable_key}}">
+                        <input type="hidden" name="stripeToken" id="stripeToken" value="">
+                        <input type="hidden" name="promo_code" id="promo_code" value="">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label>Card number</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control required" id="card_number" name="card_number" placeholder="Valid Card Number">
+                                        <span class="input-group-addon"><i class="fa fa-credit-card"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label>Expiration date</label>
+                                    <input type="text" class="form-control required" id="exp" name="exp" placeholder="MM/YY" data-mask="99/99">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label>CVC</label>
+                                    <input type="text" class="form-control required" id="security_code" name="security_code" placeholder="CVC">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label>Name on the card</label>
+                                    <input type="text" class="form-control required" name="holder_name" id="holder_name" placeholder="Name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <button class="btn btn-primary" type="submit" id="submit_button">Make a payment</button>
+                            </div>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/jasny/jasny-bootstrap.min.js') }}"></script>
+    <!-- custom radio buttons -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+    <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+    <script type="text/javascript">
+        function stripeResponseHandler(status, response) {
+            if(status == 200) {
+                // console.log($('#stripeToken'));
+                $('#stripeToken').val(response.id);
+                $("#payment-form").off("submit");
+                // console.log($("#conferenceRequestForm")[0]);
+                $("#payment-form").submit();
+            } else {
+                swal({
+                    title: "Sorry, we could not complete your Transaction",
+                    type: "warning",
+                    text: response.error.message,
+                    confirmButtonText: "Got it!",
+                    confirmButtonColor: "#1AB394"});
+                $("#submit_button").removeAttr('disabled');
+            }
+        }
+
+        function floatToString(num) {
+            if (num.toString().indexOf('.') === -1) {
+                return num.toFixed(1);
+            } else {
+                return num;
+            }
+        }
+
+        function make_payment($form) {
+            Stripe.setPublishableKey($form.find("input[name=publishable_key]").val());
+            $("#submit_button").attr("disabled", "disabled");
+            // console.log($form.find('#exp').val().substring(3,5));
+            Stripe.createToken({
+                number: $form.find('#card_number').val(),
+                cvc: $form.find('#security_code').val(),
+                exp_month: $form.find('#exp').val().substring(0,2),
+                exp_year: $form.find('#exp').val().substring(3,5),
+                name: $form.find('#holder_name').val()
+            }, stripeResponseHandler);
+        }
+
+        $(document).ready(function () {
+            $(".select-plan").click(function(event) {
+                $(".landing-page").addClass("hide");
+                $(".plan-view").removeClass("hide");
+            });
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+            });
+
+            $("#payment-form").submit(function (event) {
+                event.preventDefault();
+                make_payment($(this));
+            });
+
+            // check promo code
+           $('#check_promo_code').click(function(event){
+               event.preventDefault();
+               var ele_promo_code = $(this).parent().prev();
+               if (!!ele_promo_code.val()) {
+                   var check_promo_code_url = "{{url_for('api.check_conf_promo_code', promo_code='')}}" + ele_promo_code.val();
+                   $.getJSON(check_promo_code_url, function(data) {
+                       event.target.parentNode.parentNode.classList.remove("has-error");
+                       $('#promo_code_error').text('');
+                       if (data.type === 'fixed_amount') {
+                           $('#promo_code_info').empty().append('<code data-promo-code-id="'+data.id+'">'+data.promo_code+': $'+data.value+' off</code>');
+                           $(".price").html(floatToString(parseFloat($(".or_price").html())-data.value));
+                       } else {
+                           $('#promo_code_info').empty().append('<code data-promo-code-id="'+data.id+'">'+data.promo_code+': '+data.value+'% off</code>');
+                           $(".price").html(floatToString(parseFloat($(".or_price").html())*(1-data.value/100)));
+                       }
+                       $("#payment-form input[name=promo_code]").val(data.promo_code)
+                   })
+                       .fail(function(response) {
+                           event.target.parentNode.parentNode.classList.remove("has-error");
+                           event.target.parentNode.parentNode.classList.add("has-error");
+                           $('#promo_code_info').empty();
+                           $('#promo_code_info').text(response.responseText);
+                        //    get_price();
+                           ele_promo_code.val('');
+                           // console.log(response.responseText);
+                       });
+               } else {
+                   event.target.parentNode.parentNode.classList.remove("has-error");
+                   event.target.parentNode.parentNode.classList.add("has-error");
+                   $('#promo_code_info').empty();
+                   $('#promo_code_info').text('Please enter the promo code');
+                   ele_promo_code.val('');
+                //    get_price();
+               }
+           });
+        });
+        </script>
+{% endblock %}

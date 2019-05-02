@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+{% set page_title = "Add conference" %}
+
+{% block page_heading %}
+
+{% endblock %}
+
+{% block head %}
+    <link href="{{ url_for('static', filename='conferency/css/select2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/datepicker3.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-tagsinput.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    {{ super() }}
+
+    <style>
+        .center {
+            float: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius:0px;
+            box-shadow: none;
+        }
+        .control-height {
+            /* not work */
+            height: 28px !important;
+        }
+    </style>
+
+{% endblock %}
+
+{% block page_content %}
+        <div class="row">
+            <div class="col-lg-8 center">
+                <form id="conference_info" method="post">
+                    {{ form.hidden_tag() }}
+                    <div class="ibox">
+                        <div class="ibox-title">
+                            <h5>Add conference</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <div class="form-group">
+                                {{ form.conference_name.label }}
+                                {{ form.conference_name(class_='form-control required', placeholder="Required") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.short_name.label }}
+                                {{ form.short_name(class_='form-control required', placeholder="Required") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.website.label }}
+                                {{ form.website(class_='form-control required', placeholder="Required") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.city.label }}
+                                {{ form.city(class_='form-control required', placeholder="Required") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.state.label }}
+                                {{ form.state(class_='form-control', placeholder="Optional") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.country.label }}
+                                <select class="form-control required valid" name="country" aria-required="true" aria-invalid="false" autocomplete="off">
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                {{ form.address.label }}
+                                {{ form.address(class_='form-control', placeholder="Optional") }}
+                            </div>
+                            <div class="form-group">
+                                <label for="date">Start date and end date</label>
+                                <div class="input-daterange input-group" id="datepicker" style="width: 100%;">
+                                    <input type="text" class="input-sm form-control required" name="start" value="{{ form.start.data }}">
+                                    <span class="input-group-addon control-height">to</span>
+                                    <input type="text" class="input-sm form-control required" name="end" value="{{ form.end.data }}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                {{ form.subjects.label }}
+                                {{ form.subjects(class_='form-control required') }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.tags.label }}
+                                {{ form.tags(class_='form-control', placeholder="Optional", **{'data-role':'tagsinput'}) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.info.label }}
+                                {{ form.info(class_='form-control', placeholder="Optional") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.featured.label }}
+                                {{ form.featured(class_='form-control') }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.submit(class_='btn btn-sm btn-primary') }}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- Tag Input -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-tagsinput.js') }}"></script>
+    <!-- Autosize Textarea -->
+    <script src="{{ url_for('static', filename='conferency/js/autosize.min.js') }}"></script>
+    <!-- select -->
+    <script src="{{ url_for('static', filename='conferency/js/select2.full.min.js') }}"></script>
+    <!-- datepicker -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-datepicker.js') }}"></script>
+    <!-- Autocomplete -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+    <!-- custom radio buttons -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+
+    <script>
+        // autosize the textarea
+        $('textarea').each(function(){
+            autosize(this);
+        });
+
+        function country_option(selector, data, default_country) {
+            //console.log(default_country);
+            if (default_country === "None"){
+                $(selector).append("<option value='' selected></option>");
+            }
+            $.each(data, function(index, value) {
+
+                if (value.value !== default_country) {
+                    $(selector).append("<option value='" + value.data + "'>" + value.value + "</option>");
+                } else {
+                    $(selector).append("<option value='" + value.data + "' selected>" + value.value + "</option>");
+                }
+            });
+        }
+
+        // function subject_option(selector, data) {
+        //     $.each(data, function(index, value) {
+        //         $(selector).append("<option value='" + value + "'>" + value + "</option>");
+
+        //     })
+        // }
+
+        function setUpAutocomplete(selector, data) {
+            $(selector).devbridgeAutocomplete({
+                lookup: data,
+                lookupLimit: 10,
+            });
+        }
+
+        $(document).ready(function(){
+
+            $("#conference_info").validate();
+
+            $.getJSON("{{ url_for('static', filename='json/countries.json')}}", function(data) {
+                country_option($('select[name="country"]'), data, "{{ form.country.data }}");
+            });
+
+            // cannot search for the subject, need to fix in the future
+            // $.getJSON("{{ url_for('static', filename='json/subjects.json')}}", function(data) {
+            //     subject_option($('select[id="subjects"]'), data);
+            // })
+            //     .fail(function(data, textStatus, error) {
+            //         console.log(data);
+            //         console.error("error: "+ error);
+            //     });
+
+            $.getJSON("{{ url_for('static', filename='json/states.json')}}", function(data) {
+                setUpAutocomplete('#state', data);
+            })
+                .fail(function(data, textStatus, error) {
+                    console.log(data);
+                    console.error("error: "+ error);
+            });
+
+            $("#subjects").select2({
+                placeholder: "You can choose multiple subjects",
+            });
+
+            // var d = new Date();
+            // var today = [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
+            // $("input[name='start']").val(today);
+
+            $('#datepicker').datepicker({
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                format: 'yyyy-mm-dd',
+            });
+
+            $('#featured').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+            });
+
+            // if () {
+            //     $('#featured').iCheck('check');
+            // }
+            // document.querySelectorAll("input.default")[0].setAttribute("class", "required form-control");
+
+
+        }); //end of ready
+
+
+
+    </script>
+
+{% endblock %}

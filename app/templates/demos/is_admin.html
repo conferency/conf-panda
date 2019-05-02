@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% set active_page = "demos" %}
+{% set active_subpage = "is_admin" %}
+
+{% block title %}
+Example
+{% endblock %}
+
+{% block page_content %}
+    <div class="container">
+      <h1>Example</h1>
+      <h2>Welcome, {{ current_user.first_name}} {{ current_user.last_name}} </a></h2>
+      <br>
+      <div id="main"></div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+
+
+{% endblock %}

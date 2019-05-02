@@ -1,0 +1,37 @@
+{% extends "auth/base_auth.html" %}
+
+{% block title %}Conferency | Timeout{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='conferency/css/login.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+{% block main_form %}
+
+    <div class="form">
+        <h3>Timeout</h3>
+            <p>To ensure our security, we logged you out of the system.</p>
+            <p>Login back, to return to what you have seen before.</p>
+
+        <div class="tab-content">
+            <form class="m-t" role="form" method="post">
+
+                {{ form.hidden_tag() }}
+                {{ macros.render_field(form.email, "Email", type="email") }}
+                {{ macros.render_field(form.password, "Password") }}
+                <input hidden id="token" name="token" value="{{ token }}" />
+                {{ form.submit(class="btn btn-primary block full-width m-b") }}
+            </form>
+            <a id="forget_password_login_page" href="{{ url_for('auth.password_reset_request') }}">
+                <p>Forgot password?</p>
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='conferency/js/emailchecker.js') }}"></script>
+{% endblock %}

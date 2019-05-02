@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "manual-assignment" %}
+{% set page_title = "Review Assignment" %}
+{% import "_macros.html" as macros %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+
+    <style>
+        .project-title {
+            font-size: 14px;
+            color: #676a6c;
+            font-weight: 600;
+        }
+
+        .autocomplete-suggestion {
+            padding: 2px 5px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .autocomplete-selected {
+            background: #F0F0F0;
+        }
+
+        .autocomplete-suggestions strong {
+            font-weight: normal;
+            color: #3399FF;
+        }
+
+        .autocomplete-group {
+            padding: 2px 5px;
+        }
+
+        .autocomplete-group strong {
+            display: block;
+            border-bottom: 1px solid #000;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('review.assignment_manual'))]) }}
+{% endblock %}
+
+{% block page_content %}
+    {% if all_papers | length != 0 %}
+        <div class="wrapper animated fadeInRight">
+            <div class="ibox-content m-b-sm border-bottom">
+                {% if empty_flag %}
+                    <div class="alert alert-danger alert-dismissable">
+                        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                        We couldn't find papers that match your search criteria. View all papers below.
+                    </div>
+                {% endif %}
+                <div class="row">
+                    <form action="/review/assignment/manual" id="searchform" method="get">
+                        <div class="col-sm-6 less-padding">
+                            <div class="form-group">
+                                <label class="control-label" for="papertitle"></label>
+                                <input type="text" id="papertitle" name="papertitle" value="{{ papertitle }}"
+                                       placeholder="Title" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-sm-4 less-padding">
+                            <div class="form-group">
+                                <label class="control-label" for="author"></label>
+                                <input type="text" id="author" name="author" value="{{ author }}" placeholder="Author"
+                                       class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-sm-2 less-padding">
+                            <div class="form-group">
+                                <label class="control-label"></label>
+                                <button type="submit" class="form-control btn btn-sm btn-primary ">Search</button>
+                                <!-- <input type="submit" class="btn btn-sm btn-primary" value="Submit"></input> -->
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox">
+                        <div class="ibox-content">
+                            <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny"
+                                   data-page-size="20">
+                                <thead>
+                                <tr>
+                                    <th></th>
+                                    <th data-type="numeric">ID</th>
+                                    <th>Title</th>
+                                    <th data-hide="phone">Author</th>
+                                    <th data-hide="phone">Reviewer</th>
+                                    <th data-hide="phone"></th>
+                                    <th class="hide" data-hide="all">Abstract</th>
+                                    <th class="hide" data-hide="all">Keywords</th>
+                                    <th class="hide" data-hide="all">File</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for paper in all_papers %}
+                                    <tr>
+                                        <td></td>
+                                        <td>{{ paper.id }}</td>
+                                        <td>{{ paper.title }}</td>
+                                        <td>{{ macros.generate_paper_authors(paper.authors_list) }}</td>
+                                        <td>
+                                            {% for author in paper.reviewers %}
+                                                <a class="text-info"
+                                                   data-reviewer-id={{ author.id }} href="{{ url_for('main.user', id=author.id) }}">{{ author.first_name }} {{ author.last_name }}
+                                                    ({{ author.papers_reviewed.all()|length }}) &nbsp;</a>
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            <div class="pull-right">
+                                                <a type="button" class="btn btn-white btn-sm openModal"
+                                                   data-paperid={{ paper.id }} data-toggle="modal"
+                                                   data-target="#myModal"><i class="fa fa-users"></i> Add/Remove
+                                                    Reviewers </a>
+                                                <a class="btn btn-white btn-sm {% if paper.status == "Withdraw" %}disabled{% endif %}"
+                                                   href="{{ url_for("paper.paper_reviews", paper_id=paper.id) }}"> <i
+                                                        class="fa fa-list-ul"></i> View Reviews </a>
+                                            </div>
+                                        </td>
+                                        <td class="hide">{{ paper.abstract }}</td>
+                                        <td class="hide">{{ paper.keywords }}</td>
+                                        <td class="hide">
+                                            {{ render_files_button(paper, paper.files) }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            {% if papertitle == '' and author == '' %}
+                                {{ macros.pagination_widget(pagination, 'review.assignment_manual') }}
+                            {% else %}
+                                {{ macros.pagination_widget(pagination, 'review.assignment_manual', papertitle=papertitle, author=author) }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <div class="middle-box text-center animated fadeInRightBig">
+            <h3 class="font-bold">You have no review assignments...yet :)</h3>
+            <div class="error-desc">
+                <br><a href="{{ url_for('main.dashboard') }}" class="btn btn-primary m-t">Dashboard</a>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="modal inmodal" id="myModal" tabindex="-1" data-paperid=0; role="dialog" aria-hidden="true"
+         style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span></button>
+                    <h4 class="modal-title">Add/Remove Reviewers</h4>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Reviewers:</strong></p>
+                    <p id="modalReviewers"></p>
+                    <div class="form-group">
+                        <input id="authorSearch" type="text" name="Reviewer Name" placeholder="Enter a user's name"
+                               class="form-control reviewer_autocomplete">
+                    </div>
+                    <div id="search_results"></div>
+                </div>
+                <div class="modal-footer">
+                    Reviewer not in the list?
+                    <a class="btn btn-primary btn-info"
+                       href="{{ url_for('conference.invitations', conference_id=current_user.curr_conf_id) }}">Invite
+                        People</a>
+                    <a id="saveModal" class="btn btn-primary" data-dismiss="modal">Save Changes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reviewer_container" style="display:none; width:100%;">
+        <div style="display:table;">
+            <div class="col-s-10 col-sm-10 col-xs-10" style="display:table-cell; vertical-align:middle; float:none;">
+                <h4 id="name"><strong></strong></h4>
+                <i class="fa fa-envelope"></i> <a id="email" href="#"></a>
+                <div id="organization"></div>
+                <div id="country"></div>
+                <hr>
+            </div>
+            <div class="col-s-2 col-sm-2 col-xs-2" style="display:table-cell; vertical-align:middle; float:none;">
+                <!-- unnecessary -->
+                <button type="button" class="btn btn-primary addReviewer">Add</button>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('.footable').footable({
+                options: {
+                    delay: 2000
+                }
+            });
+        });
+    </script>
+
+    <script>
+        // TODO new add pop function
+        var reviewersToAdd = [];
+        var reviewersToRemove = [];
+        $(document).ready(function () {
+            $('.openModal').click(function () {
+                //need to remove hidden badges that may have been left over from errors/user canceling the edit
+                $(".panel").find(".to-be-added").each(function () {
+                    $(this).remove();
+                });
+                $(".panel").find(".to-be-removed").each(function () {
+                    $(this).removeClass("to-be-removed");
+                });
+                var reviewersDiv = $('.modal-body > #modalReviewers');
+                reviewersDiv.empty();
+                reviewersToAdd = [];
+                reviewersToRemove = [];
+                // set current paper id
+                $("#myModal").attr("data-paperid", this.dataset.paperid);
+                // get the reviewers put them into the modal
+                $.ajax({
+                    url: "/review/reviewers/" + this.dataset.paperid
+                })
+                    .done(function (data) {
+                        for (var i = 0; i < data.reviewers.length; i++) {
+                            reviewersDiv.append("<span class='badge' data-reviewer-id=" + data.reviewers[i].id + ">" + data.reviewers[i].first_name + " "
+                                + data.reviewers[i].last_name + "<a class='remove-reviewer'> <i class='fa fa-times' style='padding-left: 5px;'</i></a></span>");
+                        }
+                    });
+
+            });
+
+            $('#saveModal').click(function () {
+                if (reviewersToAdd.length > 0) {
+                    $.ajax({
+                        type: "POST",
+                        contentType: 'application/json;charset=UTF-8',
+                        url: "/review/reviewers/" + $("#myModal").attr("data-paperid"),
+                        data: JSON.stringify(reviewersToAdd),
+                        success: function (res) {
+                            var paperId = $("#myModal").attr("data-paperid");
+                            var curPanel = $('.panel[data-paperid=' + paperId + ']');
+                            //badges already added, but were set to hidden until now (hacky)
+                            // display in the reviewer list
+                            curPanel.find(".to-be-added").each(function () {
+                                $(this).css("display", "");
+                                $(this).removeClass("to-be-added");
+                            });
+                        }
+                    });
+                }
+
+                if (reviewersToRemove.length > 0) {
+                    $.ajax({
+                        type: "DELETE",
+                        contentType: 'application/json;charset=UTF-8',
+                        url: "/review/reviewers/" + $("#myModal").attr("data-paperid"),
+                        data: JSON.stringify(reviewersToRemove),
+                        success: function (res) {
+                            var paperId = $("#myModal").attr("data-paperid");
+                            var curPanel = $('.panel[data-paperid=' + paperId + ']');
+                            // hide the removed reviewers
+                            curPanel.find(".to-be-removed").each(function () {
+                                $(this).css("display", "none");
+                            });
+                        }
+                    });
+                    // console.log($("reviewers"));
+                    // $("reviewers").load("/assignment/manual #reviewers");
+                }
+                location.reload(true);
+            });
+
+            // TODO make sure we dont return 100 names by setting a limit (or dont query until a couple chars?)
+            // only accpet 2 letters
+            $('.reviewer_autocomplete').devbridgeAutocomplete({
+                //minChars: 2,
+                triggerSelectOnValidInput: false,
+                serviceUrl: '/review/autocomplete/reviewer',
+                appendTo: $('#search_results'),
+                beforeRender: function (container) {
+                    $(container).css({"position": "relative", "width": "100%", "max-height": 'none'});
+                },
+                formatResult: function (suggestion, currentValue) {
+
+                    var template = $("#reviewer_container");
+                    template.find("#name").text(suggestion.data.first_name + " " + suggestion.data.last_name + " (" + (suggestion.data.reviewed_count + suggestion.data.delegated_count) + ")");
+                    //template.find("#avatar").attr('src', suggestion.data.avatar);
+
+                    template.find("#email").attr("href", "mailto:" + suggestion.data.email);
+                    template.find("#email").text(suggestion.data.email);
+
+                    if (suggestion.data.country === null) {
+                        template.find("#country").html('<i class="fa fa-globe"></i> ');
+                    } else {
+                        template.find("#country").html('<i class="fa fa-globe"></i> ' + suggestion.data.country);
+                    }
+                    if (suggestion.data.organization === null) {
+                        template.find("#organization").html('<i class="fa fa-institution"></i> ');
+                    } else {
+                        template.find("#organization").html('<i class="fa fa-institution"></i> ' + suggestion.data.organization);
+                    }
+                    // template.find()
+                    return template.html();
+                },
+                onSelect: function (suggestion) {
+                    var reviewersDiv = $('.modal-body > #modalReviewers');
+                    var paperId = $("#myModal").attr("data-paperid");
+                    // assigned reviewer
+                    // add new reviewers to the reviewer list
+                    var curPanel = $('.panel[data-paperid=' + paperId + ']');
+                    if ($(reviewersDiv).find('[data-reviewer-id= ' + suggestion.data.id + ']').length === 0) {
+                        reviewersDiv.append("<span class='badge' data-reviewer-id=" + suggestion.data.id + ">" + suggestion.data.first_name + " " + suggestion.data.last_name + "<a class='remove-reviewer'> <i class='fa fa-times' style='padding-left: 5px;'</i></a></span>");
+                        // to be added display:none
+                        // $(curPanel).find(".reviewers").append("<span class='badge to-be-added' style='display:none;' data-reviewer-id=" + suggestion.data.id + ">" + suggestion.data.first_name + " " + suggestion.data.last_name + "</span>");
+                        if (reviewersToAdd.indexOf(suggestion.data.id.toString()) === -1) {
+                            // if the reivewer exists in the remove list, remove it
+                            if (reviewersToRemove.indexOf(suggestion.data.id.toString()) != -1) {
+                                reviewersToRemove.splice(reviewersToRemove.indexOf(suggestion.data.id), 1);
+                                $(curPanel).find('a[data-reviewer-id= ' + suggestion.data.id + ']').removeClass('to-be-removed').addClass('to-be-added');
+                            } else {
+                                $(curPanel).find("#reviewers").append("<a class='text-info to-be-added' style='display:none;' data-reviewer-id='" + suggestion.data.id + "' href='/user/" + suggestion.data.id + "'>" + suggestion.data.first_name + " " + suggestion.data.last_name + " (" + (Number(suggestion.data.reviewed_count + suggestion.data.delegated_count) + 1).toString() + ")" + " &nbsp;</a>");
+                            }
+                            // need to enhance push
+                            reviewersToAdd.push(suggestion.data.id.toString());
+                        }
+
+                    }
+                    $('#authorSearch').val('');
+                },
+
+            });
+
+
+            $(document).on('click', '.remove-reviewer', function (e) {
+                var curId = $(this).parent().attr('data-reviewer-id');
+                // remove span
+                $(this).parent().remove();
+                if (reviewersToRemove.indexOf(curId) === -1) {
+                    // if the reivewer exists in the add list, remove it
+                    if (reviewersToAdd.indexOf(curId) != -1) {
+                        reviewersToAdd.splice(reviewersToAdd.indexOf(curId), 1);
+                        // console.log("in to add list");
+                        // console.log(reviewersToAdd);
+                        // remove the to-be-add class
+                        $(curPanel).find('a[data-reviewer-id= ' + curId + ']').removeClass('to-be-added');
+                    }
+                    // add to the removed list
+                    reviewersToRemove.push(curId);
+
+
+                    var paperId = $("#myModal").attr("data-paperid");
+                    var curPanel = $('.panel[data-paperid=' + paperId + ']');
+                    // console.log($(curPanel).find('a[data-reviewer-id=' + curId + ']'));
+                    // find the removed one and add class(a )
+                    $(curPanel).find('a[data-reviewer-id= ' + curId + ']').addClass('to-be-removed');
+                }
+
+            });
+        });
+    </script>
+
+{% endblock %}

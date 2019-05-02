@@ -1,0 +1,48 @@
+{% extends "/email/email_base.html" %}
+
+{% block page_content %}
+<tbody>
+   <!-- Title -->
+
+   <!-- spacing -->
+   <tr>
+      <td height="5"></td>
+   </tr>
+   <!-- End of spacing -->
+   <tr>
+       <td style="font-family: Helvetica, arial, sans-serif; font-size: 14px; color: #95a5a6; text-align:left;line-height: 30px;" st-content="fulltext-paragraph">
+           <p>Dear {{ user.first_name }}, </p>
+           <p>Thank you for joining {{ conference.short_name | upper }}</p>
+           <p>Please use {{ user.email }} to log in.</p>
+      </td>
+   </tr>
+   <tr>
+      <td width="100%" height="30"></td>
+   </tr>
+   <tr>
+       <td>
+           <table height="36" align="center" valign="middle" border="0" cellpadding="0" cellspacing="0" class="tablet-button" st-button="edit">
+               <tbody>
+                   <tr>
+                       <td width="auto" align="center" valign="middle" height="36" style=" background-color:#1AB394; border-top-left-radius:4px; border-bottom-left-radius:4px;border-top-right-radius:4px; border-bottom-right-radius:4px; background-clip: padding-box;font-size:14px; font-family:Helvetica, arial, sans-serif; text-align:center;  color:#ffffff; font-weight: 300; padding-left:25px; padding-right:25px;">
+                           <span style="color: #ffffff; font-weight: 300;">
+                               <a style="color: #ffffff; text-align:center;text-decoration: none;" href="{{ url_for('auth.login', conf=conference.id, _external=True) }}">Login</a>
+                           </span>
+                       </td>
+                   </tr>
+               </tbody>
+           </table>
+       </td>
+   </tr>
+   <!-- End of content -->
+   <tr>
+      <td width="100%" height="30"></td>
+   </tr>
+   <tr>
+       <td style="font-family: Helvetica, arial, sans-serif; font-size: 14px; color: #95a5a6; text-align:left;line-height: 30px;" st-content="fulltext-paragraph">
+           <p>Sincerely,</p>
+           <p>Your friends at Conferency</p>
+       </td>
+  </tr>
+</tbody>
+{% endblock %}

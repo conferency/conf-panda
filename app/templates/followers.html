@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+{% set page_title = title + " " + user.first_name + " " + user.last_name %}
+{% set active_page = "connections" %}
+
+{% block head %}
+    {{ super() }}
+    <style>
+        .truncate {
+            height: 18px;
+         }
+    </style>
+{% endblock %}
+{% block page_heading %}
+{{ macros.breadcrumb_widget([('Home', url_for('.dashboard')), ('My Connections', url_for('main.followers', id=user.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+
+    <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+
+<!-- <table class="table table-hover followers">
+    <thead><tr><th>User</th><th>Since</th></tr></thead>
+    {% for follow in follows %}
+    {% if follow.user != user %}
+    <tr>
+        <td>
+            <a href="{{ url_for('.user', id = follow.user.id) }}">
+                <img class="img-rounded" src="{{ follow.user.gravatar(size=32) }}">
+                {{ follow.user.first_name }} {{ follow.user.last_name }}
+            </a>
+        </td>
+        <td>{{ moment(follow.timestamp).format('L') }}</td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+</table> -->
+<!-- <div>
+    {% for follow in follows %}
+    {% if follow.user != user %}
+        <a href="{{ url_for('.user', id = follow.user.id) }}">
+            <img class="img-rounded" src="{{ follow.user.gravatar(size=64) }}">
+                {{ follow.user.first_name }} {{ follow.user.last_name }}
+        </a>
+    {% endif %}
+    {% endfor %}
+</div> -->
+<div class="wrapper animated fadeInRight">
+    <div class="row">
+        <div class="tabs-container">
+            <ul class="nav nav-tabs">
+                {% if endpoint == '.followers' %}
+                    <li class=""><a href="{{ url_for('main.followed_by', id=user.id) }}">Following</a></li>
+                    <li class="active"><a data-toggle="tab" href="#tab-1">Followers</a></li>
+                {% else %}
+                    <li class="active"><a data-toggle="tab" href="#tab-1">Following</a></li>
+                    <li class=""><a href="{{ url_for('main.followers', id=user.id) }}">Followers</a></li>
+                {% endif %}
+            </ul>
+            <div class="tab-content">
+            {% if (follows | count) > 1 %}
+            {# Profile tab #}
+                <div id="tab-1" class="tab-pane active">
+                    <div class="panel-body">
+                        {% for follow in follows %}
+                            {% if follow.user != user %}
+                                <div class="col-lg-3 col-md-4">
+                                    <div class="contact-box center-version">
+                                        <a href="{{ url_for('.user', id = follow.user.id) }}">
+                                                {% if follow.user.avatar %}
+                                                    <img style="height: 80px; width: 80px; border-radius: 40px" src="{{ follow.user.avatar }}">
+                                                {% else %}
+                                                    <img data-name={{follow.user.first_name[0]+ follow.user.last_name[0]}} data-height=64 data-width=64 data-font-size=20 data-font-weight=700 data-char-count=2 radius=1 class="profile-avatar img-circle"/>
+                                                {% endif %}
+                                            <h3 class="m-b-xs truncate"><strong>{{ follow.user.first_name }} {{ follow.user.last_name }}</strong></h3>
+
+                                            <!-- <div class="font-bold">Graphics designer</div> -->
+                                            <p class = "truncate">
+                                                <i class="fa fa-envelope"></i>&nbsp;{{ follow.user.email }}
+                                            </p>
+                                            {% if follow.user.organization %}
+                                                <p class = "truncate">
+                                                    <i class="fa fa-institution"></i>&nbsp;{{ follow.user.organization }}
+                                                </p>
+                                            {% endif %}
+                                            <!-- {% if follow.user.website %}
+                                                <p>
+                                                    <i class="fa fa-external-link"></i>&nbsp;{{ follow.user.website }}
+                                                </p>
+                                            {% endif %} -->
+                                            <!-- <p><i class="fa fa-map-marker"></i>
+                                                <a href="http://maps.google.com/?q={{ user.location }}"> {{ user.location }}</a><br>
+                                            </p> -->
+                                            <!-- <p>
+                                                {% if follow.user.about_me %}
+                                                {{ follow.user.about_me }}
+
+                                                {% endif %}
+                                            </p> -->
+
+                                        </a>
+                                        <div class="contact-box-footer">
+                                           <!--  <div class="m-t-xs btn-group"> -->
+                                                <!-- <a class="btn btn-xs btn-white"><i class="fa fa-phone"></i> Call </a>
+                                                <a class="btn btn-xs btn-white"><i class="fa fa-envelope"></i> Email</a> -->
+                                                <!-- <a class="btn btn-xs btn-white"><i class="fa fa-user-plus"></i> Follow</a> -->
+                                                {% if follow.user != current_user %}
+                                                    {% if not current_user.is_following(follow.user) %}
+                                                        <button class="btn btn-primary btn-block follow" u_id="{{follow.user.id}}" type="button"><i class="fa fa-plus-circle"></i> Follow</button>
+                                                    {% else %}
+                                                        <button class="btn btn-default btn-block unfollow" u_id="{{follow.user.id}}" type="button"><i class="fa fa-plus-circle"></i> Unfollow</button>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <a href="{{ url_for('.edit_profile') }}" class="btn btn-primary btn-block"><i class="fa fa-edit"></i> Edit Profile</a>
+                                                {% endif %}
+                                            <!-- </div> -->
+                                        </div>
+
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="pagination">
+                    {{ macros.pagination_widget(pagination, endpoint, id = user.id) }}
+                </div>
+            {% else %}
+                <div id="tab-1" class="tab-pane active">
+                    <div class="panel-body">
+                        <div class="middle-box text-center animated fadeInRightBig" style="margin-bottom: 140px;">
+                            {% if endpoint == '.followers' %}
+                                <h3 class="font-bold">No one has followed {{user.first_name}}...yet :)</h3>
+                            {% else %}
+                                <h3 class="font-bold">{{user.first_name}} has not followed anyone...yet :)</h3>
+                                {% if user == current_user %}
+                                    <a class="btn btn-primary" href="{{url_for('main.user_search')}}"><i class="fa fa-search"></i> Find Users</a>
+                                {% endif %}
+                            {% endif %}
+                            <!-- <div class="error-desc">
+                                <br><a href="{{ url_for('main.dashboard') }}" class="btn btn-primary m-t">Dashboard</a>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- dotdotdot -->
+<script src="{{ url_for('static', filename='conferency/js/jquery.dotdotdot.min.js') }}"></script>
+
+<script>
+    $(document).ready(function(){
+        // console.log(typeof $('.followers').find('strong').text());
+        $('button').click(function(event){
+            // console.log('follow');
+            var element = $(this);
+            var follow_user_id = element.attr('u_id');
+            // var display_following = $('.following');
+            // var display_followers_num = $('.followers').find('strong');
+            // console.log(element.attr('class'));
+            if (element.hasClass('follow')) {
+                console.log('follow');
+                $.ajax({
+                    type: "POST",
+                    url: "/follow/" + follow_user_id,
+                    data: id=follow_user_id,
+                    success: function(){
+                        // change button to unfollow
+                        element.removeClass('btn-primary follow').addClass('btn-default unfollow');
+                        element.html('Unfollow');
+                        // display_followers_num.text(parseInt(display_followers_num.text()) + 1);
+                    }
+                });
+            } else {
+                console.log('unfollow');
+                $.ajax({
+                    type: "POST",
+                    url: "/unfollow/" + follow_user_id,
+                    data: id=follow_user_id,
+                    success: function(){
+                        // change button to follow
+                        element.removeClass('btn-default unfollow').addClass('btn-primary follow');
+                        element.html('Follow');
+                        // display_followers_num.text(parseInt(display_followers_num.text()) - 1);
+                    }
+                });
+            }
+        });
+        // $('.unfollow').click(function(event){
+        //     console.log('unfollow');
+        //     var element = $(this);
+        //     var follow_user_id = element.attr('u_id');
+        //     console.log(element.attr('class'));
+        //     $.ajax({
+        //         type: "POST",
+        //         url: "/unfollow/" + follow_user_id,
+        //         data: id=follow_user_id,
+        //         success: function(){
+        //             element.removeClass('btn-default unfollow').addClass('btn-primary follow');
+        //             element.html('Follow');
+        //         }
+        //     });
+        // });
+    });
+</script>
+
+<!-- Dotdotdot for product box-->
+<script>
+    $(document).ready(function(){
+        $('.truncate').dotdotdot();
+    });
+    $(window).resize(function(){
+        $('.truncate').dotdotdot();
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,6 @@
+Dear {{ user.first_name }},
+A paper titled: "{{ title }}" in conference: "{{conference}}" with you as a co-author has been updated.
+
+{{ url_for('submission.my_submissions', id=user.id, _external=True) }}
+Sincerely,
+Conferency

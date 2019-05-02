@@ -1,0 +1,509 @@
+{% import "_macros.html" as macros %}
+{% from '_macros.html' import render_files_button as render_files_button with context %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Conferency | {{ page_title }} </title>
+    {% block head %}
+        <link rel="shortcut icon" href="{{ url_for('static', filename = 'img/favicons/favicon.ico') }}"
+              type="image/x-icon">
+        <link rel="icon" href="{{ url_for('static', filename = 'img/favicons/favicon.ico') }}" type="image/x-icon">
+        <link href="{{ url_for('static', filename='inspinia/css/plugins/sweetalert/sweetalert.css') }}"
+              rel="stylesheet">
+        <link href="{{ url_for('static', filename='inspinia/css/bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='conferency/css/font-awesome.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='inspinia/css/plugins/toastr/toastr.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='inspinia/css/animate.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='inspinia/css/style.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='conferency/css/style.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='conferency/css/shepherd-theme-arrows.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='conferency/css/OpenSans.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='conferency/css/Roboto.css') }}" rel="stylesheet">
+    {% endblock %}
+    <!-- Start of conferency Zendesk Widget script -->
+    <script type="text/javascript">/*<![CDATA[*/
+    window.zEmbed || function (e, t) {
+        var n, o, d, i, s, a = [], r = document.createElement("iframe");
+        window.zEmbed = function () {
+            a.push(arguments)
+        }, window.zE = window.zE || window.zEmbed, r.src = "javascript:false", r.title = "", r.role = "presentation", (r.frameElement || r).style.cssText = "display: none", d = document.getElementsByTagName("script"), d = d[d.length - 1], d.parentNode.insertBefore(r, d), i = r.contentWindow, s = i.document;
+        try {
+            o = s
+        } catch (c) {
+            n = document.domain, r.src = 'javascript:var d=document.open();d.domain="' + n + '";void(0);', o = s
+        }
+        o.open()._l = function () {
+            var o = this.createElement("script");
+            n && (this.domain = n), o.id = "js-iframe-async", o.src = e, this.t = +new Date, this.zendeskHost = t, this.zEQueue = a, this.body.appendChild(o)
+        }, o.write('<body onload="document._l();">'), o.close()
+    }("https://assets.zendesk.com/embeddable_framework/main.js", "conferency.zendesk.com");
+    /*]]>*/</script>
+    <!-- End of conferency Zendesk Widget script -->
+</head>
+
+<body class="fixed-sidebar">
+<div id="wrapper">
+    {% if session.get('masqueraded', False) %}
+        <div id="tray" class="fixed-top" style="width: auto; background-color: #404040">
+            <div class="fill">
+                <div class="container">
+                    <h2 id="item_name" style="color: white;">You are in the masquerade mode!<a
+                            class="btn btn-sm btn-danger pull-right m-t-n-xs"
+                            href="{{ url_for('conf_admin.masquerade_exit', user_id=current_user.id) }}"
+                            type="submit"><strong>Switch back to admin</strong></a></h2>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    {# This is the sidebar that users will see, and will be global throughout error messages, logged in or not, etc. #}
+    <nav class="navbar-default navbar-static-side" role="navigation">
+        <div class="sidebar-collapse">
+            <ul class="nav metismenu" id="side-menu">
+                {# The user profile info box on the side menu #}
+                <li class="nav-header">
+                    <div class="dropdown profile-element">
+                        {# The avatar image on the side menu #}
+                        <span>
+                            <img data-name="{{ current_user.first_name[0]+ current_user.last_name[0] }}"
+                                 data-height="64"
+                                 {% if current_user.avatar %}src="{{ macros.avatar_src(current_user) }}"{% endif %}
+                                 data-width="64" data-font-size="20" data-font-weight="700" data-char-count="2"
+                                 radius="2"
+                                 class="{% if not current_user.avatar %}profile-avatar {% endif %}img-circle img-md"
+                                 id="side-bar-avatar"/>
+                        </span> {# The first name, last name, and the user's title #}
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <span class="clear">
+                                <span class="block m-t-xs">
+                                    <strong class="font-bold">
+                                        {% if current_user.is_authenticated %}
+                                            {{ current_user.full_name }}
+                                        {% else %}
+                                            Stranger
+                                        {% endif %}
+                                    </strong>
+                                    <b class="caret"></b>
+                                </span>
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                            {% if current_user.primary_id %}
+                            <li><a href="{{ url_for('auth.switch_user', user_id=current_user.primary_id, current_url=request.path) }}">Switch to: <br>{{ current_user.primary_user.email }}</a></li>
+                            <li class="divider"></li>
+                            {% endif %}
+                            {% set merged_users = current_user.merged_users.all() %}
+                            {% if merged_users %}
+                            <li class="dropdown-header">Linked accounts</li>
+                            {% for user in merged_users %}
+                            <li><a href="{{ url_for('auth.switch_user', user_id=user.id, current_url=request.path) }}">Switch to: <br>{{ user.email }}</a></li>
+                            {% endfor %}
+                            <li class="divider"></li>
+                            {% endif %}
+                            <li><a href="{{ url_for('main.user', id=current_user.id) }}">Profile</a></li>
+                            <li><a href="{{ url_for('main.show_tickets') }}">Registrations</a></li>
+                            <!-- <li><a href="mailbox.html">Mailbox</a></li> -->
+                            <li class="divider"></li>
+                            <li><a href="{{ url_for('auth.settings') }}">Account Settings</a></li>
+                            <li><a href="{{ url_for('auth.logout') }}">Log out</a></li>
+                        </ul>
+                        <!-- <a href="{{ url_for('main.user', id=current_user.id) }}">
+								<span class="clear">
+                                    <span class="block m-t-xs">
+                                        <strong class="font-bold">
+                                            {% if current_user.is_authenticated %}
+                                                {{ current_user.first_name }} {{ current_user.last_name }}
+                                            {% else %}
+                                                Stranger
+                                            {% endif %}
+                                        </strong>
+                                    </span>
+								</span>
+                        </a> -->
+                    </div>
+                    {# Logo for minibar #}
+                    <div class="logo-element">
+                        <img src="{{ url_for('static', filename='img/logos/logo-mini.png') }}"
+                             srcset="{{ url_for('static', filename='img/logos/logo-mini@2x.png') }} 2x"
+                             alt="Conferency">
+                    </div>
+                </li>
+
+                {% set navigation_bar = generate_navigation_bar(current_user) %} {% set active_page = active_page|default('dashboard') -%}
+                {# For each of the sidebar nav items, render an <li> #}
+                {% for id, attr in navigation_bar.items() %} {% set href = attr[0] if attr[0] else "#" %}
+                    {% set icon = attr[1] %}
+                    {% set title = attr[2] %} {% set second_menu = attr[3] %} {% set is_active = id == active_page %}
+                    <li {% if is_active %}class="active"{% endif %}>
+                    <a href="{{ href|e }}" id="{{ id }}">
+                        <i class="{{ icon }}"></i>
+                        <span class="nav-label">{{ title|e }}</span> {% if second_menu %}
+                        <span class="fa arrow"></span> {% endif %}
+                    </a>
+                    {% if second_menu %} {% if is_active %}
+                        <ul class="nav nav-second-level">
+                    {% else %}
+                        <ul class="nav nav-second-level collapse">
+                    {% endif %} {% for second_level_id, second_level_attr in second_menu.items() %}
+                        {% set second_href = second_level_attr[0] %} {% set second_title = second_level_attr[1] %}
+                        {% set third_menu = second_level_attr[2] %}
+                        <li {% if second_level_id==active_subpage %}class="active"{% endif %}>
+                        <a href="{{ second_href|e }}" id="{{ second_level_id }}">
+                            {{ second_title }}{% if third_menu %}<span class="fa arrow"></span>{% endif %}</a>
+                        {% if third_menu %} {% if second_level_id == active_subpage %}
+                            <ul class="nav nav-third-level">
+                        {% else %}
+                            <ul class="nav nav-third-level collapse">
+                        {% endif %} {% for third_level_id, third_level_attr in third_menu.items() %}
+                            {% set third_href = third_level_attr[0] %} {% set third_title = third_level_attr[1] %}
+                            <li {% if third_level_id==active_second_subpage %}class="active"{% endif %}>
+                                <a href="{{ third_href }}" id="{{ third_level_id }}">
+                                    {{ third_title }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                        {% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                    {% endif %}
+                </li>
+                {% endfor %}
+                </ul>
+        </div>
+    </nav>
+    {# End of sidebar code #}
+
+    <div id="page-wrapper" class="gray-bg">
+        {# This is the top bar navigation code, with the search bar, the login/logout buttons. #}
+        <div class="row border-bottom">
+            <nav class="navbar navbar-static-top" role="navigation" style="margin-bottom: 0">
+                <div class="navbar-header">
+                    <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#"><i class="fa fa-bars"></i>
+                    </a>
+                    <!-- account type -->
+                    {% if current_user.is_chair(current_user.curr_conf) %}
+                    {% if current_user.curr_conf.type == 'Free' %}
+                        <div class="navbar-form-custom m-l-md" style="top:20px;position:relative;">
+                            <a class="label label-danger" style="font-size:12px;"
+                               href="{{ url_for('conference.payment', conference_id=current_user.curr_conf_id) }}">Upgrade
+                                Plan</a>
+                        </div>
+                    {% elif current_user.curr_conf.type == 'Professional' %}
+                        <div class="navbar-form-custom m-l-md" style="top:20px;position:relative;">
+                            <a class="label label-info" style="font-size:12px;"
+                               href="{{ url_for('conference.payment', conference_id=current_user.curr_conf_id) }}">Professional
+                                Plan</a>
+                        </div>
+                    {% elif current_user.curr_conf.type == 'Enterprise' %}
+                        <div class="navbar-form-custom m-l-md" style="top:20px; position:relative;">
+                            <a class="label label-info" style="font-size:12px;"
+                               href="{{ url_for('conference.payment', conference_id=current_user.curr_conf_id) }}">Enterprise
+                                Plan</a>
+                        </div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                <ul class="nav navbar-top-links navbar-right pull-right">
+                    <!-- <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Dropdown <span class="caret"></span></a>
+                        <ul class="dropdown-menu multi-level">
+                          <li><a href="#">Action</a></li>
+                          <li><a href="#">Another action</a></li>
+                          <li><a href="#">Something else here</a></li>
+                          <li role="separator" class="divider"></li>
+                          <li><a href="#">Separated link</a></li>
+                          <li><a href="#">One more separated link</a></li>
+                          <li class="dropdown-submenu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">Action</a></li>
+                            </ul>
+                        </li>
+                        </ul>
+                    </li> -->
+                    {% if not current_user.is_administrator() %}
+                        <span id="conferences_selector">
+                        <li class="hidden-xs">
+                            <span class="m-r-sm">Conference Switch:</span>
+        				</li>
+
+        				<li>
+        					<select class="form-control m-b" name="switch-conferences" style="width:150px">
+                                <option value="1"
+                                        {% if current_user.curr_conf_id == 1 %}selected{% endif %}>MAIN</option>
+                                {% for conference in current_user.conferences[1:] | sort(attribute='start_date', reverse=True) %}
+                                    {% if conference.status == "Approved" %}
+                                        <option value="{{ conference.id }}"
+                                                {% if current_user.curr_conf_id == conference.id %}selected{% endif %}>
+                                        {{ conference.short_name.upper() }}
+                                    </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+        				</li>
+                    </span>
+                    {% endif %}
+                    {# render notifications #}
+                    {#
+                    <li class="dropdown" id="notification_dropdown">
+                        {% set notifications = current_user.get_notifications_dashboard.all() %}
+                        <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                            <i class="fa fa-bell"></i> {% if notifications | length %}<span class="label label-danger" id="unseen_notification_num">{% if notifications | length < 99 %}{{ notifications | length }}{% else %}99+{% endif %}</span>{% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-alerts">
+                            {% if notifications | length %}
+                            {% for notification in notifications %}
+                            <li data-noti-id="{{notification.id}}">
+                                <div>
+                                    <strong>{{ notification.sender.full_name }}</strong> {{ notification.display['headline'] }}
+                                    <span class="pull-right text-muted small">{{ moment(notification.timestamp).fromNow() }}</span>
+                                </div>
+                            </li>
+                            <li class="divider"></li>
+                            {% endfor %}
+                            {% else %}
+                            <li>
+                                <div class="text-center">
+                                    <i class="fa fa-check-square-o fa-5x" aria-hidden="true"></i>
+                                    <p>No unseen notifications.</p>
+                                </div>
+                            </li>
+                            <li class="divider"></li>
+                            {% endif %}
+                            <li>
+                                <div class="text-center link-block">
+                                    <a href="{{ url_for('main.notifications') }}">
+                                        <strong>See All</strong>
+                                        <i class="fa fa-angle-right"></i>
+                                    </a>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+		    #}
+                    <li class="hidden-sm-up">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <i class="fa fa-user"></i> <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                            <li><a href="{{ url_for('main.user', id=current_user.id) }}">Profile</a></li>
+                            <li><a href="{{ url_for('main.show_tickets') }}">Tickets</a></li>
+                            <!-- <li><a href="mailbox.html">Mailbox</a></li> -->
+                            <li class="divider"></li>
+                            <li><a href="{{ url_for('auth.settings') }}">Setting</a></li>
+                            <li><a href="{{ url_for('auth.logout') }}">Log out</a></li>
+                        </ul>
+                    </li>
+                    {% if not current_user.is_administrator() %}
+                        <li class="hidden-xs">
+                            <a id="guide_button">
+                                <i class="fa fa-life-ring"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="hidden-xs">
+                        <a id="logout_button_base" href="{{ url_for('auth.logout') }}">
+                            <i class="fa fa-sign-out" style="margin-right: 0px"></i> Log out
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {# End of top bar code #}
+        {% if self.page_heading() %}
+            <div class="row border-bottom white-bg dashboard-header">
+                <div class="col-lg-12">
+                    {#
+					<h2>{{ page_title }}</h2>#} {% block page_heading %}{% endblock %}
+                </div>
+            </div>
+        {% endif %}
+        {# The actual page contents which will be filled up by child templates #}
+        <div class="wrapper wrapper-content">
+            {% block page_content %}{% endblock %}
+            {{ macros.render_pdf_modal() }}
+            {{ macros.render_word_modal() }}
+        </div>
+        {# End of page contents #} {# The footer, displayed globally #}
+        <div class="footer">
+            <div>
+                <strong>&copy;</strong> Conferency.com
+            </div>
+        </div>
+        {# End of footer code #}
+        <div id="session-warning-modal" class="modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="sessWarnLabel">Your session is about to expire</h4>
+                    </div>
+                    <div class="modal-body">
+                        Your session will expire in <span id="remaining-time"></span> minutes due to inactivity.
+                    </div>
+                    <div class="modal-footer">
+                        <button id="log-out" class="btn btn-default" type="button" data-dismiss="modal">Log Out</button>
+                        <button id="stay-logged-in" class="btn btn-warning" type="button" data-dismiss="modal">Stay
+                            Logged In
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+<div id="clear"></div>
+
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='inspinia/js/jquery-2.1.1.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/jquery-ui/jquery-ui.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/metisMenu.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/inspinia.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/pace/pace.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/toastr/toastr.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/initial.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/tether.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/shepherd.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/session-monitor.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/sisyphus.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/tour.js') }}"></script>
+    <script type="text/javascript">
+        "use strict";
+        // Configure and start the session timeout monitor
+        var sessMon = sessionMonitor({
+            // Subtract 1 minute to ensure the backend doesn't expire the session first
+            sessionLifetime: {{ PERMANENT_SESSION_LIFETIME_MS }} -(1 * 60 * 1000),
+            timeBeforeWarning: 10 * 60 * 1000,  // 10 minutes
+            minPingInterval: 1 * 60 * 1000,  // 1 minute
+            pingUrl: '{{ url_for('api.ping') }}',
+            logoutUrl: '{{ url_for('auth.logout') }}',
+            timeoutUrl: '{{ url_for('auth.timeout', token=generate_timeout_token()) }}',
+            // The "mouseup" event was used instead of "click" because some of the
+            // inner elements on some pages have click event handlers that stop propagation.
+            activityEvents: 'mouseup scroll',
+            debug: {% if debug %}true{% else %}false{% endif %},
+            onwarning: function () {
+                $("#session-warning-modal").modal("show");
+            }
+        });
+
+        $(document).ready(function () {
+            // Configure the session timeout warning modal
+            $("#session-warning-modal")
+                .modal({
+                    "backdrop": "static",
+                    "keyboard": false,
+                    "show": false
+                })
+                .on("click", "#stay-logged-in", sessMon.extendsess)
+                .on("click", "#log-out", sessMon.logout)
+                .find("#remaining-time").text(Math.round(sessMon.timeBeforeWarning / 60 / 1000));
+        });
+        window.sessMon = sessMon;
+    </script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            var tour = initializeTour("{{url_for('api.tour_finished')}}");
+
+            {% if not current_user.tour_finished and not config['TESTING']%}
+                if ($("body").innerWidth() > 700 && sessionStorage.getItem('tour') !== "false") {
+                    tour.start();
+                }
+            {% else %}
+                sessionStorage.setItem('tour', false);
+            {% endif %}
+
+            $('#guide_button').click(function () {
+                tour.start();
+            });
+
+            // recalculate unseen notification number
+            $('.profile-avatar').initial();
+        });
+    </script>
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        if (document.location.hostname == "conferency.com" || document.location.hostname == "www.conferency.com") {
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                    m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-126223-7', 'auto');
+            ga('require', 'linkid');
+            ga('set', 'userId', {{ current_user.id|default('0') }});
+            ga('send', 'pageview');
+        } else {
+            // console.log("Running non-production google analytics replacement now");
+        }
+    </script>
+
+    <script type="text/javascript">
+
+        // switch conference
+        $('select[name=switch-conferences]').change(function () {
+            $.ajax({
+                type: "POST",
+                url: "{{ url_for('main.set_current_conference_id') }}",
+                data: {conference_id: $(this).val()},
+                success: function (response) {
+                    // console.log(response);
+                    window.location.href = "/dashboard";
+                }
+            });
+        });
+    </script>
+
+    <script type="application/javascript">
+        var showPDFModal = function (paperFile, paperId, fileID) {
+            var pdfModal = $("#Modal_pdf");
+
+            pdfModal.find("iframe").attr("src", "/paper/viewer?file=/{{ pdf_url }}" + paperFile);
+            pdfModal.find("a").attr("href", "/paper/download/" + paperId + "/" + fileID);
+            pdfModal.modal("show");
+        };
+
+        var showWordModal = function (paperFile, paperId, fileID) {
+            var wordModal = $("#Modal_word");
+
+            wordModal.find("a").attr("href", "/paper/download/" + paperId + "/" + fileID);
+            wordModal.modal("show");
+        };
+
+        $(document).ready(function () {
+            $(document).delegate(".pdfbtn", "click", function(event) {
+                event.preventDefault();
+                var paper_file = $(this).data("paperfile");
+                var paper_id = $(this).data("paperid");
+                var doc_id = $(this).data("docid");
+                console.log(paper_id);
+                showPDFModal(paper_file, paper_id, doc_id);
+            });
+        });
+    </script>
+    {{ macros.handle_notifications(get_flashed_messages(with_categories=true)) }}
+    {{ moment.include_moment(local_js=url_for('static', filename="conferency/js/moment-with-locales.min.js")) }}
+
+{% endblock %}
+</body>
+
+</html>

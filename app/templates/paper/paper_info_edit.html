@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+{% set active_page = "submissions" %}
+
+{% import "_macros.html" as macros %}
+{% set page_title = "Edit Paper Information" %}
+{% set conf_configuration = paper.conference.configuration %}
+{% set conf = paper.conference %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Submissions', '#'), (page_title, url_for('paper.edit_paper_info', paper_id=paper.id))]) }}
+{% endblock %}
+
+{% block head %}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css') }}"
+          rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-tagsinput.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/dropzone/dropzone.css') }}" rel="stylesheet">
+    {{ super() }}
+    <style>
+        .wizard > .content > .body {
+            position: relative;
+        }
+
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius: 0px;
+            box-shadow: none;
+        }
+
+        .checkbox {
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        .radio label::before {
+            content: none !important;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    {% if not submission_closed %}
+        <div id="mainContent" class="wrapper wrapper-content animated fadeInRight">
+            <div class="row">
+                <div class="col-lg-12">
+                    <form id="edit-submission" method="post" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                <h5>Conference</h5>
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="display: block;">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <h3>{{ conf.name }}</h3>
+                                        <div class="form-group {% if form.track_id.choices | length == 1 %}hide{% endif %}">
+                                            {{ form.track_id.label }}
+                                            <small>(This cannot be updated after submission)</small>
+                                            <select class="form-control required" id="track_id" name="track_id"
+                                                    aria-required="true" disabled>
+                                                {% for track in form.track_id.choices %}
+                                                    {% if track[0] == paper.track_id %}
+                                                        <option value="{{ track[0] }}" selected>{{ track[1] }}</option>
+                                                    {% else %}
+                                                        <option value="{{ track[0] }}">{{ track[1] }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                            <input type="hidden" name="track_id" value="{{ paper.track_id }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                <h5>Paper Details</h5>
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="display: block;">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            {{ form.title.label }}
+                                            {{ form.title(class_='form-control required', placeholder="Paper Title") }}
+                                        </div>
+                                        <div class="form-group">
+                                            {{ form.abstract.label }}
+                                            {{ form.abstract(class_='form-control required', placeholder="Paper Abstract") }}
+                                        </div>
+                                        <div class="form-group">
+                                            {{ form.keywords.label }}
+                                            {{ form.keywords(class_='form-control', **{'data-role':'tagsinput'}) }}
+                                        </div>
+                                        {% if form.submission_type %}
+                                            <div class="form-group">
+                                                {{ form.submission_type.label }}
+                                                {{ form.submission_type(class_='form-control') }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% set i = 1 %}
+                        {% for author in paper.authors_list %}
+                            <div id="author{{ i }}" class="authorHolder">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Author #{{ i }}</h5>
+                                        <button buttonindex="1" style="position: relative; top: -3px; right: -10px" {% if not allow_edit_author %}disabled{% endif %}
+                                                type="button" class="btn btn-primary btn-xs autofill">add yourself as an
+                                            author
+                                        </button>
+                                        <div class="ibox-tools">
+                                            <div class="pull-left checkbox checkbox-success">
+                                                <input id="author_sendnotification_{{ i }}" type="checkbox"
+                                                       name="author_sendnotification_{{ i }}" {% if not allow_edit_author %}disabled{% endif %}>
+                                                <label for="author_sendnotification_{{ i }}">
+                                                    Send notification to this author
+                                                </label>
+                                            </div>
+                                            <a class="collapse-link">
+                                                <i class="fa fa-chevron-up"></i>
+                                            </a>
+                                            {% if author.email != current_user.email %}
+                                                    <a {% if allow_edit_author %}authorindex="{{ i }}" class="close-link"{% endif %}>
+                                                        <i class="fa fa-times"></i>
+                                                    </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="ibox-content" style="display: block;">
+                                        <div class="row">
+                                            <div class="col-sm-6 b-r">
+                                                <div class="form-group">
+                                                    <div class="form-group">
+                                                        <label>First Name *</label>
+                                                        <input type="text" name="author_firstname_{{ i }}"
+                                                               placeholder="Enter First Name"
+                                                               class="form-control required name-box"
+                                                               value="{{ author.first_name }}" {% if not allow_edit_author %}disabled{% endif %}>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Last Name *</label>
+                                                        <input type="text" name="author_lastname_{{ i }}"
+                                                               placeholder="Enter Last Name"
+                                                               class="form-control required name-box"
+                                                               value="{{ author.last_name }}" {% if not allow_edit_author %}disabled{% endif %}>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Email *</label>
+                                                        <input type="email" name="author_email_{{ i }}"
+                                                               placeholder="Enter Email"
+                                                               class="form-control required email"
+                                                               value="{{ author.email }}" {% if not allow_edit_author %}disabled{% endif %}>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label>Organization *</label>
+                                                    <input name="author_organization_{{ i }}" autocomplete="off"
+                                                           placeholder="Enter Organization"
+                                                           class="form-control organization required"
+                                                           value="{{ author.organization or '' }}" {% if not allow_edit_author %}disabled{% endif %}>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Country *</label>
+                                                    <!-- <input type="text" name="author_country_{{ i }}" autocomplete="off" placeholder="Enter Country" class="form-control country required" value="{{ author.country or ''}}"> -->
+                                                    <select class="form-control required valid"
+                                                            name="author_country_{{ i }}" aria-required="true"
+                                                            aria-invalid="false" autocomplete="off" {% if not allow_edit_author %}disabled{% endif %}>
+                                                        {% if author.country != '' %}
+                                                            <option value="{{ author.country }}"
+                                                                    selected>{{ author.country }}</option>
+                                                        {% endif %}
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Website</label>
+                                                    <input type="text" name="author_website_{{ i }}"
+                                                           placeholder="Enter Website" class="form-control"
+                                                           value="{{ author.website or '' }}" {% if not allow_edit_author %}disabled{% endif %}>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% set i = i+1 %}
+                        {% endfor %}
+                        <div id="addAuthorWrapper" style="display:inline-block;">
+                        <button id="addAuthor" style="margin-bottom:20px;" {% if not allow_edit_author %}disabled{% endif %}
+                                class="btn btn-sm btn-primary pull-left m-t-n-xs" type="button"><strong>Add Additional Author</strong>
+                        </button>
+                        </div>
+                        {% if conf.submission_questions %}
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>Additional Information</h5>
+                                </div>
+                                <div class="ibox-content" style="display: block;">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            {{ macros.render_questions(conf.submission_questions, paper.custom_question_answer) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                {% set pdf = conf_configuration.get('submission-pdf-allowed', True) %}
+                                {% set word = conf_configuration.get('submission-word-allowed', False) %}
+                                {% set multipleAllowed = conf_configuration.get('multiple_submission', False) %}
+                                {% if pdf and word %}
+                                    {% set fileTypePrompt = "PDF or Word" %}
+                                {% elif word %}
+                                    {% set fileTypePrompt = "Word" %}
+                                {% elif pdf %}
+                                    {% set fileTypePrompt = "PDF" %}
+                                {% endif %}
+
+                                {% if multipleAllowed %}
+                                    {% set fileNumberPrompt = "multiple files" %}
+                                {% else %}
+                                    {% set fileNumberPrompt = "one file" %}
+                                {% endif %}
+
+                                <h5>Paper File ({{ fileTypePrompt }} file only, no larger than 15M)
+                                    (You are allowed to upload {{ fileNumberPrompt }})</h5>
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                    <!-- <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                        <i class="fa fa-wrench"></i>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-user">
+                                        <li><a href="#">Config option 1</a>
+                                        </li>
+                                        <li><a href="#">Config option 2</a>
+                                        </li>
+                                    </ul> -->
+                                    <!-- <a class="close-link">
+                                        <i class="fa fa-times"></i>
+                                    </a> -->
+                                </div>
+                            </div>
+                            <div class="ibox-content">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <input class="form-control" id="filename" name="filename" type="hidden"
+                                                   value=""></div>
+                                    </div>
+                                </div>
+                                <div id="dZUpload" class="dropzone">
+                                    <div class="dz-default dz-message"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                <h5>Comment</h5>
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="display: block;">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            {{ form.comment(class_='form-control', placeholder="Optional confidential comment to chairs") }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="btn-toolbar pull-right">
+                            <!-- <button class="btn btn-sm btn-danger m-t-n-xs" type="button" data-toggle="modal"
+                                    data-target="#withdrawModal"><strong>Withdraw</strong></button> -->
+                            <button class="btn btn-sm btn-primary m-t-n-xs" type="submit" id="submit_button"><strong>Save</strong>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div id="template_wrapper" style="display:none;">
+            {{ macros.add_author_widget() }}
+        </div>
+    {% else %}
+        <div class="middle-box text-center animated fadeInRightBig">
+            <h3 class="font-bold">Sorry. You are not allow to edit paper after passing deadline.</h3>
+            <div class="error-desc">
+                <br><a href="{{ url_for('submission.my_submissions') }}" class="btn btn-primary m-t">My Submission</a>
+            </div>
+        </div>
+    {% endif %}
+    {#<div class="modal fade" id="withdrawModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form action="{{ url_for('paper.paper_withdraw', paper_id=paper.id) }}" method="post">
+                    {{ withdraw_form.hidden_tag() }}
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Submission Withdrawal</h4>
+                        <p>Please confirm that you are going to withdraw "{{ paper.title }}" and send a message to inform
+                            chairs and co-authors.</p>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="message" class="control-label">Message:</label>
+                            <textarea class="form-control" name="message" id="message"
+                                      placeholder="Required"></textarea>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button class="btn btn-warning" type="submit">Withdraw</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>#}
+
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- Autocomplete -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+    <!-- Tag Input -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-tagsinput.js') }}"></script>
+    <!-- Autosize Textarea -->
+    <script src="{{ url_for('static', filename='conferency/js/autosize.min.js') }}"></script>
+    <!-- dropzone -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/dropzone/dropzone.js') }}"></script>
+    <!-- custom radio buttons -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='conferency/js/dropzone.js') }}"></script>
+    <script>
+        var numAuthors = {{ paper.authors.all() | length }};
+        {% if current_user.is_chair(paper.conference) %}
+        var email_check_disabled = true;
+        {% else %}
+        var email_check_disabled = false;
+        {% endif %}
+
+        function setUpAutocomplete(selector, data) {
+            $(selector).devbridgeAutocomplete({
+                lookup: data,
+                lookupLimit: 10,
+                // onInvalidateSelection: function(){
+                // }
+            });
+        }
+
+        function country_option(selector, data) {
+            $.each(data, function (index, value) {
+                $(selector).append("<option value='" + value.data + "'>" + value.value + "</option>");
+            })
+        }
+
+        function delete_author(event) {
+            event.preventDefault();
+            // TODO this is pretty hacky, ran out of time
+            var authToDeleteId = Number(this.attributes['authorindex'].value);
+            //var authToDelete = $(this).parent().parent().parent().parent();
+            //var authToDeleteId = parseInt(authToDelete.attr("id").slice(-1));
+
+            if (authToDeleteId > 1) {
+                $('#author' + authToDeleteId).remove();
+                for (var i = authToDeleteId; i < numAuthors + 1; i++) {
+                    var newId = i;
+                    var oldId = i + 1;
+                    var curAuthor = $("#author" + oldId);
+                    curAuthor.attr("id", "author" + newId);
+                    curAuthor.find("h5").text("Author #" + newId);
+                    curAuthor.find("button").attr("buttonindex", newId);
+                    curAuthor.find(".close-link").attr("authorindex", newId);
+                    curAuthor.find("input[name='author_sendnotification_" + oldId + "']").attr("id", "author_sendnotification_" + newId);
+                    curAuthor.find("label[for='author_sendnotification_" + oldId + "']").attr("for", "author_sendnotification_" + newId);
+                    curAuthor.find("input[name='author_sendnotification_" + oldId + "']").attr("name", "author_sendnotification_" + newId);
+                    curAuthor.find("input[name='author_email_" + oldId + "']").attr("name", "author_email_" + newId);
+                    curAuthor.find("input[name='author_firstname_" + oldId + "']").attr("name", "author_firstname_" + newId);
+                    curAuthor.find("input[name='author_lastname_" + oldId + "']").attr("name", "author_lastname_" + newId);
+                    curAuthor.find("input[name='author_organization_" + oldId + "']").attr("name", "author_organization_" + newId);
+                    curAuthor.find("select[name='author_country_" + oldId + "']").attr("name", "author_country_" + newId);
+                    curAuthor.find("input[name='author_website_" + oldId + "']").attr("name", "author_website_" + newId);
+                }
+                numAuthors--;
+
+            }
+        }
+
+        $(document).ready(function () {
+
+            {% if not allow_edit_author %}
+                $('#addAuthor').css('pointer-events', 'none');
+                $('.authorHolder, #addAuthorWrapper').tooltip({
+                    title: "Please contact the chair if you want to change author information"
+                });
+            {% endif %}
+
+            // autosize the textarea
+            $('textarea').each(function () {
+                autosize(this);
+            });
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green'
+            });
+
+            var countries = [], all_univ_names = [];
+
+            $.getJSON("{{ url_for('static', filename='json/affiliations.json')}}", function (data) {
+                all_univ_names = data;
+                setUpAutocomplete('.organization', data);
+            });
+
+            $.getJSON("{{ url_for('static', filename='json/countries.json')}}", function (data) {
+                countries = data;
+                //setUpAutocomplete('.country', data);
+                country_option($('select[name*="author_country"]'), data);
+            });
+
+            //Tags plugin hides the actual form input and adds its own div so we do this to check the new div/apply styles
+            $.validator.addMethod("checkTags", function (value) {
+                if ($(".bootstrap-tagsinput").find(".tag").length < 3) {
+                    $(".bootstrap-tagsinput").addClass("form-control error");
+                } else {
+                    return true;
+                }
+            });
+
+            // check duplicate emails
+            jQuery.validator.addMethod("checkDupEmails", function (value) {
+                // console.log(value);
+                var matches = [];
+                $('.email').each(function (index, item) {
+                    if (value == $(item).val()) {
+                        matches.push(item);
+                    }
+                });
+                // console.log(matches.length);
+                return matches.length == 1;
+            }, "Duplicate email address");
+
+
+            // Dropzone
+
+            Dropzone.autoDiscover = false;
+            var acceptedFiles = "";
+            {% if conf_configuration.get('submission-pdf-allowed', True) %}
+                acceptedFiles += "application/pdf, .pdf, ";
+            {% endif %}
+            {% if conf_configuration.get('submission-word-allowed', False) %}
+                acceptedFiles += ".doc, .docx, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            {% endif %}
+
+            {% if not conf_configuration.get("multiple_submission", False) %}
+                var maxFiles = 1;
+            {% else %}
+                var maxFiles = null;
+            {% endif %}
+
+            var uploadedFiles = [];
+            var pdfUrl = "{{ pdf_url }}";
+
+            {% for file in paper.files %}
+                {% if file.status != "Deleted" %}
+                    uploadedFiles.push({
+                        name: "{{ file.filename }}",
+                        id: {{ file.id }},
+                        status: Dropzone.SUCCESS,
+                        size: "Uploaded"
+                    });
+                {% endif %}
+            {% endfor %}
+
+            var myDropZone = initializeDropZone(acceptedFiles, maxFiles, uploadedFiles, pdfUrl);
+
+            // add class as validating method
+            jQuery.validator.classRuleSettings.email = {checkDupEmails: true};
+
+            jQuery.validator.addMethod("check_member_name", function (value, element) {
+                var regex = /^[a-zA-Z. \-]*$/g;
+                return regex.test(value);
+            }, "Name should only contain letters, dots, hyphens and spaces.");
+
+            jQuery.validator.addClassRules("name-box", {
+                check_member_name: true
+            });
+
+            {% set max_word_count = conf_configuration.get('abstract_max_word_count', "") %}
+            {% if max_word_count != "0" and max_word_count != ""%}
+                jQuery.validator.addMethod("check_abstract_word_count", function (value) {
+                    var regex = /\s+/gi;
+                    var count = value.trim().replace(regex, ' ').split(" ").length;
+                    if (count > {{ conf_configuration.get('abstract_max_word_count', 0) }}) {
+                        return false;
+                    }
+                    else {
+                        return true;
+                    }
+                }, "The maximal length of abstract is {{ conf_configuration.get('abstract_max_word_count', 0) }} characters.");
+            {% endif %}
+
+            //Validating the form for client
+            $("#edit-submission").validate({
+                //tags plugin hides actual input, we make sure jquery still checks it
+                ignore: "",
+                //how to validate the hidden tags input
+                rules: {
+                    keywords: "checkTags"{% if max_word_count != "0" and max_word_count != ""%},
+                        abstract: "check_abstract_word_count"
+                    {% endif %}
+                },
+                messages: {
+                    keywords: "At least 3 keywords"{% if max_word_count != "0" and max_word_count != ""%},
+                        abstract: "The maximal length of abstract is {{ conf_configuration.get('abstract_max_word_count', 0) }} characters."
+                    {% endif %}
+                },
+                onkeyup: false,
+                onclick: false,
+                onfocusout: function (element) {
+                    $(element).valid();
+                },
+                errorPlacement: function (error, element) {
+                    if (element.attr("type") === "radio" || element.attr("type") === "checkbox") {
+                        // error.addClass('col-lg-12');
+                        element.closest(".col-sm-8").after(error);
+                    } else {
+                        element.after(error);
+                    }
+                }
+            });
+
+            //Adding additonal authors
+
+            $("#addAuthor").click(function (event) {
+                event.preventDefault();
+                var curLast = "#author" + numAuthors;
+                numAuthors++;
+                var template = $('#author_template').html();
+
+                $(curLast).after("<div id=author" + numAuthors + "></div>");
+                var newDiv = $("#author" + numAuthors);
+                newDiv.append(template);
+                newDiv.find("h5").text("Author #" + numAuthors);
+                newDiv.find("button").attr("buttonindex", numAuthors);
+                newDiv.find(".close-link").attr("authorindex", numAuthors).click(delete_author);
+                newDiv.find("input[name='author_sendnotification_']").attr("id", "author_sendnotification_" + numAuthors);
+                newDiv.find("label[for='author_sendnotification_']").attr("for", "author_sendnotification_" + numAuthors);
+                newDiv.find("input[name='author_sendnotification_']").attr("name", "author_sendnotification_" + numAuthors);
+                newDiv.find("input[name='author_email_']").attr("name", "author_email_" + numAuthors);
+                newDiv.find("input[name='author_firstname_']").attr("name", "author_firstname_" + numAuthors);
+                newDiv.find("input[name='author_lastname_']").attr("name", "author_lastname_" + numAuthors);
+                newDiv.find("input[name='author_organization_']").attr("name", "author_organization_" + numAuthors);
+                newDiv.find("select[name='author_country_']").attr("name", "author_country_" + numAuthors);
+                newDiv.find("input[name='author_website_']").attr("name", "author_website_" + numAuthors);
+
+                setUpAutocomplete('.organization', all_univ_names);
+                //setUpAutocomplete('.country', countries);
+                country_option($("select[name='author_country_" + numAuthors + "']"), countries);
+                $("select[name='author_country_" + numAuthors + "'] option[value='United States']").prop("selected", "selected");
+                //console.log($("select[name='author_country_" + numAuthors + "']").find("option[value='United States']"));
+
+            });
+
+            $("#submit_button").click(function (event) {
+                event.preventDefault();
+                if (myDropZone.files_list.length === 0) {
+                    swal({
+                        title: "Warning!",
+                        text: "There is no file for this submission!",
+                        type: "warning"
+                    });
+                } else {
+                    var flag = false;
+
+                    var files = "";
+                    $.each(myDropZone.files_list, function (num, fileID) {
+                        files += fileID + ",";
+                    });
+                    $("input[name=filename]").val(files);
+
+                    $("form input[name^=author_email_]").each(function () {
+                        if (this.value === "{{ current_user.email }}") {
+                            flag = true;
+                        }
+                    });
+
+                    if (email_check_disabled || flag) {
+                        if ($("#edit-submission").valid()) {
+                            document.getElementById("edit-submission").submit();
+                        }
+                    } else {
+                        swal({
+                            title: "Warning!",
+                            text: "Your current account email ({{current_user.email}}) has to be an author's email address",
+                            type: "warning"
+                        });
+                    }
+                }
+            });
+
+            //Removing authors
+            $(".close-link").click(delete_author);
+
+
+            // fill out the first author form
+            $("#mainContent").on("click", ".autofill", function (event) {
+                // get the buttonindex of the clicked button
+                var index = $(this).attr("buttonindex");
+                $("input[name='author_firstname_" + index + "']").val("{{ user.first_name }}");
+                $("input[name='author_lastname_" + index + "']").val("{{ user.last_name }}");
+                $("input[name='author_email_" + index + "']").val("{{ user.email }}");
+                $("input[name='author_organization_" + index + "']").val("{{ user.organization | default("", True) }}");
+                $("select[name='author_country_" + index + "']").val("{{ user.country | default("", True) }}");
+                $("input[name='author_website_" + index + "']").val("{{ user.website | default("", True) }}");
+            });
+        }); //end of ready
+    </script>
+{% endblock %}

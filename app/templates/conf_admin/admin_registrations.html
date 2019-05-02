@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% set active_page = "conferences" %}
+{% set active_subpage = "admin-registrations" %}
+{% set page_title = "Conference Registrations" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Admin', '#'), (page_title, url_for('conf_admin.admin_registrations'))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox">
+            <div class="ibox-title">
+                <h5>All conferences</h5>
+            </div>
+            <div class="ibox-content">
+                <div class="table-responsive">
+                    <input type="text" class="form-control input-sm m-b-xs" id="filter" placeholder="Search in table">
+                    <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="20" data-filter=#filter>
+                        <thead>
+                            <tr>
+                                <th data-type="numeric">ID</th>
+                                <th>Conference name</th>
+                                <th data-hide="phone" data-type="numeric">End Date</th>
+                                <th data-type="numeric"># of registrations</th>
+                                <th>Sales</th>
+                                <th data-hide="phone">Payout status</th>
+                                <th data-sort-ignore="true"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for conference in conferences %}
+                                {% set registration = conference.registration %}
+                                {% set total_sold = registration.total_sold %}
+                                {% if total_sold != 0 and conference.status == 'Approved' %}
+                                    <tr>
+                                        <td>{{ conference.id }}</td>
+                                        <td>{{ conference.name }}</td>
+                                        <td data-value="{{ conference.end_date.timetuple() | unix_time}}">{{ moment(conference.end_date, local=True).format('LL') }}</td>
+                                        <td>{{ registration.tickets | sum(attribute='number_of_sold') }}</td>
+                                        <td data-value="{{ total_sold }}">
+                                            {% for price in total_sold %}
+                                                {% if loop.index0 != 0%}
+                                                /
+                                                {% endif %}
+                                                {{ price[1]|string }} {{  price[0] }}
+                                            {% endfor %}
+                                        </td>
+                                        <td>{{ registration.payout.status }}</td>
+                                        <td>
+                                            <a class="btn btn-default btn-xs" href="{{url_for('conf_admin.admin_conf_registration', conference_id=conference.id)}}">Details</a>
+                                        </td>
+                                    </tr>
+                                  {% endif %}
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="7">
+                                    <ul class="pagination pagination-centered hide-if-no-paging"></ul>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+
+    <script>
+        $(document).ready(function(){
+
+            $('.footable').footable();
+
+            // $('.nav-tabs a').click(function (e) {
+            //     e.preventDefault();
+            //     $(this).tab('show');
+            // });
+            //
+            // $(function () {
+            //     $('.footable').footable();
+            // });
+            //
+            // $("ul.nav-tabs > li > a").on("shown.bs.tab", function (e) {
+            //     //fire initialize of footable because the footable plugin only processes tables that are visible
+            //     $('.footable').trigger('footable_initialize');
+            // });
+            //
+            // $('.view_pending').click(function(event){
+            //     $('.nav-tabs a[href="#tab-1"]').tab('show')
+            // })
+
+        }); //end of ready
+
+
+
+    </script>
+
+
+{% endblock %}

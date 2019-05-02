@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "review_menu" %}
+{% set active_second_subpage = "all-reviews" %}
+{% set page_title = "All Reviews" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, request.path)]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <style>
+        /* PROJECTS */
+
+        .project-title {
+            font-size: 14px;
+            color: #676a6c;
+            font-weight: 600;
+        }
+
+        .project-people {
+            color: #337ab7;
+        }
+
+        .project-actions {}
+
+        button, a.addmargin {
+            margin: 0px 0px;
+        }
+
+        span.label {
+            position: relative;
+            top: 7px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    {% if all_reviews_papers | count != 0 %}
+    <div class="wrapper animated fadeInRight">
+        <div class="ibox-content m-b-sm border-bottom">
+            {% if empty_flag %}
+                <div class="alert alert-danger alert-dismissable">
+                    <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                    We couldn't find papers that match your search criteria. View all papers below.
+                </div>
+            {% endif %}
+            <div class="row">
+                <form action="{{ url_for('conference.conferences_review', conference_id=conference_id) }}" id="searchform" method="get">
+                    <div class="col-sm-2 less-padding">
+                        <div class="form-group">
+                            <label class="control-label" for="search_type">Search By...</label>
+                            <select id="search_type" name="search_type" class="form-control">
+                                {% for key, option in search_options.items() %}
+                                    <option value="{{ key }}" {% if request.args.get("search_type", 0) | int == key  %}
+                                            selected {% endif %}>{{ option }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-8 less-padding">
+                        <div class="form-group">
+                            <label class="control-label" for="search_keywords">Keyword</label>
+                            <input type="text" id="search_keywords" name="search_keyword" value="{{ search_keyword }}"
+                                   placeholder="Keywords..." class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-sm-2 less-padding">
+                        <div class="form-group">
+                            <label class="control-label">&nbsp;</label>
+                            <button type="submit" class="form-control btn btn-sm btn-primary ">Search</button>
+                            <!-- <input type="submit" class="btn btn-sm btn-primary" value="Submit"></input> -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-content">
+                       <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny" data-page-size="20">
+                           <thead>
+                               <tr>
+                                    <th></th>
+                                    <th data-type="numeric">ID</th>
+                                    <th>Title</th>
+                                    <th data-hide="phone">Author</th>
+                                    {% if track_num > 1 %}
+                                        <th data-hide="phone">Track</th>
+                                    {% endif %}
+                                    <th data-hide="phone"> </th>
+                                    <th class="hide" data-hide="all">Abstract</th>
+                                    <th class="hide" data-hide="all">Keywords</th>
+                                    <th class="hide" data-hide="all">Submission time</th>
+                                    <th class="hide" data-hide="all">File</th>
+                               </tr>
+                           </thead>
+                           <tbody>
+                                {% for paper in all_reviews_papers %}
+                                   <tr>
+                                        <td></td>
+                                        <td>{{ paper.id }}</td>
+                                        <td>{{ paper.title }}</td>
+                                        <td>{{ macros.generate_paper_authors(paper.authors_list) }}</td>
+                                        {% if track_num > 1 %}
+                                            <td>{{ paper.track.name }}</td>
+                                        {% endif %}
+                                        <td>
+                                            <div class="pull-right">
+                                                {% if paper.status != "Withdrawn" %}
+                                                    {% if paper.reviews.all() %}
+                                                    <a class="btn btn-white btn-sm addmargin" href="{{ url_for('paper.paper_reviews', paper_id=paper.id) }}">
+                                                        <i class="fa fa-list-ul"></i> View Reviews </a>
+                                                    {% else %}
+                                                    <button type="button" name="button" class="btn btn-white btn-sm addmargin" disabled> No review submitted</button>
+                                                    {% endif %}
+                                                {% else %}
+                                                {{ paper.status }}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="hide">{{ paper.abstract }}</td>
+                                        <td class="hide">{{ paper.keywords }}</td>
+                                        <td class="hide">{{ moment(timestamp=paper.submitted_time).format('LLL') }}</td>
+                                        <td class="hide">
+                                            {{ render_files_button(paper, paper.files) }}
+                                        </td>
+                                   </tr>
+                               {% endfor %}
+                           </tbody>
+                        </table>
+                            {% if not search_keyword %}
+                                {{ macros.pagination_widget(pagination, 'conference.conferences_review', conference_id=conference_id) }}
+                            {% else %}
+                                {{ macros.pagination_widget(pagination, 'conference.conferences_review', conference_id=conference_id, search_keyword=search_keyword, search_type=search_type) }}
+                            {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+        <div class="middle-box text-center animated fadeInRightBig">
+            <h3 class="font-bold">There is no reviews...yet :)</h3>
+                <div class="error-desc">
+
+                    <br><a href="{{ url_for('main.dashboard') }}" class="btn btn-primary m-t">Dashboard</a>
+                </div>
+        </div>
+    {% endif %}
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $('.file-box').each(function() {
+            animationHover(this, 'pulse');
+        });
+    </script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <script>
+        // $(function () {
+        //     $('.footable').footable();
+        // });
+        $(document).ready(function() {
+            // var $expandAllBtn = $('#expand-all-btn')
+            // var $collapse = $("[id^=collapse]");
+            // var $collapseToggle = $('a[href^="#collapse"]');
+
+            // $expandAllBtn.click(function() {
+            //     if($collapse.hasClass("in")){
+            //         $collapse.removeClass('in');
+            //         $collapse.attr('aria-expanded', 'false');
+            //         $collapseToggle.attr('aria-expanded', 'false');
+            //         $expandAllBtn.text("Expand All");
+            //     }
+            //     else {
+            //         $("[id^=collapse]").addClass('in');
+            //         $collapse.attr('aria-expanded', 'true');
+            //         $collapseToggle.attr('aria-expanded', 'false');
+            //         $expandAllBtn.text("Collapse All");
+            //     }
+            // });
+            // console.log($('.footable'));
+
+            $('.footable').footable();
+        });
+
+        // function simpleLoad(btn, state) {
+        //     if (state) {
+        //         btn.children().addClass('fa-spin');
+        //         $("[id^=collapse]").addClass('in');
+        //         btn.contents().last().replaceWith(" Expanding");
+        //     } else {
+        //         btn.children().removeClass('fa-spin');
+        //         $("[id^=collapse]").removeClass('in');
+        //         btn.contents().last().replaceWith(" Refresh");
+        //     }
+        // }
+    </script>
+    <!--
+    <script>
+    $statusSelect = $('.select_class');
+
+    // On changing the paper in the <select>, we want
+    // to update the status of paper in database.
+    $statusSelect.change(function() {
+        // console.log($(this).attr('id') + $(this).val());
+        $.post("/review/decision", {paper_id: $(this).data('id'), paper_status: $(this).val()});
+        // refresh the page
+        // window.location = window.location.pathname;
+    });
+    </script> -->
+
+{% endblock %}

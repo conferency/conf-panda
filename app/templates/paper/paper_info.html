@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% set page_title = "Paper information" %}
+{% if show_all_submission %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "submission_menu" %}
+{% set active_second_subpage = "submission-add" %}
+{% endif %}
+{% block head %}
+    {{ super() }}
+    <style>
+        /* PROJECTS */
+
+        .project-title {
+            font-size: 19px;
+            color: #676a6c;
+            font-weight: 600;
+            margin: 15px;
+        }
+
+        dt, dd {
+			font-size: 15px;
+        }
+
+        .for-padding {
+        	padding: 0px 15px;
+        }
+
+        .addmargin {
+            margin: 0px 3px;
+        }
+
+		/* the div.nextline will appear when the size of the screen is less than 769px */
+        @media screen and (min-width: 769px) {
+	        div.nextline {
+	            display: none;
+	        }
+    	}
+
+        div.nextline {
+        	width: 0px;
+        	height: 3px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+	<div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title" id="accordion">
+                        <div class="row">
+                        	<div class="col-md-3">
+                        	</div>
+                            <div class="col-md-6 text-center">
+                                {% if show_all_submission %}
+                                <a class="btn btn-primary btn-sm addmargin {% if paper.status == "Withdraw" %}disabled{% endif %}" href="{{ url_for('conference.conference_submission', conference_id=paper.conference_id) }}"> <i class="fa fa-list-ul"></i> Go to All Submissions </a>
+                                {% else %}
+                                <a class="btn btn-primary btn-sm addmargin {% if paper.status == "Withdraw" %}disabled{% endif %}" href="{{ url_for('submission.my_submissions') }}"> <i class="fa fa-list-ul"></i> Go to My Submissions </a>
+                                {% endif %}
+                                <div class="nextline"><br></div>
+                                {% if current_user.id == paper.uploader_id %}
+                                <a class="btn btn-primary btn-sm editbtn addmargin {% if paper.status == "Withdraw" %}disabled{% endif %}" href="{{ url_for("paper.edit_paper_info", paper_id=paper.id) }}"> <i class="fa fa-pencil"></i> Edit </a>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3">
+                        	</div>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row">
+                        	<div class="text-center project-title">
+                        		{{ paper.title }}
+                        	</div>
+                        	<div class="col-lg-6">
+	                            <dl class="dl-horizontal">
+	                                <dt>ID: </dt>
+	                                <dd> {{ paper.id }}</dd>
+
+	                                <dt>Submitted by:</dt>
+	                                <dd> {{ paper.uploader.first_name }} {{ paper.uploader.last_name }}</dd>
+
+	                                <!-- <dt>Created:</dt>
+                                    <dd> </dd>   -->
+	                            </dl>
+	                        </div>
+	                        <div class="col-lg-6">
+	                            <dl class="dl-horizontal">
+	                                <dt>Status:</dt>
+	                                <dd>
+										{% if paper.status == "Under Review" %}
+                                            <span class="label label-warning">{{ paper.status }}</span>
+                                        {% elif paper.status == "Rejected" %}
+                                            <span class="label label-danger">{{ paper.status }}</span>
+                                        {% elif paper.status == "Accepted" %}
+                                            <span class="label label-primary">{{ paper.status }}</span>
+                                        {% else %}
+                                            <span class="label label-default">{{ paper.status }}</span>
+                                        {% endif %}
+	                                </dd>
+
+	                                <dt>Last Updated:</dt>
+                                    <dd> {{ moment(paper.last_updated).format('MMMM Do YYYY, h:mm:ss a') }}</dd>
+
+									<!-- <dt>Update times:</dt>
+									<dd> </dd> -->
+	                            </dl>
+	                        </div>
+                        </div>
+                        <div class="row">
+                        	<dl class="dl-horizontal for-padding">
+                            	<dt>Author(s):</dt>
+                            	{% for author in paper.authors_list %}
+                            		<dd>{{ author.first_name }} {{ author.last_name }} - {{ author.organization }}</dd>
+                            	{% endfor %}
+                        	</dl>
+                        </div>
+                        <div class="row">
+                        	<dl class="dl-horizontal for-padding">
+                                <dt>Abstract:</dt>
+                                <dd>
+									{{ paper.abstract }}
+                                </dd>
+                                <dt>Keywords:</dt>
+                                <dd>
+                                	{{ paper.keywords }}
+                                </dd>
+                                <dt>Conference:</dt>
+                                <dd>
+                                    {{ paper.conference.name }}
+                                </dd>
+                                <dt>
+                                    Files:
+                                </dt>
+                                <dd>
+                                    {{ render_files_button(paper, paper.files) }}
+                                </dd>
+                                {% if not paper.track.default %}
+                                    <dt>Track:</dt>
+                                    <dd>
+                                        {{paper.track.name}}
+                                    </dd>
+                                {% endif %}
+                                <dt>Reviews:</dt>
+                                {% if paper.can_check_review() %}
+                                    <dd>
+                                        <a class="btn btn-white btn-sm addmargin"
+                                           href="{{ url_for('paper.paper_reviews', paper_id=paper.id) }}">
+                                           <i class="fa fa-list-ul"></i> View Reviews
+                                        </a>
+                                    </dd>
+                                {% else %}
+                                    <dd>
+                                        <a class="btn btn-white btn-sm addmargin"
+                                           disabled data-toggle="tooltip" data-placement="top" title="This option is disabled by chairs.">
+                                           <i class="fa fa-list-ul"></i> View Reviews
+                                        </a>
+                                    </dd>
+                                {% endif %}
+                            {% if custom_question_answers %}
+                                <div class="row">
+                                    <dl class="dl-horizontal for-padding">
+                                        <dt>Custom Questions:</dt>
+                                        {% for desc, ans in custom_question_answers.items() %}
+                                            <dd>
+                                                <b>{{ desc }}:</b> {{ ans }}
+                                            </dd>
+                                        {% endfor %}
+                                    </dl>
+                                </div>
+                            {% endif %}
+
+
+                                {% if paper.comment %}
+                                    <dt>Comment:</dt>
+                                    <dd>
+                                        {{ paper.comment }}
+                                    </dd>
+                                {% endif %}
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
+{% endblock %}

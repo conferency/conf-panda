@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% set active_page = "" %}
+{% import "_macros.html" as macros %}
+{% set page_title = user.first_name + " " + user.last_name %}
+
+{% block page_heading %}
+{{ macros.breadcrumb_widget([('Home', url_for('.dashboard')), ('User', '#'), (page_title, url_for('.user', id=user.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="row animated fadeInRight">
+        <div class="col-sm-12 col-md-6 col-lg-4">
+            <div class="widget-head-color-box navy-bg p-lg text-center">
+                <div class="m-b-md">
+                    <h2 class="font-bold no-margins">
+                        {{ user.first_name }} {{ user.last_name }}
+                    </h2>
+                    {% if user.organization %}
+                        <p>{{ user.organization }}</p>
+                    {% endif %}
+                </div>
+                            <!-- <img src="img/a4.jpg" class="img-circle circle-border m-b-md" alt="profile"> -->
+                <img data-name="{{user.first_name[0]+ user.last_name[0]}}" style="width:128px;" data-height=128 data-width=128 data-font-size=20 data-font-weight=700 data-char-count=2 radius=1 {% if user.avatar %}src="{{ user.avatar }}"{% endif %} class="{% if not user.avatar %}profile-avatar{% endif %} img-circle m-b-md circle-border" alt="profile"/>
+                <div>
+                    <a class="following navy-bg" href="{{ url_for('.followed_by', id=user.id) }}"><strong>{{ user.followed.count() - 1 }}</strong> Following</a> |
+                    <a class="followers navy-bg" href="{{ url_for('.followers', id=user.id) }}"><strong>{{ user.followers.count() - 1 }}</strong> Followers</a>
+                </div>
+            </div>
+            <div class="widget-text-box">
+                <h4 class="media-heading">Contact Information</h4>
+                <p>
+                    <i class="fa fa-envelope"></i>&nbsp;{{ user.email }}
+                </p>
+                {% if user.country %}
+                    <p>
+                        <i class="fa fa-map-marker"></i>&nbsp;{{ user.location }}, {% if user.state %}{{ user.state }}, {% endif %}{{ user.country }}
+                    </p>
+                {% endif %}
+                {% if user.website %}
+                    <p>
+                        <i class="fa fa-external-link"></i>&nbsp;{{ user.website }}
+                    </p>
+                {% endif %}
+                {% if user.about_me %}
+                    <p>
+                        {{ user.about_me }}
+                    </p>
+                {% endif %}
+                {% if current_user_or_not %}
+                    <div class="text-right">
+                        <a class="btn btn-white" href="{{ url_for('.edit_profile') }}"><i class="fa fa-pencil"></i> Edit my profile</a>
+                    </div>
+                {% endif %}
+
+            </div>
+            <!-- <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Profile Detail</h5>
+                </div>
+                <div>
+                    <div class="ibox-content profile-content">
+                        <img data-name={{user.first_name[0]+ user.last_name[0]}} data-height=64 data-width=64 data-font-size=20 data-font-weight=700 data-char-count=2 radius=1 class="profile-avatar img-circle"/>
+                        <h4><strong>{{ user.first_name }} {{ user.last_name }}</strong></h4>
+                        <p>
+                            <i class="fa fa-envelope"></i>&nbsp;{{ user.email }}
+                        </p>
+                        {% if user.organization %}
+                            <p>
+                                <i class="fa fa-institution"></i>&nbsp;{{ user.organization }}
+                            </p>
+                        {% endif %}
+                        {% if user.country %}
+                            <p>
+                                <i class="fa fa-map-marker"></i>&nbsp;{{ user.location }}, {% if user.state %}{{ user.state }}, {% endif %}{{ user.country }}
+                            </p>
+                        {% endif %}
+                        {% if user.website %}
+                            <p>
+                                <i class="fa fa-external-link"></i>&nbsp;{{ user.website }}
+
+                            </p>
+                        {% endif %} -->
+                        <!-- <p><i class="fa fa-map-marker"></i>
+                            <a href="http://maps.google.com/?q={{ user.location }}"> {{ user.location }}</a><br>
+                        </p> -->
+                        <!-- {% if user.about_me %}
+                        <p>
+                            {{ user.about_me }}
+                        </p>
+                        {% endif %}
+
+                        <div class="row m-t-lg"> -->
+                            <!-- <div class="col-md-4">
+
+                                <h5><strong>{{ user.posts.count() }}</strong> Posts</h5>
+                            </div> -->
+                            <!-- <div class="col-md-4">
+
+                                <h5><a class="following" href="{{ url_for('.followed_by', id=user.id) }}"><strong>{{ user.followed.count() - 1 }}</strong> Following</a></h5>
+                            </div>
+                            <div class="col-md-4">
+
+                                <h5><a class="followers" href="{{ url_for('.followers', id=user.id) }}"><strong>{{ user.followers.count() - 1 }}</strong> Followers</a></h5>
+                            </div>
+                        </div>
+                        <div class="user-button">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    {% if user != current_user %} -->
+                                        <!-- {% if not current_user.is_following(user) %}
+                                        <a href="{{ url_for('main.follow', id=user.id, current_endpoint=endpoint, mapping_id=user.id) }}" class="btn btn-primary btn-block"><i class="fa fa-plus-circle"></i> Follow</a>
+                                        {% else %}
+                                        <a href="{{ url_for('main.unfollow', id=user.id, current_endpoint=endpoint, mapping_id=user.id) }}" class="btn btn-default btn-block"><i class="fa fa-minus-circle"></i> Unfollow</a>
+                                        {% endif %} -->
+                                        <!-- {% if not current_user.is_following(user) %}
+                                            <button class="btn btn-primary btn-block follow" u_id="{{user.id}}" type="button"><i class="fa fa-plus-circle"></i> Follow</button>
+                                        {% else %}
+                                            <button class="btn btn-default btn-block unfollow" u_id="{{user.id}}" type="button"><i class="fa fa-plus-circle"></i> Unfollow</button>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                           </div>
+                            <div class="row">
+                                <div class="col-md-5">
+                                    {% if user == current_user %}
+                                    <a href="{{ url_for('.edit_profile') }}" class="btn btn-primary btn-block"><i class="fa fa-edit"></i> Edit Profile</a>
+                                    {% endif %}
+                                </div>
+                           </div>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+            </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script>
+    $(document).ready(function(){
+        // console.log(typeof $('.followers').find('strong').text());
+        $('button').click(function(event){
+            // console.log('follow');
+            var element = $(this);
+            var follow_user_id = element.attr('u_id');
+            // var display_following = $('.following');
+            var display_followers_num = $('.followers').find('strong');
+            // console.log(element.attr('class'));
+            if (element.hasClass('follow')) {
+                console.log('follow');
+                $.ajax({
+                    type: "POST",
+                    url: "/follow/" + follow_user_id,
+                    data: id=follow_user_id,
+                    success: function(){
+                        // change button to unfollow
+                        element.removeClass('btn-primary follow').addClass('btn-default unfollow');
+                        element.html('Unfollow');
+                        display_followers_num.text(parseInt(display_followers_num.text()) + 1);
+                    }
+                });
+            } else {
+                console.log('unfollow');
+                $.ajax({
+                    type: "POST",
+                    url: "/unfollow/" + follow_user_id,
+                    data: id=follow_user_id,
+                    success: function(){
+                        // change button to follow
+                        element.removeClass('btn-default unfollow').addClass('btn-primary follow');
+                        element.html('Follow');
+                        display_followers_num.text(parseInt(display_followers_num.text()) - 1);
+                    }
+                });
+            }
+        });
+        // $('.unfollow').click(function(event){
+        //     console.log('unfollow');
+        //     var element = $(this);
+        //     var follow_user_id = element.attr('u_id');
+        //     console.log(element.attr('class'));
+        //     $.ajax({
+        //         type: "POST",
+        //         url: "/unfollow/" + follow_user_id,
+        //         data: id=follow_user_id,
+        //         success: function(){
+        //             element.removeClass('btn-default unfollow').addClass('btn-primary follow');
+        //             element.html('Follow');
+        //         }
+        //     });
+        // });
+    });
+</script>
+
+{% endblock %}

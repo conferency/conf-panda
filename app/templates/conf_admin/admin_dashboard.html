@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% set active_page = "dashboard" %}
+{% set page_title = "Dashboard" %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <!-- <span class="label label-info pull-right"></span> -->
+                <h5>Total Conferences</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins"><a href="{{ url_for('conf_admin.admin_requests') }}">{{ approved_conferences }}</a></h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <!-- <span class="label label-info pull-right"></span> -->
+                <h5>Total Users</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins"><a href="{{ url_for('main.user_search') }}">{{ total_users }}</a></h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+
+                <h5>Total Papers</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins">{{ total_papers }}</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <!-- <span class="label label-info pull-right"></span> -->
+                <h5>Pending Conferences</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins"><a href="{{ url_for('conf_admin.admin_requests', request_type='pending') }}">{{ pending_conferences }}</a></h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <!-- <span class="label label-info pull-right"></span> -->
+                <h5>Ongoing Conferences</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins"><a href="{{ url_for('conf_admin.admin_requests', request_type='ongoing') }}">{{ ongoing_conferences }}</a></h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Pending Payout</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins"><a href="{{ url_for('conf_admin.admin_registrations') }}">{{ pending_payout }}</a></h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

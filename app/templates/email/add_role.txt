@@ -1,0 +1,11 @@
+Dear {{ user.first_name }},
+
+Thank you for your commitment to attend the {{conference.name}}. I would like to invite you to join the committee as {% if role == 'User' %}Reviewer{% else %}{{role}}{% endif %}{% if track_name %} of {{track_name}}{% endif %} for this conference. 
+For your convenience, you can check the related information on conferency.com in your account.
+I appreciate your cooperation.
+                   
+{{chair.name}}
+
+
+
+

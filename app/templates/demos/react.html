@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% set active_page = "demos" %}
+{% set active_subpage = "react" %}
+{% set page_title = "React" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('.dashboard')), ('Demo', '#'), (page_title, url_for('.react'))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="container">
+      <h1>Flask React Example</h1>
+      <h2><a href="https://realpython.com/blog/python/the-ultimate-flask-front-end/"> See tutorial</a></h2>
+      <br>
+      <div id="main"></div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+    <!-- scripts -->
+    <script src="{{ url_for('static', filename='bower_components/react/react.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/js/main.js') }}"></script>
+{% endblock %}

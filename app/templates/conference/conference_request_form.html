@@ -1,0 +1,626 @@
+{% extends "base.html" %}
+{% set active_page = "conferences" %}
+{% set active_subpage = "request-conferences" %}
+{% set page_title = "Conference Requests" %}
+
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Conferences', '#'), (page_title, url_for('conference.request_conference', conference_id=conference_id))]) }}
+{% endblock %}
+
+{% block head %}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/chosen/chosen.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/select2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/datepicker3.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-tagsinput.css') }}" rel="stylesheet">
+    <!-- <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet"> -->
+    <!-- <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet"> -->
+    {{ super() }}
+
+    <style>
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius: 0px;
+            box-shadow: none;
+        }
+
+        .bootstrap-tagsinput > input {
+            width: 100% !important;
+        }
+
+        .center {
+            float: none;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+<form action="{{ url_for('conference.request_new_conference', type=type) }}" id="conferenceRequestForm" method="post" class="form-horizontal">
+    <div class="row">
+        <div class="col-lg-12">
+        <div class="ibox">
+            <div class="ibox-title">
+                <h5>Conference Information</h5>
+            </div>
+            <div class="ibox-content">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.conference_name.label }}
+                    </div>
+                    <div class="col-md-7">
+                        {{ form.conference_name(class_='form-control required', placeholder="Required") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.short_name.label }}
+                    </div>
+                    <div class="col-md-7">
+                        {{ form.short_name(class_='form-control required', placeholder="shortname (lowercase) + year, i.e., conf2015") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                    </div>
+                    <div class="col-md-7">
+                        Paper management and registration system address: &nbsp;
+                        https://app.conferency.com/<label
+                            id="shortName"></label> &nbsp; <i id="checkMarkIcon"></i>
+                        <label id="errorMessage" class="error"></label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.website_url.label }}
+                    </div>
+                    <div class="col-md-7">
+                        {{ form.website_url(class_='form-control required', placeholder="Required") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.contact_email.label }}
+                    </div>
+                    <div class="col-md-7">
+                        {{ form.contact_email(class_='form-control required email', placeholder="Required", value=current_user.email) }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.contact_phone.label }}
+                    </div>
+                    <div class="col-md-7">
+                        {{ form.contact_phone(class_='form-control required', placeholder="Required") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.city.label }}
+                    </div>
+                    <div class="col-md-7">
+                        {{ form.city(class_='form-control required', placeholder="Required") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.state.label }}
+                    </div>
+                    <div class="col-md-7">
+                        {{ form.state(class_='form-control', placeholder="Optional") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.country.label }}
+                    </div>
+                    <div class="col-md-7">
+                        <select class="form-control" id="country" name="country"
+                                aria-required="true" aria-invalid="false"
+                                autocomplete="off">
+                                {{ macros.generate_country_options(form.country.data)}}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.address.label }}
+                    </div>
+                    <div class="col-md-7">
+                        {{ form.address(class_='form-control', placeholder="Optional") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        <label for="date">Start date and end date</label>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="input-daterange input-group col-md-7" id="datepicker"
+                             style="width: 100%;">
+                            <input type="text" class="input-sm form-control required" name="start">
+                            <span class="input-group-addon control-height">to</span>
+                            <input type="text" class="input-sm form-control required" name="end">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.timezone.label }}
+                    </div>
+                    <div class="col-md-7">
+                        <select class="form-control" id="timezone" name="timezone"
+                                aria-required="true" aria-invalid="false"
+                                autocomplete="off">
+                            {{ macros.generate_timezone_options() }}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.subjects.label }}
+                    </div>
+                    <div class="col-md-7">
+                        {{ form.subjects(class_='form-control required select2-hidden-accessible') }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.tags.label }}
+                    </div>
+                    <div class="col-md-7">
+                        {{ form.tags(class_='form-control', placeholder="Optional, seperated by commas or semi-colons", **{'data-role':'tagsinput'}) }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3 control-label">
+                        {{ form.info.label }}
+                    </div>
+                    <div class="col-md-7">
+                        {{ form.info(class_='form-control', placeholder="Required") }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Contact Information</h5>
+                </div>
+                <div class="ibox-content">
+                    <p>We respect your privacy. The information you provide is confidential, and will only be used to evaluate your request.</p>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.your_role.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.your_role(class_='form-control required', placeholder='Required') }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.contact_name.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.contact_name(class_='form-control required', placeholder='Required', value=current_user.full_name) }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.affiliation.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.affiliation(class_='form-control required', placeholder='Required', value=current_user.organization if current_user.organization else '') }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.requester_contact_phone.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.requester_contact_phone(class_='form-control required', placeholder='Required') }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.requester_website.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.requester_website(class_='form-control', placeholder='Optional', value=current_user.website if current_user.website else '') }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.source_from.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.source_from(class_='form-control required') }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.referred_by.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.referred_by(class_='form-control', placeholder='Optional') }}
+                        </div>
+                    </div>
+                    {% if type == 'pro' %}
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <h3 class="text-center">You will be charged $<span class="price">{{ price }}</span> USD</h3>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.card_number.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.card_number(class_='form-control required creditcard', placeholder="Required") }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.holder_name.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.holder_name(class_='form-control required', placeholder="Required") }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.security_code.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.security_code(class_='form-control required', placeholder="Required") }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.year.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.year(class_='form-control', placeholder="Required") }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            {{ form.month.label }}
+                        </div>
+                        <div class="col-md-7">
+                            {{ form.month(class_='form-control', placeholder="Required") }}
+                        </div>
+                    </div>
+                    <input type="hidden" name="promo_code" value="">
+                    <div class="form-group">
+                        <div class="col-md-3 control-label">
+                            <label for="check_promo_code">Promo code</label>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="input-group">
+                                <input type="text" class="form-control">
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-primary" id="check_promo_code">Apply</button>
+                                </span>
+                            </div>
+                            <div class="form-group text-center" id="promo_code_info">
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="form-group text-center">
+                        <p>By clicking submit, you agree our Terms and that you have read our Data
+                            Policy, including our Cookie use.</p>
+                    </div>
+                    <div class="form-group">
+                        {{ form.submit_button(class_='btn btn-primary center-block') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- Tag Input -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-tagsinput.js') }}"></script>
+    <!-- Autosize Textarea -->
+    <script src="{{ url_for('static', filename='conferency/js/autosize.min.js') }}"></script>
+    <!-- select -->
+    <script src="{{ url_for('static', filename='conferency/js/select2.full.min.js') }}"></script>
+    <!-- datepicker -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-datepicker.js') }}"></script>
+    <!-- Autocomplete -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+    <!-- custom radio buttons -->
+    <!-- <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script> -->
+    <!-- stripe -->
+    <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+    <script type="text/javascript">
+        var validity = 0;
+        var success_flag = false;
+
+        // function resizeChosen() {
+        //     $(".select2-container").each(function () {
+        //         $(this).attr('style', 'width: 100%');
+        //     });
+        // }
+        // define the function that get the Url element
+        var getUrlParameter = function (sParam) {
+            var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : sParameterName[1];
+                }
+            }
+        };
+        //use strict;
+        // autosize the textarea
+        $('textarea').each(function () {
+            autosize(this);
+        });
+
+        function floatToString(num) {
+            if (num.toString().indexOf('.') === -1) {
+                return num.toFixed(1);
+            } else {
+                return num;
+            }
+        }
+
+        function subject_option(selector, data) {
+            $.each(data, function (index, value) {
+                $(selector).append("<option value='" + value + "'>" + value + "</option>");
+
+            });
+        }
+
+        function setUpAutocomplete(selector, data) {
+            $(selector).devbridgeAutocomplete({
+                lookup: data,
+                lookupLimit: 10,
+            });
+        }
+
+        function short_name_validate(short_name_data, callback) {
+            if (typeof short_name_data == 'undefined' || short_name_data == 'undefined ') {
+                return;
+            }
+            $.ajax({
+                contentType: 'application/json',
+                method: "POST",
+                url: "/api/conferences/check_short_name",
+                data: JSON.stringify({'short_name': short_name_data})
+            })
+                .done(function (data) {
+                    callback = typeof callback !== 'undefined' ? callback : jQuery.noop;
+                    // console.log(data);
+                    valid_short_name = JSON.parse(data.request).short_name;
+                    if (data.code == 200) {
+                        validity = 1;
+                        $('#checkMarkIcon').attr('class', 'fa fa-check-square').attr('style', 'color:green');
+                        $('#errorMessage').text("");
+                        $('#short_name').removeClass("error");
+                    } else {
+                        validity = 2;
+                        $('#checkMarkIcon').attr('class', 'fa fa-times').attr('style', 'color:red');
+                        $('#errorMessage').text(data.message);
+                        $('#short_name').addClass("error");
+                    }
+                    callback();
+                }, "json");
+        }
+
+        function stripeResponseHandler(status, response) {
+            var $form = $('#conferenceRequestForm');
+            if(status == 200) {
+                // console.log($('#stripeToken'));
+                $('#stripeToken').val(response.id);
+                $('#conferenceRequestForm').off("submit");
+                // console.log($("#conferenceRequestForm")[0]);
+                // console.log($('stripeToken').val());
+                if ($('stripeToken').val() === '') {
+                    swal({
+                        title: "Sorry, we could not complete your transaction",
+                        type: "warining",
+                        text: "Cannot connect to stripe server",
+                        confirmButtonText: "Got it!",
+                        confirmButtonColor: "#1AB394"});
+                    return;
+                }
+                $form.submit();
+            } else {
+                swal({
+                    title: "Sorry, we could not complete your Transaction",
+                    type: "warning",
+                    text: response.error.message,
+                    confirmButtonText: "Got it!",
+                    confirmButtonColor: "#1AB394"});
+                $("#submit_button").removeAttr('disabled');
+            }
+        }
+
+        $(document).ready(function () {
+            var price = {{ price }};
+            // $(window).on('resize', resizeChosen);
+
+            $.validator.addMethod('validUrl', function(value, element) {
+                var url = $.validator.methods.url.bind(this);
+                return url(value, element) || url('http://' + value, element);
+            }, 'Please enter a valid URL');
+
+            $("#conferenceRequestForm").validate({
+                rules: {
+                    website_url: {
+                        validUrl: true
+                    }
+                },
+                errorPlacement: function (error, element) {
+                    if (element.parent().attr("id") === "datepicker") {
+                        error.appendTo(element.parent().parent());
+                    } else {
+                        error.appendTo(element.parent());
+                    }
+                }
+            });
+
+            $('#short_name').on('blur', function () {
+                short_name_validate($('#short_name').val());
+            }).on('keyup', function () {
+                var name = $('#short_name').val().toLowerCase().trim();
+                $('#shortName').text(name);
+                var patrn = /^[a-z]+\d{4}$/;
+                var patrn_space = /^[a-z]*\s+[a-z]*$/;
+                var patrn_letter_number_dash = /^[a-z0-9]+$/;
+                var patrn_digits = /^[a-z]+$/;
+
+                var change_check_mark_icon_color = function (valid, value) {
+                    if (valid) {
+                        $('#checkMarkIcon').attr('class', 'fa').attr('style', 'color:green');
+                        $('#errorMessage').text(value);
+                        $('#short_name').removeClass("error");
+
+                    } else {
+                        $('#checkMarkIcon').attr('class', 'fa fa-times').attr('style', 'color:red');
+                        $('#errorMessage').text(value);
+                        $('#short_name').addClass("error");
+                    }
+                };
+                if (patrn.exec(name)) {
+                    change_check_mark_icon_color(true, "");
+                }
+                else if (name === '') {
+                    change_check_mark_icon_color(false, "");
+                }
+                else if (patrn_space.exec(name)) {
+                    change_check_mark_icon_color(false, "Please remove spaces.");
+                }
+                else if (!patrn_letter_number_dash.exec(name)) {
+                    change_check_mark_icon_color(false, "Short names can only have letters and numbers.");
+                }
+                else if (patrn_digits.exec(name)) {
+                    change_check_mark_icon_color(false, "Please add a four-digit year.");
+                }
+                else {
+                    change_check_mark_icon_color(false, "Short name format should be 'name' + 'four-digit-year'.");
+                }
+            });
+
+            $.getJSON("{{ url_for('static', filename='json/states.json')}}", function (data) {
+                setUpAutocomplete('#state', data);
+            })
+                .fail(function (data, textStatus, error) {
+                    // console.log(data);
+                    // console.error("error: " + error);
+                });
+
+
+            $("#subjects").select2({
+                placeholder: "You can select multiple subjects from dropdown list",
+                tags: false,
+                width: "100%"
+            });
+
+
+            // get the current day
+            var d = new Date();
+            var today = [d.getFullYear(), d.getMonth() + 1, d.getDate()].join('-');
+            $("input[name='start']").val(today);
+            // $("input[name='end']").val(today);
+
+            $('#datepicker').datepicker({
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                startDate: today,
+                format: 'yyyy-mm-dd'
+            });
+
+            $("#conferenceRequestForm").submit(function(event) {
+                event.preventDefault();
+                var connection_to_stripe = true;
+                try {
+                    Stripe.setPublishableKey("{{ publishable_key }}");
+                } catch(err) {
+                    console.log(err);
+                    swal({type: "warning",
+                        title: "Sorry, we lost connetcion with stripe server.",
+                        confirmButtonText: "Got it!",
+                        confirmButtonColor: "#1AB394"});
+                    $("#conferenceRequestForm").submit(function(event) {
+                        event.preventDefault();
+                    });
+                    connection_to_stripe = false;
+                }
+                // disable the submit button to prevent repeated clicks
+                if($('#conferenceRequestForm').valid()) {
+                    {% if type == 'pro' %}
+                    $('#submit_button').attr("disabled", "disabled");
+                    Stripe.createToken({
+                        number: $('#card_number').val(),
+                        cvc: $('#security_code').val(),
+                        exp_month: $('#month').val(),
+                        exp_year: $('#year').val(),
+                        name: $('#holder_name').val()
+                    }, stripeResponseHandler);
+                    {% else %}
+                        $('#conferenceRequestForm').off("submit");
+                        $('#conferenceRequestForm').submit();
+                    {% endif %}
+                }
+            });
+
+
+            $('#check_promo_code').click(function(event){
+               event.preventDefault();
+               var ele_promo_code = $(this).parent().prev();
+               if (!!ele_promo_code.val()) {
+                   var check_promo_code_url = "{{url_for('api.check_conf_promo_code', promo_code='')}}" + ele_promo_code.val();
+                   $.getJSON(check_promo_code_url, function(data) {
+                       event.target.parentNode.parentNode.classList.remove("has-error");
+                       $('#promo_code_error').text('');
+                       if (data.type === 'fixed_amount') {
+                           $('#promo_code_info').empty().append('<code data-promo-code-id="'+data.id+'">'+data.promo_code+': $'+data.value+' off</code>');
+                           $(".price").html(floatToString(price-data.value));
+                       } else {
+                           $('#promo_code_info').empty().append('<code data-promo-code-id="'+data.id+'">'+data.promo_code+': '+data.value+'% off</code>');
+                           $(".price").html(floatToString(price*(1-data.value/100)));
+                       }
+                       $("#conferenceRequestForm input[name=promo_code]").val(data.promo_code)
+                   })
+                       .fail(function(response) {
+                           event.target.parentNode.parentNode.classList.remove("has-error");
+                           event.target.parentNode.parentNode.classList.add("has-error");
+                           $('#promo_code_info').empty();
+                           $('#promo_code_info').text(response.responseText);
+                        //    get_price();
+                           ele_promo_code.val('');
+                           // console.log(response.responseText);
+                       });
+               } else {
+                   event.target.parentNode.parentNode.classList.remove("has-error");
+                   event.target.parentNode.parentNode.classList.add("has-error");
+                   $('#promo_code_info').empty();
+                   $('#promo_code_info').text('Please enter the promo code');
+                   ele_promo_code.val('');
+                //    get_price();
+               }
+           });
+        }); //end of ready
+    </script>
+{% endblock %}

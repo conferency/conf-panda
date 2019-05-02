@@ -1,0 +1,171 @@
+{% import "_macros.html" as macros %}
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Invoice #{{ transaction.registration.conference.short_name | upper }}-{{ transaction.id }} -
+        Conferency </title>
+
+    <link href="{{ url_for('static', filename='inspinia/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/font-awesome.min.css') }}" rel="stylesheet">
+
+    <link href="{{ url_for('static', filename='inspinia/css/animate.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/style.css') }}" rel="stylesheet">
+
+</head>
+
+<body class="white-bg">
+<div class="wrapper wrapper-content p-xl">
+    <div class="ibox-content p-xl">
+        <div class="row">
+            <div class="col-sm-6 text-right pull-right">
+                <h4>Invoice No.</h4>
+                <h4 class="text-navy">
+                    INV-{{ transaction.registration.conference.short_name | upper }}-{{ transaction.id }}</h4>
+            </div>
+            <div class="col-sm-6">
+                <h5>From:</h5>
+                <address>
+                    <strong>Clouducate, Inc.</strong><br>
+                    22 Ohio State Drive<br>
+                    Newark, DE 19713, USA<br>
+                    <abbr title="Phone">P:</abbr> +1 (302) 533-8163
+                </address>
+            </div>
+        </div>
+        <div class="row">
+
+            <div class="col-sm-6 text-right pull-right">
+                <h5>Shipped To:</h5>
+                <address>
+                    <strong>{{ transaction.attendee_info["First Name"] }} {{ transaction.attendee_info["Last Name"] }}</strong><br>
+                    {{ transaction.attendee_info["Affiliation"] }}<br>
+                    {{ transaction.attendee_info["Email"] }}<br>
+                </address>
+                <p>
+                    <span><strong>Invoice Status:</strong> {{ transaction.status }}</span><br/>
+                    <span><strong>Invoice Date:</strong> {{ moment(transaction.timestamp).format('LLL') }}</span><br/>
+                </p>
+            </div>
+            <div class="col-sm-6">
+                {% if transaction.subtotal > 0 %}
+                    <h5>Billed To:</h5>
+                    <address>
+                        <strong>{{ transaction.holder_name }}</strong><br>
+                        {{ transaction.billing_street }}<br>
+                        {{ transaction.billing_city }}, {{ transaction.billing_state }} {{ transaction.billing_zipcode }}, {{ transaction.billing_country }}<br>
+                    </address>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="table-responsive m-t">
+            <table class="table invoice-table">
+                <thead>
+                <tr>
+                    <th>Item List</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total Price</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        <div><strong>{{ transaction.registration.conference.short_name | upper }} Registration
+                            - {{ transaction.tickets[0].name }}</strong></div>
+                        <small>Registration to {{ transaction.registration.conference.name }}
+                        </small>
+                    </td>
+                    <td>1</td>
+                    <td> {{ transaction.subtotal }} {{ transaction.currency }}</td>
+                    <td> {{ transaction.subtotal }} {{ transaction.currency }}</td>
+                </tr>
+                {% set product_options = transaction.product_options.all() %}
+                {% if product_options %}
+                    {% for product_option_sale in product_options %}
+                        <tr>
+                            <td>
+                                <div><strong>{{ transaction.registration.conference.short_name | upper }} Registration
+                                    Merchandise
+                                    - {{ product_option_sale.product_option.product_name }}</strong></div>
+                                <small>Merchandise {{ product_option_sale.product_option.product_name }}
+                                    {% if product_option_sale.product_option.product.options.all() | length > 1 %} (
+                                        {{ product_option_sale.product_option.option_name }}){% endif %}
+                                </small>
+                            </td>
+                            <td>1</td>
+                            <td>$ {{ product_option_sale.product_option.option_price }}</td>
+                            <td>$ {{ product_option_sale.product_option.option_price }}</td>
+                        </tr>
+
+                    {% endfor %}
+                {% endif %}
+                {% if transaction.promo_code_id %}
+                    {% set discount = total_price[0] - transaction.subtotal if transaction.promo_code.type == "percentage" else transaction.promo_code.value %}
+                    <tr>
+                        <td>
+                            <div><strong>Discount
+                                ({% if transaction.promo_code.type == "percentage" %}{{ transaction.promo_code.value }} % OFF{% else %}$ {{ transaction.promo_code.value }}
+                                OFF{% endif %})</strong></div>
+                            <small>By applying promotion code {{ transaction.promo_code.promo_code }}</small>
+                        </td>
+                        <td>1</td>
+                        <td>-$ {{ discount | round(2) }}</td>
+                        <td>-$ {{ discount | round(2) }}</td>
+                    </tr>
+                {% endif %}
+                {% if transaction.status in ["Completed", "Refunded"] and transaction.subtotal > 0 %}
+                    <tr>
+                        <td>
+                            <div><strong>Payment using the card ended in {{ transaction.card_number[-4:] }}</strong>
+                            </div>
+                        </td>
+                        <td>1</td>
+                        <td>-$ {{ transaction.subtotal }}</td>
+                        <td>-$ {{ transaction.subtotal }}</td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div><!-- /table-responsive -->
+
+        <table class="table invoice-total">
+            <tbody>
+            <tr>
+                <td><strong>TOTAL :</strong></td>
+                <td>$ {{ transaction.subtotal }}</td>
+            </tr>
+            </tbody>
+        </table>
+        {% if transaction.status == "Refunded" %}
+            <div class="well m-t"><strong>Note:</strong>
+                This invoice has been <strong>refunded</strong>.
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+<script src="{{ url_for('static', filename='inspinia/js/jquery-2.1.1.js') }}"></script>
+<script src="{{ url_for('static', filename='inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js') }}"></script>
+<script src="{{ url_for('static', filename='inspinia/js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='conferency/js/metisMenu.js') }}"></script>
+<script src="{{ url_for('static', filename='inspinia/js/inspinia.js') }}"></script>
+
+<script type="text/javascript">
+    window.print();
+</script>
+
+{{ moment.include_moment(local_js=url_for('static', filename="conferency/js/moment-with-locales.min.js")) }}
+
+
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+{% extends "/email/email_base.html" %}
+
+{% block page_content %}
+<tbody>
+    <!-- content -->
+    <tr>
+        <td style="font-family: Helvetica, arial, sans-serif; font-size: 14px; color: #95a5a6; line-height: 30px;" st-content="fulltext-paragraph">
+            Dear {{ user.first_name }} {{ user.last_name }},<br>
+            You have been added to {{ conference.name }} ({{ conference.short_name.upper() }}) as {% if role.name == 'Author' %}an{% else %}a{% endif %} {{ role.name }}{% if role.name == 'Program Committee' %} Member{% endif %}.<br>
+        </td>
+    </tr>
+
+    {% if not new_user %}
+    <tr>
+        <td style="font-family: Helvetica, arial, sans-serif; font-size: 14px; color: #95a5a6; line-height: 30px;" st-content="fulltext-paragraph">
+            You can access the conference system at {{url_for('auth.login', conf=conference.id, _external=True)}} by entering your email and password. If you forgot your password, you should access https://www.conferency.com/auth/reset and specify {{ user.email }} as your email address.
+        </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td style="font-family: Helvetica, arial, sans-serif; font-size: 14px; color: #95a5a6; line-height: 30px;" st-content="fulltext-paragraph">
+            You can access the conference system at {{url_for('auth.login', conf=conference.id, _external=True)}} using the account information below:<br>
+            Email: {{user.email}} <br>
+            Password: {{password}} (<span style="color:#f8ac59">Please change your password!</span>)
+        </td>
+    </tr>
+    {% endif %}
+    <!-- End of content -->
+
+    <tr>
+        <td width="100%" height="15" style="font-size:1px; line-height:1px; mso-line-height-rule: exactly;">&nbsp;</td>
+    </tr>
+
+    <tr>
+        <td>
+            <table height="35" align="center" valign="middle" border="0" cellpadding="0" cellspacing="0" class="tablet-button" st-button="edit">
+                <tbody>
+                    <tr>
+                        <td width="auto" align="center" valign="middle" height="35" style=" background-color:#1AB394; border-top-left-radius:4px; border-bottom-left-radius:4px;border-top-right-radius:4px; border-bottom-right-radius:4px; background-clip: padding-box;font-size:14px; font-family:Helvetica, arial, sans-serif; text-align:center;  color:#ffffff; font-weight: 300; padding-left:18px; padding-right:18px;">
+                            <span style="color: #ffffff; font-weight: 300;">
+                                <a style="color: #ffffff; text-align:center;text-decoration: none;" href="mailto:{{conference.contact_email}}?Subject=Mail from {{user.first_name}} {{user.last_name}}">Contact the Organizer</a>
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+</tbody>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% set active_page = "" %}
+{% set page_title = "My Account" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), (page_title, url_for('auth.settings'))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/switchery/switchery.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet"/>
+{% endblock %}
+
+{% block page_content %}
+    <div class="row">
+        <div class="tabs-container">
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#tab-1">Account Settings</a></li>
+                <li class=""><a href="{{ url_for('main.edit_profile') }}">My Profile</a></li>
+            </ul>
+            <!-- <form class="form-horizontal" id="configuration-form" method="POST"> -->
+
+            <div class="tab-content">
+                {# Settings tab #}
+                <div id="tab-1" class="tab-pane active">
+                    <div class="panel-body">
+                        <div class="col-sm-12 col-md-5">
+                            <!-- <strong>Password</strong> -->
+                            <form action="/auth/account" method="post" class="form" role="form">
+                                {{ pass_form.hidden_tag() }}
+                                <h3>Password</h3>
+                                <div class="form-group  required">
+                                    <label class="control-label" for="pass_form-old_password">Current password</label>
+                                    <input class="form-control" id="pass_form-old_password"
+                                           name="pass_form-old_password" required="" type="password" value="">
+                                </div>
+
+                                <div class="form-group  required">
+                                    <label class="control-label" for="pass_form-password">New password</label>
+                                    {{ macros.render_field(pass_form.password, 'Must be at least 8 characters long') }}
+                                </div>
+                                <div class="form-group  required">
+                                    <label class="control-label" for="pass_form-password2">Confirm new password</label>
+                                    <input class="form-control" id="pass_form-password2" name="pass_form-password2"
+                                           required="" type="password" value="">
+                                </div>
+                                <input class="btn btn-primary" id="pass_form-submit" name="pass_form-submit"
+                                       type="submit" value="Change Password">
+                            </form>
+                        </div>
+                        <div class="hr-line-dashed col-sm-12 col-md-12 col-lg-12"></div>
+                        <div class="col-md-4">
+                            <form action="/auth/account" method="post" class="form" role="form">
+                                {{ chag_email_form.hidden_tag() }}
+                                <h3>Email</h3>
+                                <div class="form-group  required">
+                                    <label class="control-label" for="chag_email_form-email">New Email</label>
+                                    <input class="form-control" id="chag_email_form-email" name="chag_email_form-email"
+                                           required="" type="text" value="">
+                                </div>
+                                <div class="form-group  required">
+                                    <label class="control-label" for="chag_email_form-password">Current password</label>
+                                    <input class="form-control" id="chag_email_form-password"
+                                           name="chag_email_form-password" required="" type="password" value="">
+                                </div>
+                                <input class="btn btn-primary" id="chag_email_form-submit" name="chag_email_form-submit"
+                                       type="submit" value="Change Email Address">
+                            </form>
+                        </div>
+                        <div class="hr-line-dashed col-sm-12 col-md-12 col-lg-12"></div>
+                        <div class="col-md-8">
+                            <h3>Personal Settings</h3>
+                            <div class="col-md-8">
+                                <label for="">Hide product tour on login?</label>
+                            </div>
+                            <div class="col-md-3 col-md-offset-1">
+                                <input type="checkbox" id="chag_setting_form-hide_tour"
+                                           name="chag_setting_form-hide_tour"
+                                           class="switch-button"
+                                           {% if current_user.tour_finished %}checked{% endif %}/>
+                            </div>
+                        </div>
+                        <div class="hr-line-dashed col-sm-12 col-md-12 col-lg-12"></div>
+                        <div class="col-md-4">
+                            <form action="/auth/account" method="post" class="form" role="form">
+                                {{ merge_form.hidden_tag() }}
+                                <h3>Link Secondary Account</h3>
+                                <p class="text-success">Operation cannot be reverted.</p>
+                                <div class="form-group required">
+                                    <label class="control-label" for="merge_form-email">Email</label>
+                                    <input class="form-control" id="merge_form-email" name="merge_form-email"
+                                           required="" type="text" value="">
+                                </div>
+                                <div class="form-group required">
+                                    <label class="control-label" for="merge_form-password">Password</label>
+                                    <input class="form-control" id="merge_form-password"
+                                           name="merge_form-password" required="" type="password" value="">
+                                </div>
+                                <input class="btn btn-warning" id="merge_form-submit" name="merge_form-submit"
+                                       type="submit" value="Merge this account into your current account">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {# Profile tab #}
+                <div id="tab-2" class="tab-pane">
+                    <div class="panel-body">
+                        <div class="col-md-6">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/switchery/switchery.js') }}"></script>
+
+    <script>
+        $(document).ready(function () {
+            // initialize switchery  javascript
+            var elems = Array.prototype.slice.call(document.querySelectorAll('.switch-button'));
+            elems.forEach(function (elem) {
+                var switchery = new Switchery(elem, {color: '#1AB394', size: 'large'});
+            });
+            document.getElementById("pass_form-password").setAttribute("required", "");
+
+            $("#chag_setting_form-hide_tour").change(function () {
+                var data = $(this).is(":checked");
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url_for('api.tour_finished') }}",
+                    contentType: "application/json",
+                    data: JSON.stringify({status: data, timestamp: Date()}),
+                    success: function (response) {
+                        swal({
+                            title: "Updated!",
+                            text: "Tour configuration updated.",
+                            type: "success",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                })
+                    .fail(function (data, textStatus, error) {
+                        swal({
+                            title: "Oops...",
+                            text: "Update failed. We are very sorry. Please contact with customer service.",
+                            type: "error",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    });
+            });
+        });
+    </script>
+{% endblock %}

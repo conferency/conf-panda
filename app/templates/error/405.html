@@ -1,0 +1,15 @@
+{% extends "auth/base_auth.html" %}
+
+{% block title %}Conferency | Method Not Allowed{% endblock %}
+
+{% block main_form %}
+<h1>405</h1>
+<h3 class="font-bold">Method Not Allowed</h3>
+<div class="error-desc">
+    <p>The method is not allowed for the requested URL.</p>
+    <p>
+      <a class="btn btn-w-m btn-primary m-b-sm" href="{{ url_for('main.index') }}">Home</a>
+      <a class="btn btn-w-m btn-success m-b-sm" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+    </p>
+</div>
+{% endblock %}

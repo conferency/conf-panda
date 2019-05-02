@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "member_menu" %}
+{% set active_second_subpage = "track-member" %}
+{% set page_title = "Track Members" %}
+
+{% block head %}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/select2.min.css') }}" rel="stylesheet">
+    {{ super() }}
+    <style>
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius:0px;
+            box-shadow: none;
+        }
+        .center {
+            float: none;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        .margin-buttom-10 {
+            position: relative;
+            top: -5px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.conferences_members', conference_id=current_user.curr_conf_id))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <p>Each user can only have one role in a track, please release user from previous role first</p>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-md-10 col-md-offset-1">
+                                {% if tracks | length != 0 %}
+                                <div id="have-tracks">
+                                    <table id="track_chairs" data-sort="false" class="footable table table-stripped col-sm-10" data-page-size="100">
+                                        <thead>
+                                            <tr>
+                                                <th class="col-md-4">Track</th>
+                                                <th class="col-md-4" data-hide="phone,tablet">Track Chairs</th>
+                                                <th class="col-md-4" data-hide="phone,tablet">Program Committee</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for track in tracks %}
+                                            <tr>
+                                                <td>{{ track['name'] }}</td>
+                                                <td>
+                                                    <select class="form-control track_select track_chair select2-hidden-accessible" multiple data-track-id="{{ track['id'] }}" style="max-width:300px" >
+                                                        {% for track_chair in track['members'] | selectattr('role', 'equalto', 'Track Chair') %}
+                                                            <option selected value="{{ track_chair['id'] }}">{{ track_chair['name'] }} &lt;{{ track_chair['email'] }}&gt;</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control track_select pc select2-hidden-accessible" multiple data-track-id="{{ track['id'] }}" style="max-width:300px" >
+                                                        {% for pc in track['members'] | selectattr('role', 'equalto', 'Program Committee') %}
+                                                            <option selected value="{{ pc['id'] }}">{{ pc['name'] }} &lt;{{ pc['email'] }}&gt;</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            {% set subtracks = track['subtracks'] %}
+                                            {% if subtracks %}
+                                            {% for subtrack in subtracks %}
+                                            <tr>
+                                                <td><span class="label">Subtrack</span> {{ subtrack['name'] }}</td>
+                                                <td>
+                                                    <select class="form-control track_select track_chair select2-hidden-accessible" multiple data-track-id="{{ track['id'] }}" style="max-width:300px" >
+                                                        {% for track_chair in subtrack['members'] | selectattr('role', 'equalto', 'Track Chair') %}
+                                                            <option selected value="{{ track_chair['id'] }}">{{ track_chair['name'] }} &lt;{{ track_chair['email'] }}&gt;</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control track_select pc select2-hidden-accessible" multiple data-track-id="{{ track['id'] }}" style="max-width:300px" >
+                                                        {% for pc in subtrack['members'] | selectattr('role', 'equalto', 'Program Committee') %}
+                                                            <option selected value="{{ pc['id'] }}">{{ pc['name'] }} &lt;{{ pc['email'] }}&gt;</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    Do not see the members here? <a href="{{url_for('conference.track_send_invitations', conference_id=conference.id)}}">Invite them now</a>!
+                                </div>
+                                {% else %}
+                                <div id="alert" class="middle-box text-center animated fadeInRightBig" style="margin-top: 0">
+                                    <h3 class="font-bold">Please create tracks before assigning track chairs... :)</h3>
+                                    <div class="error-desc">
+                                        <br><a href="{{ url_for('conference.tracks', conference_id=current_user.curr_conf_id) }}" class="btn btn-primary m-t">Create Tracks</a>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- select -->
+<script src="{{ url_for('static', filename='conferency/js/select2.full.min.js') }}"></script>
+<!-- footable -->
+<script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+
+<script>
+
+    function change_track_role(track_id,user_id, role_name, user_name) {
+        $.ajax({
+            type:'PUT',
+            url: '/api/tracks/'+track_id+'/users/' +user_id+ '/roles/'+ role_name,
+            success: function (response) {
+                        if (role_name === "None") {
+                            var msg = user_name + " left.";
+                        } else {
+                            var msg = user_name + "'s role has changed to "+ role_name;
+                        }
+                        swal({title: "Updated!", text: msg, type: "success", timer: 4000, showConfirmButton: false});
+                    }
+        })
+            .fail(function(data, textStatus, error) {
+                swal({title: "OOps!", text: data.responseJSON.message, type: "error", timer: 4000, showConfirmButton: false});
+            });
+    }
+
+    $(document).ready(function() {
+        //if the the track chair list changed, update the database.
+        $('.track_select').select2({
+            placeholder: "You can choose multiple members",
+            tags: false,
+            closeOnSelect: true,
+            ajax:{
+                url: "{{url_for('api.get_conference_member', conference_id=conference.id)}}",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        name: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.members
+                    };
+                 },
+                cache: true
+            },
+        }).on("select2:select", function (e) {
+            //select event
+            var user_id = e.params.data.id;
+            var user_name = e.params.data.text;
+            if (this.classList.contains("pc")) {
+                var role_name = 'Program Committee';
+            } else {
+                var role_name = 'Track Chair';
+            }
+            change_track_role($(this).data('track-id'), user_id, role_name, user_name);
+        }).on("select2:unselect", function (e) {
+            //remove event
+            var user_id = e.params.data.id;
+            var user_name = e.params.data.text;
+            var role_name = 'None';
+            change_track_role($(this).data('track-id'), user_id, role_name, user_name);
+        }).on("select2:unselecting", function (e) {
+            if (parseInt(e.params.args.data.id) === {{current_user.id}}) {
+                e.preventDefault();
+                swal({title: "Oops!", text: "Can't change your own role.", type: "error", timer: 4000, showConfirmButton: false});
+            }
+        }).on("select2:selecting", function (e) {
+            // console.log(e.params.args.data.id);
+            var selected_data = $("select[data-track-id='" + $(this).data("track-id") + "']").not(this).select2("data");
+            for(var i=0; i<selected_data.length; i++) {
+                if (e.params.args.data.id === parseInt(selected_data[i].id)) {
+                    e.preventDefault();
+                    swal({title: "Oops!", text: "Each user can only have one role in a track, please release user from previous role first.", type: "error", showConfirmButton: true});
+                }
+            }
+        });
+
+        $('.footable').footable();
+    });
+</script>
+{% endblock %}

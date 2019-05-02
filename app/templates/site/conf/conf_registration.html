@@ -1,0 +1,461 @@
+{% extends "/site/home_base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block head %}
+	{{ super() }}
+	<link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+	<link href="{{ url_for('static', filename='inspinia/css/plugins/sweetalert/sweetalert.css') }}" rel="stylesheet">
+
+	<style>
+		.select-control {
+			position: relative;
+			width: 25%;
+			top: -6px;
+		}
+
+		.label-control {
+			font-size: 15px !important;
+		}
+
+		label {
+			font-family: "Montserrat", sans-serif;
+		    font-size: 12px;
+		    font-weight: normal;
+		    letter-spacing: 0.05em;
+		    text-transform: uppercase;
+		}
+
+		textarea {
+			resize:vertical;
+		}
+
+		.error {
+			color: red;
+		}
+
+		.button-font {
+			font-size: 22px;
+		}
+
+		.ticket-font {
+			font-size: 18px;
+		}
+
+		.price-font {
+			font-size: 17px;
+		}
+
+		.iradio_square-green {
+			margin-top: 3px;
+		}
+
+		.buttom-padding {
+			padding-bottom: 10px;
+		}
+
+		.sm-select {
+			width: 50%;
+    		height: 30px;
+		}
+
+		.checkbox-align {
+			margin-top: 20px;
+		}
+		/* ======================================
+		 * devbridge autoComplete styles
+		 * ====================================== */
+
+		.autocomplete-suggestions {
+		    border: 1px solid #ddd;
+		    background: #FFF;
+		    overflow: auto;
+		}
+
+		.autocomplete-suggestion {
+		    font-size: 1.4rem;
+		    cursor: pointer;
+		    padding: 4px 0px 4px 12px;
+		    white-space: nowrap;
+		    overflow: hidden;
+		}
+
+		.autocomplete-selected {
+		    background: #F0F0F0;
+		}
+
+		.autocomplete-suggestions strong {
+		    font-weight: normal;
+		    color: #65AE94;
+		}
+
+		.autocomplete-group {
+		    padding: 2px 5px;
+		}
+
+		.autocomplete-group strong {
+		    display: block;
+		    border-bottom: 1px solid #000;
+		}
+	</style>
+{% endblock %}
+
+{% block page_content %}
+			<!-- HEADER
+			================================= -->
+			<header id="header" class="header-section section section-dark navbar navbar-fixed-top">
+
+				<div class="container-fluid">
+
+					<div class="navbar-header navbar-left">
+
+						<!-- RESPONSIVE MENU BUTTON -->
+						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigation">
+							<span class="sr-only">Toggle navigation</span>
+						</button>
+
+						<!-- HEADER LOGO -->
+						<div class="navbar-logo">
+							<a href="{{ url_for('main.index') }}"><div class="logo-image floating"></div></a>
+						</div>
+
+					</div>
+
+					<nav id="navigation" class="navigation navbar-collapse collapse navbar-right">
+
+						<!-- NAVIGATION LINKS -->
+						<ul id="header-nav" class="nav navbar-nav">
+
+							<!-- <li><a href="{{url_for('main.conf_index', conf_name=conference.short_name)}}">Home</a></li>
+
+							<li class="dropdown dropdown-hover">
+								<a href="#" class="dropdown-toggle external" data-toggle="dropdown" role="button" aria-expanded="false">Committee<span class="caret"></span></a>
+								<ul class="dropdown-menu" role="menu">
+									<li><a href="{{url_for('main.conf_index', conf_name=conference.short_name)}}#organization" class="external">Organizing Committee</a></li>
+									<li><a href="{{url_for('main.conf_index', conf_name=conference.short_name)}}#advisory" class="external">Advisory Committee</a></li>
+								</ul>
+							</li>
+							<li><a href="{{url_for('main.conf_index', conf_name=conference.short_name)}}#submission">Submission</a></li>
+							<li><a href="{{url_for('main.conf_index', conf_name=conference.short_name)}}#venue">Venue</a></li>
+							<li><a href="{{url_for('main.conf_index', conf_name=conference.short_name)}}#sponsors">Sponsors</a></li>
+							<li><a href="{{url_for('main.conf_registration', conf_name=conference.short_name)}}">Registration</a></li> -->
+							<!-- HEADER ACTION BUTTON-->
+							{% if not current_user.is_authenticated %}
+							<li class="header-action-button"><a href="/auth/login?conf={{conference.id}}" class="btn btn-primary">Login</a></li>
+							<li class="header-action-button"><a href="/auth/register?conf={{conference.id}}" class="btn btn-primary">Signup</a></li>
+							{% else %}
+							<li class="header-action-button"><a href="/dashboard" class="btn btn-primary">Dashboard</a></li>
+							{% endif %}
+						</ul>
+
+					</nav>
+
+				</div>
+
+			</header>
+
+			<!-- HERO
+			================================= -->
+			<section id="hero" class="hero-section hero-layout-simple section section-dark">
+				<div class="section-background">
+					<!-- IMAGE BACKGROUND -->
+					<div class="section-background-image parallax" data-stellar-ratio="0.4">
+						<img id="header-bg" src="{{url_for('static', filename='img/landing_page/bg-computer.jpg')}}" alt="" style="opacity: 0.3;">
+					</div>
+				</div>
+
+				<div class="container">
+					<div class="hero-content">
+						<div class="hero-content-inner">
+							<div class="text-center row">
+								<div class="col-md-10 col-md-offset-1">
+										<h1 class="hero-title-conf">{{conference.name}}</h1>
+										<p class="hero-tagline"><i class="fa fa-calendar"></i> {% if conference.start_date != conference.end_date %}{{ moment(conference.start_date, local=True).format('dddd, MMMM Do YYYY') }} to {% endif %}{{ moment(conference.end_date, local=True).format('dddd, MMMM Do YYYY') }}</p>
+										<p class="hero-tagline"><i class="fa fa-map-marker"></i><a href="http://www.google.com/maps/place/{{conference.city}}, {% if conference.state %}{{conference.state}}, {% endif %}{{conference.country}}" target="_blank"> {{conference.city}}, {% if conference.state %}{{conference.state}}, {% endif %}{{ conference.country }}</a></p>
+									<p class="hero-buttons text-center">
+										<a href="http://{{ conference.website }}" class="btn btn-lg btn-default">Website</a>
+										<a href="#registration" id="register-button" name="register-button" class="btn btn-lg btn-primary anchor-link">Register Now!</a>
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- Registration
+			================================= -->
+			<section id="registration" class="about-section section">
+
+				<div class="container">
+					<h2 class="section-heading text-center">{{conference.short_name.upper()}} Registration</h2>
+					<div class="col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
+					{% if conference.registration.configuration_setting['instruction'] %}
+						<p class="text-center">{{ conference.registration.configuration_setting['instruction'] }}</p>
+					{% endif %}
+					<p><b>Note: </b> We support non USD payment. However, you can only pay in one currency at a time. Eg. if you'd like to pay in USD, you can only select tickets and additional items with USD prices.</p>
+					</div>
+					<div class="contact-row row">
+						<div class="col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
+							{% if (conference.registration.status and form.tickets.choices | length > 0) or preview_flag %}
+								<form id="RegistrationForm" action="{{ url_for('conference.attendee_registration', conference_id=conference.id) }}" method="post">
+									{{ form.hidden_tag() }}
+									<div class="ticket-info row">
+										{% for ticket in conference.registration.tickets.all() if ticket.status == 'Normal' and check_date(ticket, conference.timezone) %}
+										{% set outloop_index = loop.index %}
+											<div class="form-group row">
+												<div class="col-md-9 col-sm-9 col-xs-9 control-label">
+													<label class="ticket-font text-overflow" for="tickets-{{ loop.index }}">{{ticket.name}}</label>
+												</div>
+												<div class="col-md-3 col-sm-3 col-xs-3">
+													{% for price in ticket.prices %}
+													<div class="row">
+														<label class="price-font">{{ price.amount }} {{ price.currency }}</label>
+														<input {% if loop.index == 1 and outloop_index == 1 %}checked{% endif %} class="i-checks ticket-select" id="tickets-{{ loop.index }}" name="tickets" type="radio" value="{{price.id}}" data-currency="{{ price.currency }}">
+													</div>
+													{% endfor %}
+												</div>
+											</div>
+										{% endfor %}
+										<!-- redner products -->
+										{% for product in conference.registration.get_products() %}
+											<div class="form-group row">
+												<div class="col-md-9 col-sm-9 col-xs-9 control-label">
+													{% set options = product.options.all() %}
+													{# if product doesn't have non default options, remove the select and checkbox-align, show the product price #}
+
+        											<label class="ticket-font text-overflow" for="product-{{ loop.index }}">{{ product.name }}</label><br>
+        											{% if options | length > 1 %}
+        											<select class="form-control product_select" onchange="update_product_select(this)">
+        											{% endif %}
+        												{% for option in options if not option.default %}
+        													<option value="{{option.id}}">{{option.option_name}} -- {{option.option_price}} {{ product.currency }}</option>
+        												{% endfor %}
+        											</select>
+        										</div>
+        										<div class="col-md-3 col-sm-3 col-xs-3 {% if options | length > 1 %}checkbox-align{% endif %}" style="padding-right: 0px;">
+													{% if not options | length > 1 %}
+													<label class="price-font" style="position: relative; left: -15px">{{product.price}} USD</label>
+													{% endif %}
+        											<input type="checkbox" value="{% if (options | length) == 1 %}{{options[0].id}}{% else %}{{options[1].id}}{% endif %}" id="product-{{ loop.index }}" name="products" class="i-checks product-select">
+        										</div>
+    										</div>
+										{% endfor %}
+										<!-- discount code -->
+										<div class="form-group row">
+											<div class="col-md-8 control-label">
+												<label class="ticket-font text-overflow" for="promo-code">Promo Code</label><br>
+												<input class="form-control" id="promo-code" name="promo-code" type="text">
+												<p id="promo_code_error"></p>
+											</div>
+											<div class="col-md-4 text-center" style="padding-top: 34px;">
+												<button class="btn btn-primary pull-right" id="check_promo_code">Apply</button>
+        									</div>
+										</div>
+										<div class="form-group text-center" id="promo_code_info">
+										</div>
+										<h4 class="section-heading text-center">TOTAL: <span data-price="" id="total-price" style="color: #1ab394"></span></h4>
+									</div>
+									<div class="sale-info">
+										<!-- {# if not current_user.is_authenticated #}
+											<div class="row" id="login-form">
+													<p class="text-center">Login is optional</p>
+													<div class="form-group ">
+												        <input class="form-control" id="user_email" name="user_email" placeholder="Email" type="text">
+												    </div>
+												    <div class="form-group ">
+												        <input class="form-control" id="password" name="password" placeholder="Password" type="password">
+												   </div>
+													<div class="closing-buttons buttom-padding">
+														<button class="btn btn-primary" id="login-button">Login</button>
+													</div>
+
+											</div>
+										{# endif #} -->
+										<div class="form-group">
+											{{ form.attendee_first_name.label }}<span style="color:#ed5565"> *</span>
+	                                		{{ form.attendee_first_name(class_='form-control required', placeholder="Required") }}
+										</div>
+										<div class="form-group">
+											{{ form.attendee_last_name.label }}<span style="color:#ed5565"> *</span>
+	                                		{{ form.attendee_last_name(class_='form-control required', placeholder="Required") }}
+										</div>
+										<div class="form-group">
+											{{ form.attendee_email.label }}<span style="color:#ed5565"> *</span>
+	                                		{{ form.attendee_email(class_='form-control required email', placeholder="Required") }}
+										</div>
+										<div class="form-group">
+											{{ form.attendee_affiliation.label }}<span style="color:#ed5565"> *</span>
+	                                		{{ form.attendee_affiliation(class_='form-control required', placeholder="Required") }}
+										</div>
+										{% for question in ((conference.registration.configuration['questions'] + private_questions)| selectattr('include', 'equalto', true)) %}
+											{% if not question.get('deleted', False) %}
+                                            {{ macros.generate_orderForm_question(question) }}
+                                            {% endif %}
+										{% endfor %}
+										<!-- Payment Information -->
+										<div id="payment-info">
+											<hr style="height: 2px">
+											<h3 class="closing-shout">Payment Information</h3>
+											<div class="form-group">
+												{{ form.card_number.label }}<span style="color:#ed5565"> *</span>
+		                                		{{ form.card_number(class_='form-control required creditcard', placeholder="Required", **{'data-stripe': 'number'}) }}
+												<label for="card_number">We support VISA, Mastercard, AMEX, Discover, JCB, Diners Club</label>
+											</div>
+											<div class="form-group">
+												{{ form.holder_name.label }}<span style="color:#ed5565"> *</span>
+		                                		{{ form.holder_name(class_='form-control required', placeholder="Required") }}
+											</div>
+											<div class="form-group">
+												<div class="row">
+													<div class="col-md-6">
+														<label>Expire date</label><span style="color:#ed5565"> *</span>
+														<div class="row">
+														<div class="col-md-6 col-sm-6 col-xs-6">
+				                                		{{ form.month(class_='form-control required') }}
+				                                		</div>
+				                                		<div class="col-md-6 col-sm-6 col-xs-6">
+				                                		{{ form.year(class_='form-control required') }}
+				                                		</div>
+				                                		</div>
+		                                			</div>
+		                                			<div class="col-md-6">
+														{{ form.security_code.label }}<span style="color:#ed5565"> *</span>
+				                                		{{ form.security_code(class_='form-control required', placeholder="Required") }}
+		                                			</div>
+		                                		</div>
+											</div>
+											<div class="form-group">
+												{{ form.street.label }}<span style="color:#ed5565"> *</span>
+		                                		{{ form.street(class_='form-control required', placeholder="Required") }}
+											</div>
+											<div class="form-group">
+												<div class="row">
+													<div class="col-md-6">
+														{{ form.city.label }}<span style="color:#ed5565"> *</span>
+				                                		{{ form.city(class_='form-control required', placeholder="Required") }}
+		                                			</div>
+		                                			<div class="col-md-6">
+														{{ form.state.label }}
+				                                		{{ form.state(class_='form-control', placeholder="Optional") }}
+		                                			</div>
+		                                		</div>
+											</div>
+											<div class="form-group">
+												<div class="row">
+													<div class="col-md-6">
+														{{ form.country.label }}<span style="color:#ed5565"> *</span>
+				                                		<select class="form-control" id="country" name="country" aria-required="true" aria-invalid="false" autocomplete="off">{{ macros.generate_country_options() }}</select>
+		                                			</div>
+		                                			<div class="col-md-6">
+														{{ form.zipcode.label }}
+				                                		{{ form.zipcode(class_='form-control number', placeholder="Optional") }}
+		                                			</div>
+		                                		</div>
+											</div>
+										</div>
+										<!-- Policy confirm -->
+										<!-- <div class="policy-section">
+										    <p class="policies" style="color: #909090; font-size: smaller;text-align:center;">By clicking Confirm, you agree to our <a href="{{ url_for('main.policies', policy_name='payment') }}" style="color: #337AB7;">Payment Terms</a> and that you have read our <a href="{{ url_for('main.policies', policy_name='data') }}" style="color: #337AB7;">Data Policy</a>, including our <a href="{{ url_for('main.policies', policy_name='cookies') }}" style="color: #337AB7;">Cookie Use</a>.</p>
+										</div> -->
+										<!-- end Payment Information -->
+										<div class="form-group">
+											{% if preview_flag %}
+												{{ form.submit_button(class_='btn btn-primary btn-lg btn-block button-font', **{'disabled': 'disabled', 'value': 'Disabled for Preview'}) }}
+											{% else %}
+												{{ form.submit_button(class_='btn btn-primary btn-lg btn-block button-font') }}
+											{% endif %}
+										</div>
+									</div>
+									{{ form.stripeToken }}
+									{{ form.promo_code }}
+								</form>
+							{% elif conference.registration.status %}
+								<blockquote class="testimonial-quote text-center">
+										<p>No available tickets at this moment.</p>
+								</blockquote>
+							{% else %}
+								<blockquote class="testimonial-quote text-center">
+										<p>The registration is not open yet.</p>
+								</blockquote>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			</section>
+
+
+{% endblock %}
+
+{% block scripts %}
+	{{ super() }}
+	<!-- iCheck -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+    <!-- stripe -->
+    <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+    <!-- sweet alert -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
+    <!-- Autocomplete -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+	<script>
+		// initial values
+		var publishable_key = "{{ publishable_key }}";
+		var get_product_options_url = "{{url_for('api.get_product_options')}}";
+		var check_promo_code_url = "{{url_for('api.check_promo_code', registration_id=conference.registration.id, promo_code='')}}";
+		var get_promo_code_url = "{{url_for('api.get_promo_code', registration_id=conference.registration.id, promo_code_id='')}}";
+	</script>
+	<!-- Ticket Transaction -->
+	<script src="{{ url_for('static', filename='conferency/js/ticket_transaction.js') }}"></script>
+	<script>
+        function setUpAutocomplete(selector, data) {
+            $(selector).devbridgeAutocomplete({
+                lookup: data,
+                lookupLimit: 10
+            });
+        }
+
+   		$(document).ready(function () {
+   			$("#RegistrationForm").validate();
+   			$.getJSON("{{ url_for('static', filename='json/affiliations.json')}}", function(data) {
+                setUpAutocomplete('#attendee_affiliation', data);
+            });
+			$.getJSON("{{ url_for('static', filename='json/titles.json')}}", function(data) {
+				setUpAutocomplete('#Job_Title_1', data);
+			});
+            $.getJSON("{{ url_for('static', filename='json/states.json')}}", function(data) {
+                setUpAutocomplete('#state', data);
+            });
+
+			$('.i-checks').iCheck({
+                radioClass: 'iradio_square-green pull-right',
+                checkboxClass: 'icheckbox_square-green pull-right',
+            });
+
+			$('.question-i-checks').iCheck({
+                radioClass: 'iradio_square-green',
+                checkboxClass: 'icheckbox_square-green',
+            });
+
+            // login
+			// $('#login-button').click(function (event) {
+			// 	event.preventDefault();
+			// 	$.ajax({
+	  //               type : "POST",
+	  //               url: "/auth/login_api",
+	  //               data: {user_email: $('#user_email').val(), password: $('#password').val()},
+	  //               success: function(response) {
+	  //               	swal({title: "Great!", text: "You have logged in.", type: "success", timer: 2000,   showConfirmButton: false});
+	  //                  	$('#attendee_first_name').val(response['first_name']);
+	  //                  	$('#attendee_last_name').val(response['last_name']);
+	  //                  	$('#attendee_email').val(response['email']);
+	  //                  	$('#login-form').hide();
+	  //               }
+	  //           })
+	  //           	.fail(function(data, textStatus, error) {
+   //                      swal({title: "Oops...", text: data['responseText'], type: "error", showConfirmButton: true});
+
+   //                  });
+			// });
+   		});
+
+	</script>
+{% endblock %}
