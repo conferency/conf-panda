@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceRegistration" %}
+{% set active_subpage = "payment_options" %}
+{% set page_title = "Payment Options" %}
+{% import "_macros.html" as macros %}
+
+{% block page_heading %}
+    {% if not current_user.is_administrator() %}
+        {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Registration', '#'), (page_title, url_for('conference.payment_options', conference_id=payout.registration.conference.id))]) }}
+    {% else %}
+        {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Registration', '#'), (page_title, '#'), (payout.registration.conference.short_name.upper(), url_for('conf_admin.admin_conf_registration', conference_id=payout.registration.conference.id))]) }}
+    {% endif %}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <style>
+        .center {
+            float: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+
+{% endblock %}
+
+{% block page_content %}
+    <div class="row">
+        <div class="col-lg-8 center">
+            {% if current_user.is_administrator() %}
+                <h2>{{ payout.registration.conference.name }}</h2>
+            {% endif %}
+            {% if payout.status != 'Pending' %}
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h3>Receiving payouts</h3>
+                </div>
+                <div class="ibox-content">
+                    <address>
+                        <strong>{{ payout.account_name }}</strong><br>
+                        {{ payout.street_1 }}<br>
+                        {% if payout.street_2 %}
+                        {{ payout.street_2 }}<br>
+                        {% endif %}
+                        {{ payout.city }}{% if payout.state %}, {{ payout.state }}{% endif %}, {{ payout.country }} {% if payout.zipcode %}{{ payout.zipcode }}{% endif %}<br>
+
+                        <strong>Status</strong>: {{ payout.status }}<br>
+                        <strong>Amount</strong>: {{ payout.amount }}<br>
+                        <strong>Last update</strong>: {{ moment(payout.update_timestamp).fromNow() }}<br>
+                        <strong>Note</strong>: {{ payout.Note }}<br>
+                    </address>
+                </div>
+            <div>
+            {% endif %}
+            <form id="payout_form" action="" method="post">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h3>Receiving payouts</h3>
+                    </div>
+                    <div class="ibox-content">
+                    <p>Please enter your account information to receive the payouts for your sales. Payout details must be specified before Conferency can deliver your funds to you.</p>
+                        {{ form.hidden_tag() }}
+                        <h3>Basic Information</h3>
+                        <div class="form-group">
+                            {{ form.account_name.label }}
+                            {{ form.account_name(class_='form-control required', placeholder="Required") }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.address_1.label }}
+                            {{ form.address_1(class_='form-control required', placeholder="Required") }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.address_2.label }}
+                            {{ form.address_2(class_='form-control', placeholder="Optional") }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.city.label }}
+                            {{ form.city(class_='form-control required', placeholder="Required") }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.state.label }}
+                            {{ form.state(class_='form-control', placeholder="Optional") }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.country.label }}
+                            <select class="form-control required valid" name="country" aria-required="true" aria-invalid="false" autocomplete="off">
+                                {{ macros.generate_country_options(form.country.data)}}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            {{ form.zipcode.label }}
+                            {{ form.zipcode(class_='form-control', placeholder="Optional") }}
+                        </div>
+                        <h3>Payment Methods</h3>
+                        <div class="form-group">
+                            {{ form.payment_method.label }}
+                            {{ form.payment_method(class_='form-control') }}
+                        </div>
+                        <div id="account_info" class="{% if payout.payment_method == 'Check' %}hide{% endif %}">
+                            <h3>Account Information</h3>
+                            <div class="form-group">
+                                {{ form.bank_name.label }}
+                                {{ form.bank_name(class_='form-control required', placeholder="Required") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.account_type.label }}
+                                {{ form.account_type(class_='form-control') }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.routing_number.label }}
+                                {{ form.routing_number(class_='form-control required', placeholder="Required") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.account_number.label }}
+                                {{ form.account_number(class_='form-control required', placeholder="Required") }}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.submit(class_='btn btn-sm btn-primary') }}
+                        </div>
+
+                            <!-- <h1>Payment Methods</h1>
+                            <fieldset>
+                                <div class="row">
+                                    <div class="col-md-8 col-sm-12">
+                                        <div class="form-group">
+                                            <label for="state">Select payment method</label>
+                                            <div class="" data-toggle="buttons">
+                                                <label class="btn btn-primary {% if payout.payment_method != 'Check' %}active{% endif %}">
+                                                    <input type="radio" name="payment_method" id="payment_method_dd" autocomplete="off" value="Direct Deposit" {% if payout.payment_method != 'Check' %}checked{% endif %}>Direct Deposit
+                                                </label>
+                                                <label class="btn btn-primary {% if payout.payment_method == 'Check' %}active{% endif %}">
+                                                    <input type="radio" name="payment_method" id="payment_method_chk" autocomplete="off" value="Check" {% if payout.payment_method == 'Check' %}checked{% endif %}>Check
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <h1>Account Information</h1>
+                            <fieldset>
+                                <div class="row">
+                                    <div class="col-md-8 col-sm-12">
+                                        <div class="form-group">
+                                            <label for="bank_name">Bank name</label>
+                                            <input class="form-control required" id="bank_name" value="{% if payout.bank_name %}{{payout.bank_name}}{% endif %}" name="bank_name" type="text">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="account_number">Account type</label>
+                                            <div style="display: block">
+                                                <label>
+                                                    <input type="radio" name="account_type" id="account_type_1" value="Checking" {% if payout.account_type != 'Savings' %}checked{% endif %}> Checking
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="account_type" id="account_type_2" value="Savings" {% if payout.account_type == 'Savings' %}checked{% endif %}> Savings
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="routing_number">Routing number</label>
+                                            <input class="form-control required" id="routing_number" value="{% if payout.routing_number %}{{payout.routing_number}}{% endif %}" name="routing_number" type="text">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="account_number">Account number</label>
+                                            <input class="form-control required" id="account_number" value="{% if payout.account_number %}{{payout.account_number}}{% endif %}" name="account_number" type="text">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-sm-12">
+                                        <div class="text-center">
+                                            <div style="margin-top: 20px">
+                                                <img src="{{ url_for('static', filename='img/ach_chk.png') }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <h1>Finish</h1>
+                            <fieldset>
+                                <div class="col-md-6 col-sm-12">
+                                    <label>Basic Information</label>
+                                    <div id="basic_info"></div>
+                                </div>
+                                <div class="col-md-6 col-sm-12">
+                                    <label>Payout</label>
+                                    <div id="payout_info"></div>
+                                </div>
+                            </fieldset> -->
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <script>
+        $(document).ready(function(){
+            $("#payout_form").validate({
+                rules: {
+                    routing_number: {
+                        maxlength: 9,
+                        digits: true
+                    },
+                    account_number: {
+                        maxlength: 32,
+                        digits: true
+                    }
+                }
+            });
+            // update payment_method check status
+            $('#payment_method').change(function(event) {
+                console.log(this.value);
+                // $(this).attr('checked', 'checked');
+                if (this.value == "Check") {
+                    $("#account_info").addClass("hide");
+                    // remove require
+                    $("#bank_name, #routing_number, #account_number").removeClass("required");
+                } else {
+                    $("#account_info").removeClass("hide");
+                    $("#bank_name, #routing_number, #account_number").addClass("required");
+                }
+                // if(this.value === 'Direct Deposit') {
+                //     payment_method = 'Direct Deposit';
+                //     // $('#payment_method_chk').attr('checked', false);
+                // } else {
+                //     payment_method = 'Check';
+                //     // $('#payment_method_dd').attr('checked', false);
+                // }
+            });
+        }); //end of ready
+    </script>
+
+{% endblock %}

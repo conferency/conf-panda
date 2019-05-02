@@ -1,0 +1,214 @@
+{
+	"Conference Management Workflow": [
+		{
+            "title": "Choose license",
+            "desc": "Choose the license appropriate for your conference. If you are not an experienced user, we recommend to choose a license which includes helpdesk.",
+            "done": false,
+            "supported": false,
+            "note": ""
+        },
+        {
+        	"title": "Create a demo version",
+        	"desc": "You can create a demo version of your conference to test various features of Conference.",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Create conference Web pages",
+        	"desc": "Conference Web pages can be created either in Conference or externally. Conference can generate a wordpress website integrated with the program. If you want your conference to have your own Web pages, fill the url in settting page.",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Invite invited (keynote, tutorial etc.) speakers",
+        	"desc": "Under construction",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "If you are going to use the multi-track model, add tracks",
+        	"desc": "If you are going to use a multi-track model, you should add tracks before you start inviting people on your program committee. If you are not using tracks, ignore this step.",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Invite or add program committee members",
+        	"desc": "Program committee is in charge of organizing reviewing and discussing papers. If you have a multi-track conference, track chairs invite program committee members on their tracks, otherwise chairs invite all PC members.",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Add your program committee list to the conference Web pages",
+        	"desc": "It can be automatically done if you are using our wordpress host.",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Add submission instructions to your conference Web pages",
+        	"desc": "Under construction",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Send out your call for papers",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Open the submission page",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Choose your reviewing model",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Close the submission page",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "When all submissions arrived, open paper bidding",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Assign submissions to your program committee for reviewing",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Edit the review form",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Configure reviewing-related options",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Start reviewing",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Reviewing",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Edit decisions",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Program committee discussion",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Open the review response (rebuttal) phase",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Make final decisions about submissions",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Close reviewing",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Send notifications and/or reviews to the authors",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Publish the list of accepted papers",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Send out call for participation",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Open conference registration",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Create conference program",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Make conference proceedings or simply collect final version of accepted papers",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        },
+        {
+        	"title": "Close conference",
+        	"desc": "",
+        	"done": false,
+        	"supported": false,
+        	"note": ""
+        }
+	]
+}

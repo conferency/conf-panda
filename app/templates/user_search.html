@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+{% set page_title = 'User Directory' %}
+{% set active_page = "user_search" %}
+
+{% block head %}
+    {{ super() }}
+    <style>
+		.remove-col-padding {
+    		padding: 2px 0px;
+		}
+        .truncate {
+            height: 18px;
+         }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+{{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), (page_title, url_for('main.user_search'))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="wrapper animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    {% if empty_flag %}
+                        <div class="alert alert-danger alert-dismissable">
+                        	<button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>We couldn't find users that match your search criteria. View all users below.
+                         </div>
+                    {% endif %}
+                    <div class="ibox-content">
+                        <div class="row form-group">
+                        	<form action="/user" id="searchform" method="get">
+	                            <div class="" style="margin: 0px 40px;">
+	                            	<div class="col-lg-6 col-md-6 col-sm-12 remove-col-padding">
+	                            		<input type="text" name="name" placeholder="Name" value="{{name}}" class="input form-control">
+	                            	</div>
+	                            	<div class="col-lg-5 col-md-5 col-sm-12 remove-col-padding">
+		                                <input type="text" name="organization" placeholder="Organization" value="{{organization}}" class="input form-control organization">
+	                            	</div>
+	                            	<div class="col-lg-1 col-md-1 col-sm-12 remove-col-padding">
+		                                <span class="input-group-btn">
+		                                    <button type="submit" class="btn btn-primary btn-block">Search</button>
+		                                </span>
+	                            	</div>
+	                            </div>
+                        	</form>
+                        </div>
+                        <div class="project-list">
+                            <div class="panel-group" id="accordion">
+                                <div class="panel-body">
+                        		{% for user in users %}
+	                                <div class="col-lg-3 col-md-4">
+	                                    <div class="contact-box center-version">
+	                                        <a href="{{ url_for('.user', id = user.id) }}">
+                                                <img data-name="{{ user.first_name[0]+ user.last_name[0] }}" data-height="64" {% if user.avatar %}src="{{ user.avatar }}"{% endif %}
+                                                    data-width="64" data-font-size="20" data-font-weight="700" data-char-count="2" radius="2" style="width: 64px; height: 64px; border-radius: 32px"
+                                                    class="{% if not user.avatar %}profile-avatar{% endif %} img-circle" id="side-bar-avatar"/>
+                                                <h3 class="m-b-xs truncate"><strong>{{ user.first_name }} {{ user.last_name }}</strong></h3>
+
+	                                            <!-- <div class="font-bold">Graphics designer</div> -->
+	                                            <p class = "truncate">
+	                                                <i class="fa fa-envelope"></i>&nbsp;{{ user.email }}
+	                                            </p>
+	                                            {% if user.organization %}
+	                                                <p class = "truncate">
+	                                                    <i class="fa fa-institution"></i>&nbsp;{{ user.organization }}
+
+	                                                </p>
+	                                            {% endif %}
+	                                            <!-- {% if user.country %}
+	                                                <p class = "truncate">
+	                                                    <i class="fa fa-map-marker"></i>&nbsp;{{ user.location }}, {% if user.state %}{{ user.state }}, {% endif %}{{ user.country }}
+	                                                </p>
+	                                            {% endif %} -->
+
+	                                        </a>
+	                                        <div class="contact-box-footer">
+                                                {% if current_user.is_administrator() %}
+                                                    <a href="{{ url_for('conf_admin.masquerade', user_id=user.id) }}" style="white-space:normal;" class="btn btn-warning btn-block"><i class="fa user-circle"></i> Masquerade this user</a>
+                                                {% else %}
+	                                               {% if user != current_user %}
+	                                                    {% if not current_user.is_following(user) %}
+	                                                        <button class="btn btn-primary btn-block follow" u_id="{{user.id}}" type="button"><i class="fa fa-plus-circle"></i> Follow</button>
+	                                                    {% else %}
+	                                                        <button class="btn btn-default btn-block unfollow" u_id="{{user.id}}" type="button"><i class="fa fa-plus-circle"></i> Unfollow</button>
+	                                                    {% endif %}
+	                                                {% else %}
+	                                                    <a href="{{ url_for('main.edit_profile') }}" class="btn btn-primary btn-block"><i class="fa fa-edit"></i> Edit Profile</a>
+	                                                {% endif %}
+                                                {% endif %}
+	                                        </div>
+
+	                                    </div>
+	                                </div>
+
+	                        	{% endfor %}
+                    			</div>
+                            </div>
+                            {% if name=='' and organization=='' %}
+                            	{{ macros.pagination_widget(pagination, 'main.user_search') }}
+                            {% else %}
+                            	{{ macros.pagination_widget(pagination, 'main.user_search', name=name, organization=organization) }}
+                            {% endif %}
+                            <!-- <label class="label total_user">{{total_user}} Users</label> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- dotdotdot -->
+<script src="{{ url_for('static', filename='conferency/js/jquery.dotdotdot.min.js') }}"></script>
+<script>
+    $(document).ready(function(){
+        $('button').click(function(event){
+            // console.log('follow');
+            var element = $(this);
+            var follow_user_id = element.attr('u_id');
+            // var display_following = $('.following');
+            // var display_followers_num = $('.followers').find('strong');
+            // console.log(element.attr('class'));
+            if (element.hasClass('follow')) {
+                console.log('follow');
+                $.ajax({
+                    type: "POST",
+                    url: "/follow/" + follow_user_id,
+                    data: id=follow_user_id,
+                    success: function(){
+                        // change button to unfollow
+                        element.removeClass('btn-primary follow').addClass('btn-default unfollow');
+                        element.html('Unfollow');
+                        // display_followers_num.text(parseInt(display_followers_num.text()) + 1);
+                    }
+                });
+            } else {
+                console.log('unfollow');
+                $.ajax({
+                    type: "POST",
+                    url: "/unfollow/" + follow_user_id,
+                    data: id=follow_user_id,
+                    success: function(){
+                        // change button to follow
+                        element.removeClass('btn-default unfollow').addClass('btn-primary follow');
+                        element.html('Follow');
+                        // display_followers_num.text(parseInt(display_followers_num.text()) - 1);
+                    }
+                });
+            }
+        });
+        // $('.unfollow').click(function(event){
+        //     console.log('unfollow');
+        //     var element = $(this);
+        //     var follow_user_id = element.attr('u_id');
+        //     console.log(element.attr('class'));
+        //     $.ajax({
+        //         type: "POST",
+        //         url: "/unfollow/" + follow_user_id,
+        //         data: id=follow_user_id,
+        //         success: function(){
+        //             element.removeClass('btn-default unfollow').addClass('btn-primary follow');
+        //             element.html('Follow');
+        //         }
+        //     });
+        // });
+    });
+</script>
+<!-- Dotdotdot for product box-->
+<script>
+    $(document).ready(function(){
+        $('.truncate').dotdotdot();
+    });
+    $(window).resize(function(){
+        $('.truncate').dotdotdot();
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,698 @@
+{% extends "base.html" %}
+{% set active_page = "conferences" %}
+{% set active_subpage = "admin-requests" %}
+{% set page_title = "Conference Requests" %}
+
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Admin', '#'), (page_title, url_for('conf_admin.admin_requests'))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/dropzone/dropzone.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/ladda/ladda-themeless.min.css') }}"
+          rel="stylesheet">
+    <style>
+        .center {
+            float: none;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        div.input-group {
+            width: 100%;
+        }
+
+        .fileinput {
+            width: 100%;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+        <div class="row">
+            <div class="tabs-container center">
+                <ul class="nav nav-tabs">
+                    <li id="nav-tab-1" class="active"><a data-toggle="tab" href="#tab-1">Pending Requests</a></li>
+                    <li id="nav-tab-2" class=""><a data-toggle="tab" href="#tab-2">Ongoing Requests</a></li>
+                    <li id="nav-tab-3"><a data-toggle="tab" href="#tab-3"> Approved Requests</a></li>
+                    <li id="nav-tab-4"><a data-toggle="tab" href="#tab-4"> Denied Requests</a></li>
+                </ul>
+                <div class="form-horizontal">
+                    <div class="tab-content">
+                        {# Pending Requests tab #}
+                        <div id="tab-1" class="tab-pane active">
+                            <div class="panel-body ">
+                                {% if pending_conferences | count != 0 %}
+                                <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny" data-page-size="20">
+                                   <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Conference Name</th>
+                                            <th>Request Time</th>
+                                            <th>Requester</th>
+                                            <th>Status</th>
+                                            <th class="hide" data-hide="all">Type</th>
+                                            <th class="hide" data-hide="all">Email</th>
+                                            <th class="hide" data-hide="all">Phone</th>
+                                            <th class="hide" data-hide="all">Start Date</th>
+                                            <th class="hide" data-hide="all">End Date</th>
+                                            <th class="hide" data-hide="all">Location</th>
+                                            <th class="hide" data-hide="all">Website</th>
+                                            <th class="hide" data-hide="all">Subjects</th>
+                                            <th class="hide" data-hide="all">Tags</th>
+                                            <th class="hide" data-hide="all">Requester info</th>
+                                            <!-- <th class="hide" data-hide="all">WordPress Request</th> -->
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for conference in pending_conferences if conference.id != 1 %}
+                                           <tr>
+                                                <td></td>
+                                                <td>
+                                                    {{ conference.name }} - {{ conference.short_name.upper() }}
+                                                </td>
+                                                <td>{{ moment(conference.request_time).format('LLL')}}</td>
+                                                <td> <a href="{{ url_for('main.user', id=conference.requester_id) }}" target="_blank">{{ conference.requester.first_name }} {{ conference.requester.last_name }} </a> </td>
+                                                <td>
+                                                    <div>
+                                                        <button class="btn btn-danger btn-conf-deny" data-id="{{ conference.id }}" type="button">Deny</button>
+                                                        <button class="btn btn-primary btn-conf-approve" data-id="{{ conference.id }}" type="button">Approve</button>
+                                                    </div>
+                                                </td>
+                                                <td class="hide">{{ conference.type }}</td>
+                                                <td class="hide">{{ conference.contact_email }} </td>
+                                                <td class="hide">{{ conference.contact_phone }} </td>
+                                                <td class="hide">{{ conference.start_date }}</td>
+                                                <td class="hide">{{ conference.end_date }}</td>
+                                                <td class="hide">{{ conference.city }}, {{ conference.country }}</td>
+                                                <td class="hide">
+                                                    <a href="http://{{ conference.website }}" target="_blank">{{ conference.website }}</a>
+                                                </td>
+                                                <td class="hide">{{ conference.subjects }} </td>
+                                                <td class="hide">{{ conference.tags }}</td>
+                                                {#<td class="hide">
+                                                    {% if conference.configuration['website_type'] == 'hosted_wordpress' %}
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" placeholder="Please save the wordpress password" data-conference-id="{{ conference.id }}" value="{{ conference.configuration.get('wordpress_user_password', '') }}">
+                                                        <span class="input-group-btn">
+                                                            <button type="button" class="btn btn-primary save-wp-pwd">Save</button>
+                                                        </span>
+                                                    </div>
+                                                    {% else %}
+                                                        No
+                                                    {% endif %}
+                                                </td>#}
+                                                <td class="hide">
+                                                    {% for key, value in conference.requester_info.iteritems() %}
+                                                        <b>{{ key }}: </b> {{ value }}<br />
+                                                    {% endfor %}
+                                                </td>
+                                           </tr>
+                                       {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="6">
+                                                <ul class="pagination pagination-centered hide-if-no-paging"></ul>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                {% else %}
+                                <div class="middle-box text-center animated" style="margin-bottom: 140px;">
+                                    <h3 class="font-bold">You have no pending conference requests...</h3>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div id="tab-2" class="tab-pane">
+                            <div class="panel-body">
+                                {% if ongoing_conferences | count != 0 %}
+                                <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny" data-page-size="20">
+                                   <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Conference Name</th>
+                                            <th>Request Time</th>
+                                            <th>Requester</th>
+                                            <th>Status</th>
+                                            <th></th>
+                                            <th class="hide" data-hide="all">Type</th>
+                                            <th class="hide" data-hide="all">Start Date</th>
+                                            <th class="hide" data-hide="all">End Date</th>
+                                            <th class="hide" data-hide="all">Location</th>
+                                            <th class="hide" data-hide="all">Website</th>
+                                            <th class="hide" data-hide="all">Tags</th>
+                                            <th class="hide" data-hide="all">Subjects</th>
+                                            <th class="hide" data-hide="all">Email</th>
+                                            <th class="hide" data-hide="all">Phone</th>
+                                            <th class="hide" data-hide="all">Requester info</th>
+                                            <!-- <th class="hide" data-hide="all">WordPress Request</th> -->
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for conference in ongoing_conferences if conference.id != 1 %}
+                                           <tr>
+                                                <td></td>
+                                                <td>
+                                                    {{ conference.name }} - {{ conference.short_name.upper() }}
+                                                </td>
+                                                <td>{{ moment(conference.request_time).format('LLL')}}</td>
+                                                <td> <a href= "{{ url_for('main.user', id=conference.requester_id) }}" target="_blank">{{ conference.requester.first_name }} {{ conference.requester.last_name }} </a> </td>
+                                                <td>{{ conference.status }}</td>
+                                                <td>
+                                                    <span class="btn glyphicon glyphicon glyphicon-edit" onclick="edit_status(this)" id="{{ conference.id }}_{{ conference.status }}"></span>
+                                                </td>
+                                                <td class="hide">{{ conference.type }}</td>
+                                                <td class="hide">{{ conference.start_date }}</td>
+                                                <td class="hide">{{ conference.end_date }}</td>
+                                                <td class="hide">
+                                                    {{ conference.city }},
+                                                    {{ conference.country }}
+                                                </td>
+                                                <td class="hide">
+                                                    <a href="http://{{ conference.website }}" target="_blank">{{ conference.website }}</a>
+                                                </td>
+                                                <td class="hide">{{ conference.tags }}</td>
+                                                <td class="hide">{{ conference.subjects }} </td>
+                                                <td class="hide">{{ conference.contact_email }} </td>
+                                                <td class="hide">{{ conference.contact_phone }} </td>
+                                                {#<td class="hide">
+                                                    {% if conference.configuration['website_type'] == 'hosted_wordpress' %}
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" placeholder="Please save the wordpress password" data-conference-id="{{ conference.id }}" value="{{ conference.configuration.get('wordpress_user_password', '') }}">
+                                                        <span class="input-group-btn">
+                                                            <button type="button" class="btn btn-primary save-wp-pwd">Save</button>
+                                                        </span>
+                                                    </div>
+                                                    {% else %}
+                                                        No
+                                                    {% endif %}
+                                                </td>#}
+                                                <td class="hide">
+                                                    {% for key, value in conference.requester_info.iteritems() %}
+                                                        <b>{{ key }}: </b> {{ value }}<br />
+                                                    {% endfor %}
+                                                </td>
+                                           </tr>
+                                       {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="6">
+                                                <ul class="pagination pagination-centered hide-if-no-paging"></ul>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                {% else %}
+                                <div class="middle-box text-center animated fadeInRightBig" style="margin-bottom: 140px;">
+                                    <h3 class="font-bold">You have no ongoing conference requests...</h3>
+                                    <a class="view_pending btn btn-primary"><i class="fa fa-pencil"></i> View pending requests</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div id="tab-3" class="tab-pane">
+                            <div class="panel-body">
+                                {% if approved_conferences | count != 0 %}
+                                <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny" data-page-size="20">
+                                   <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Conference Name</th>
+                                            <th>Request Time</th>
+                                            <th>Requester</th>
+                                            <th>Status</th>
+                                            <th></th>
+                                            <th class="hide" data-hide="all">Type</th>
+                                            <th class="hide" data-hide="all">Start Date</th>
+                                            <th class="hide" data-hide="all">End Date</th>
+                                            <th class="hide" data-hide="all">Location</th>
+                                            <th class="hide" data-hide="all">Website</th>
+                                            <th class="hide" data-hide="all">Tags</th>
+                                            <th class="hide" data-hide="all">Subjects</th>
+                                            <th class="hide" data-hide="all">Email</th>
+                                            <th class="hide" data-hide="all">Phone</th>
+                                            <th class="hide" data-hide="all">WordPress Request</th>
+                                            <th class="hide" data-hide="all">Import Papers</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for conference in approved_conferences if conference.id != 1 %}
+                                           <tr>
+                                                <td></td>
+                                                <td>
+                                                    {{ conference.name }} - {{ conference.short_name.upper() }}
+                                                </td>
+                                                <td>{{ moment(conference.request_time).format('LLL')}}</td>
+                                                <td> <a href= "{{ url_for('main.user', id=conference.requester_id) }}" target="_blank">{{ conference.requester.first_name }} {{ conference.requester.last_name }} </a> </td>
+                                                <td>{{ conference.status }}</td>
+                                                <td><span class="btn glyphicon glyphicon glyphicon-edit" onclick="edit_status(this)" id="{{ conference.id }}_{{ conference.status }}"></span></td>
+                                                <td class="hide">{{ conference.type }}</td>
+                                                <td class="hide">{{ conference.start_date }}</td>
+                                                <td class="hide">{{ conference.end_date }}</td>
+                                                <td class="hide">
+                                                    {{ conference.city }},
+                                                    {{ conference.country }}
+                                                </td>
+                                                <td class="hide">
+                                                    <a href="http://{{ conference.website }}" target="_blank">{{ conference.website }}</a>
+                                                </td>
+                                                <td class="hide">{{ conference.tags }}</td>
+                                                <td class="hide">{{ conference.subjects }} </td>
+                                                <td class="hide">{{ conference.contact_email }} </td>
+                                                <td class="hide">{{ conference.contact_phone }} </td>
+                                                <td class="hide">
+                                                    {% if conference.configuration['website_type'] == 'hosted_wordpress' %}
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" placeholder="Please save the wordpress password" data-conference-id="{{ conference.id }}" value="{{ conference.configuration.get('wordpress_user_password', '') }}">
+                                                        <span class="input-group-btn">
+                                                            <button type="button" class="btn btn-primary save-wp-pwd">Save</button>
+                                                        </span>
+                                                    </div>
+                                                    {% else %}
+                                                        No
+                                                    {% endif %}
+                                                </td>
+                                                <td class="hide">
+                                                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#paperImportModal" data-conference-id="{{ conference.id }}">
+                                                        Import
+                                                    </button>
+                                                </td>
+                                           </tr>
+                                       {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="6">
+                                                <ul class="pagination pagination-centered hide-if-no-paging"></ul>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                {% else %}
+                                <div class="middle-box text-center animated fadeInRightBig" style="margin-bottom: 140px;">
+                                    <h3 class="font-bold">You have no approved conference requests...</h3>
+                                    <a class="view_pending btn btn-primary"><i class="fa fa-pencil"></i> View pending requests</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div id="tab-4" class="tab-pane">
+                            <div class="panel-body ">
+                                {% if denied_conferences | count != 0 %}
+                                <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny" data-page-size="20">
+                                   <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Conference Name</th>
+                                            <th>Request Time</th>
+                                            <th>Requester</th>
+                                            <th>Status</th>
+                                            <th></th>
+                                            <th class="hide" data-hide="all">Type</th>
+                                            <th class="hide" data-hide="all">Start Date</th>
+                                            <th class="hide" data-hide="all">End Date</th>
+                                            <th class="hide" data-hide="all">Location</th>
+                                            <th class="hide" data-hide="all">Website</th>
+                                            <th class="hide" data-hide="all">Tags</th>
+                                            <th class="hide" data-hide="all">Subjects</th>
+                                            <th class="hide" data-hide="all">Email</th>
+                                            <th class="hide" data-hide="all">Phone</th>
+                                            <th class="hide" data-hide="all">WordPress Request</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for conference in denied_conferences if conference.id != 1 %}
+                                           <tr>
+                                                <td></td>
+                                                <td>
+                                                    {{ conference.name }} - {{ conference.short_name.upper() }}
+                                                </td>
+                                                <td>{{ moment(conference.request_time).format('LLL')}}</td>
+                                                <td> <a href="{{ url_for('main.user', id=conference.requester_id) }}" target="_blank">{{ conference.requester.first_name }} {{ conference.requester.last_name }} </a> </td>
+                                                <td>{{ conference.status }}</td>
+                                                <td><span class="btn glyphicon glyphicon glyphicon-edit" onclick="edit_status(this)" id="{{ conference.id }}_{{ conference.status }}"></span></td>
+                                                <td class="hide">{{ conference.type }}</td>
+                                                <td class="hide">{{ conference.start_date }}</td>
+                                                <td class="hide">{{ conference.end_date }}</td>
+                                                <td class="hide">
+                                                    {{ conference.city }},
+                                                    {{ conference.country }}
+                                                </td>
+                                                <td class="hide">
+                                                    <a href="http://{{ conference.website }}" target="_blank">{{ conference.website }}</a>
+                                                </td>
+                                                <td class="hide">{{ conference.tags }}</td>
+                                                <td class="hide">{{ conference.subjects }} </td>
+                                                <td class="hide">{{ conference.contact_email }} </td>
+                                                <td class="hide">{{ conference.contact_phone }} </td>
+                                                <td class="hide">
+                                                    {% if conference.configuration['website_type'] == 'hosted_wordpress' %}
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" placeholder="Please save the wordpress password" data-conference-id="{{ conference.id }}" value="{{ conference.configuration.get('wordpress_user_password', '') }}">
+                                                        <span class="input-group-btn">
+                                                            <button type="button" class="btn btn-primary save-wp-pwd">Save</button>
+                                                        </span>
+                                                    </div>
+                                                    {% else %}
+                                                        No
+                                                    {% endif %}
+                                                </td>
+                                           </tr>
+                                       {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="6">
+                                                <ul class="pagination pagination-centered hide-if-no-paging"></ul>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                {% else %}
+                                <div class="middle-box text-center animated fadeInRightBig" style="margin-bottom: 140px;">
+                                    <h3 class="font-bold">You have no denied conference requests...</h3>
+                                    <a class="view_pending btn btn-primary"><i class="fa fa-pencil"></i> View pending requests</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal inmodal" id="paperImportModal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+            <div class="modal-dialog">
+                <div class="modal-content animated bounceInRight">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                        <i class="fa fa-laptop modal-icon"></i>
+                        <h4 class="modal-title">Import Papers</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Please use tool from <strong><a href="https://github.com/udmis/conf-data" target="_blank">Data Scraping for Conferency</a></strong> to extract papers from easychair.org.</p>
+                        <form id="upload_form">
+                            <div class="form-group">
+                                <input type="hidden" name="conference_id" value="3">
+                            </div>
+                            <div class="form-group">
+                                <label>Upload JSON file</label>
+                                <div id="dZUpload" class="dropzone">
+                                    <div class="dz-default dz-message"></div>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="animate hide">
+                            <div class="sk-spinner sk-spinner-chasing-dots">
+                                <div class="sk-dot1"></div>
+                                <div class="sk-dot2"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary ladda-button" id="import_paper_btn" data-style="zoom-in" disabled>Import</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal inmodal" id="denialMsgModal" tabindex="-1" role="dialog" aria-hidden="true"
+             style="display: none;">
+            <div class="modal-dialog">
+                <div class="modal-content animated bounceInRight">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span
+                                class="sr-only">Close</span></button>
+                        <h4 class="modal-title">Request Denial</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Denial Message (Optional)</label>
+                            <textarea placeholder="Enter optional denial message to be sent to the requester"
+                                      class="form-control" id="denial-msg"></textarea>
+                            <input type="hidden" id="modal-conf-id">
+                            <input type="hidden" id="modal-post-url">
+                            <input type="hidden" id="modal-is-new-conf">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-white" data-dismiss="modal">Back</button>
+                        <button type="button" class="btn btn-danger" id="modal-btn-deny-request">Deny Request</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <!-- dropzone -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/dropzone/dropzone.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/spin.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/ladda.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/ladda/ladda.jquery.min.js') }}"></script>
+    <script>
+        function edit_status(obj){
+            if (obj.className === 'btn glyphicon glyphicon glyphicon-edit') {
+                var status = obj.parentNode.previousElementSibling;
+                obj.className = 'btn glyphicon glyphicon glyphicon-check';
+                status.innerHTML = "<select><option value=\"Approved\">Approved</option><option value=\"Denied\">Denied</option></select>"
+            }
+            else {
+                var status = obj.parentNode.previousElementSibling.firstElementChild;
+                var curr_conf = obj.id.split("_")[0];
+                var old_status = obj.id.split("_")[1];
+                if (status.value !== old_status) {
+                    swal({
+                        title: "Are you sure?",
+                        text: "This will change the status of this conference request and send an email to the requester.",
+                        type: "warning",
+                        showCancelButton: true,
+                        showConfirmButton: true,
+                        confirmButtonText: "Yes",
+                        closeOnConfirm: true
+                    }, function () {
+                        if (status.value === 'Denied') {
+                            $('#modal-conf-id').val(curr_conf);
+                            $('#modal-post-url').val("{{ url_for('api.edit_conference_status') }}");
+                            $('#modal-is-new-conf').val('');
+                            $('#denialMsgModal').modal();
+                        } else {
+                            $.ajax({
+                                type: "POST",
+                                url: "{{ url_for('api.edit_conference_status') }}",
+                                contentType: "application/json",
+                                data: JSON.stringify({"conf_id": curr_conf, "new_status": status.value, "is_new_conf": false}),
+                                success: function () {
+                                    status.parentNode.innerHTML = status.value;
+                                    obj.className = 'btn glyphicon glyphicon glyphicon-edit';
+                                    obj.setAttribute('id', curr_conf + "_" + status.value);
+                                    swal({
+                                        title: "Updated!",
+                                        text: "Conference status has been updated.",
+                                        type: "success",
+                                        timer: 2000
+                                    }, function (){
+                                        window.location.reload();
+                                    });
+                                }
+                            })
+                                .fail(function (data, textStatus, error) {
+                                    swal({
+                                        title: "Oops...",
+                                        text: "Update failed. We are very sorry. Please contact the customer service.",
+                                        type: "error",
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                });
+                        }
+                    });
+                }
+                else {
+                    status.parentNode.innerHTML = status.value;
+                    obj.className = 'btn glyphicon glyphicon glyphicon-edit';
+                    obj.setAttribute('id', curr_conf+"_"+status.value);
+                }
+            }
+        }
+
+        function getUrlParam(name) {
+   		    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+   		    var r = window.location.search.substr(1).match(reg);
+   		    if (r != null) return unescape(r[2]); return null;
+   	    }
+
+        $(document).ready(function() {
+
+            var request_type = getUrlParam("request_type");
+
+            if( request_type == 'pending' ){
+                $('#nav-tab-1').attr("class", "active");
+                $('#tab-1').addClass("active");}
+            else if( request_type == 'ongoing' ){
+                $('#nav-tab-2').attr("class", "active");
+                $('#tab-2').addClass("active");}
+
+            $('.footable').footable();
+
+            $('.nav-tabs a').click(function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+
+            $("ul.nav-tabs > li > a").on("shown.bs.tab", function (e) {
+                //fire initialize of footable because the footable plugin only processes tables that are visible
+                $('.footable').trigger('footable_initialize');
+            });
+
+            $('.view_pending').click(function(event){
+                $('.nav-tabs a[href="#tab-1"]').tab('show')
+            });
+
+            $('.btn-conf-approve').click(function () {
+                var conference_id = $(this).attr('data-id');
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url_for('api.edit_conference_status') }}",
+                    contentType: "application/json",
+                    data: JSON.stringify({"conf_id": conference_id, "new_status": "Approved", "is_new_conf": true}),
+                    success: function () {
+                        // console.log(conference_id + "th conference's status has been changed to " + conference_status);
+                        window.location.reload();
+                    }
+                });
+            });
+
+            $('.btn-conf-deny').click(function () {
+                var conference_id = $(this).attr('data-id');
+                $('#modal-conf-id').val(conference_id);
+                $('#modal-post-url').val("{{ url_for('api.edit_conference_status') }}");
+                $('#modal-is-new-conf').val('true');
+                var $denialMsgModal = $('#denialMsgModal');
+                $denialMsgModal.modal();
+            });
+
+            $(".save-wp-pwd").click(function(event) {
+                event.preventDefault();
+                $.ajax({
+                            type: "PUT",
+                            url: "/api/websites/" + $(this).parent().prev().data("conference-id") + "/wp-password",
+                            contentType: "application/json",
+                            data: JSON.stringify({"password": $(this).parent().prev().val()}),
+                            success: function () {
+                                swal({
+                                    title: "Updated!",
+                                    text: "Wordpress password has been updated.",
+                                    type: "success",
+                                    timer: 2000
+                                });
+                            }
+                        })
+                            .fail(function (data, textStatus, error) {
+                                swal({
+                                    title: "Oops...",
+                                    text: "Update failed. We are very sorry. Please contact the customer service.",
+                                    type: "error",
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            });
+            });
+
+            $("#paperImportModal").on('show.bs.modal', function (event) {
+                $("input[name=conference_id]").val($(event.relatedTarget).data("conference-id"));
+            });
+
+            $("#paperImportModal").on('hide.bs.modal', function (event) {
+                // clear dropzone
+                $("#dZUpload")[0].dropzone.removeAllFiles();
+                $("#import_paper_btn").prop('disabled', true);
+            });
+
+            $('#modal-btn-deny-request').click(function () {
+                var is_new_conf = Boolean($('#modal-is-new-conf').val());
+                $.ajax({
+                    type: "POST",
+                    url: $('#modal-post-url').val(),
+                    contentType: "application/json",
+                    data: JSON.stringify({"conf_id": $('#modal-conf-id').val(), "new_status": 'Denied', "denial_msg": $('#denial-msg').val(), "is_new_conf": is_new_conf}),
+                    success: function () {
+                        // console.log(conference_id + "th conference's status has been changed to " + conference_status);
+                        window.location.reload();
+                    }
+                });
+            });
+
+            Dropzone.autoDiscover = false;
+            $("#dZUpload").dropzone({
+                url: "/conf_admin/paper_json",
+                paramName: "paper_json",
+                maxFilesize: 15,
+                uploadMultiple: false,
+                acceptedFiles: ".json",
+                maxFiles: 1,
+                addRemoveLinks: true,
+                init: function() {
+                    this.on("sending", function(file, xhr, formData) {
+                        formData.append("conference_id", $("input[name=conference_id]").val());
+                    });
+                },
+                success: function (file, response) {
+                    var filename = response;
+                    file.previewElement.classList.add("dz-success");
+                    $('input[name=filename]').attr("value", filename);
+                    $("#import_paper_btn").prop('disabled', false);
+                },
+                error: function (file, errorMessage) {
+
+                }
+            });
+
+            var import_btn = $("#import_paper_btn").ladda();
+            import_btn.click(function (event) {
+                event.preventDefault();
+                import_btn.ladda('start');
+                $.ajax({
+                    type: "POST",
+                    url: "/api/conferences/" + $("input[name=conference_id]").val() + "/papers/",
+                    success: function () {
+                        swal({
+                            title: "Updated!",
+                            text: "Papers have been imported",
+                            type: "success",
+                            timer: 2000
+                        });
+                        import_btn.ladda('stop');
+                        $("#paperImportModal").modal("hide");
+                    }
+                })
+                    .fail(function (data, textStatus, error) {
+                        import_btn.ladda('stop');
+                        swal({
+                            title: "Oops...",
+                            text: "Upload failed. We are very sorry. Please contact the customer service.",
+                            type: "error",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    });
+            });
+
+            $("#dZUpload")[0].dropzone.on("removedfile", function(event) {
+                $("#import_paper_btn").prop('disabled', true);
+            });
+
+        }); //end of ready
+    </script>
+
+
+{% endblock %}

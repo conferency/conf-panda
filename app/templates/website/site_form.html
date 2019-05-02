@@ -1,0 +1,593 @@
+{% extends "base.html" %}
+{% set active_page = "website" %}
+{% set active_subpage = "index" %}
+{% set page_title = page.title %}
+{% import "_macros.html" as macros %}
+
+{% block head %}
+    {{ super() }}
+    <style>
+        .padding-bottom-5 {
+            padding-bottom: 5px;
+        }
+
+        .panel-heading h5 {
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 0 7px;
+            padding: 0;
+            text-overflow: ellipsis;
+            float: left;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Website', '#'), (page_title, url_for('website.page', page_id=page.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+<div class="wrapper animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content clearfix">
+                    <div class="col-md-12 row">
+                        <p>Add or Update sections in the page.</p>
+                        <div class="hr-line-dashed"></div>
+                        <form id="page-edit">
+                            <div id="section_list" class="sections col-xs-12 col-md-9">
+                                {% if page.content %}
+                                {{ macros.render_sections(page.content) }}
+                                {% endif %}
+                                <div class="form-group">
+                                    <p class="text-center">Click the buttons on the right to add contents</p>
+                                    <button id="page-submit" class="btn btn-primary center-block">Save Page</button>
+                                </div>
+                            </div>
+                            <div class="col-xs-6 col-xs-offset-3 col-md-2 col-md-offset-1">
+                                <ul class="nav nav-stacked" style="margin-bottom:20px">
+                                    <li>
+                                        <button class="btn btn-success btn-block" onclick="return add_section()">Add Section</button>
+                                    </li>
+                                </ul>
+
+                                <!-- <ul class="nav nav-stacked">
+                                    <li>
+                                        <button class="btn btn-warning btn-block" onclick="return add_element('heading')">Heading</button>
+                                    </li>
+                                    <li>
+                                        <button class="btn btn-info btn-block" onclick="return add_element('para')">Paragraph</button>
+                                    </li>
+                                </ul> -->
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+
+    <script>
+    function add_section() {
+        var base_div=document.getElementById("section_list");
+        var submit_button_form=document.getElementById("page-submit").parentNode;
+
+        var new_section_div=document.createElement("div");
+        // panel div
+        var new_section_panel_div=document.createElement("div");
+        new_section_panel_div.setAttribute("class", "panel panel-default section");
+        var new_section_title_div=document.createElement("div");
+        new_section_title_div.setAttribute("class", "panel-heading");
+        new_section_title_div.style.minHeight="40px";
+        new_section_title_div.style.paddingTop="5px";
+        new_section_title_div.style.paddingBottom="5px";
+        var new_section_container_div=document.createElement("div");
+        new_section_container_div.setAttribute("class", "panel-body");
+        new_section_container_div.style.border="none";
+
+        var count=0;
+        // get new section_id
+        while(document.getElementById("section_"+count+".div")!=null)count++;
+        new_section_panel_div.setAttribute("data-section-id", count);
+        new_section_div.id="section_"+count+".div";
+        new_section_div.name="section_"+count+".div";
+        new_section_div.setAttribute("class", "form-group");
+        new_section_div.style.paddingLeft="10px";
+
+        var h5=document.createElement("h5");
+        h5.innerHTML= "Section " + (count+1);
+
+        new_section_title_div.appendChild(h5);
+        new_section_panel_div.appendChild(new_section_title_div);
+
+        // section type
+        // var new_section_type=document.createElement("input");
+        // new_section_type.id="section_"+count+".type";
+        // new_section_type.name="section_"+count+".type";
+        // new_section_type.type="Hidden";
+        // new_section_type.value=type;
+        // new_section_type.setAttribute("data-reuqire", false);
+        // new_section_type.setAttribute("data-include", false);
+        // new_section_div_head.appendChild(new_section_type);
+
+        // section buttons
+        var new_section_div_button=document.createElement("div");
+        new_section_div_button.setAttribute("class","ibox-tools");
+        new_section_title_div.appendChild(new_section_div_button);
+        // move down button
+        var new_section_down=document.createElement("span");
+        new_section_down.setAttribute("class", "btn glyphicon glyphicon glyphicon-arrow-down");
+        new_section_down.setAttribute("onclick","move_section(this,1)");
+        new_section_div_button.appendChild(new_section_down);
+        // move up button
+        var new_section_up=document.createElement("span");
+        new_section_up.setAttribute("class", "btn glyphicon glyphicon glyphicon-arrow-up");
+        new_section_up.setAttribute("onclick","move_section(this,0)");
+        new_section_div_button.appendChild(new_section_up);
+        // delete button
+        var new_section_delete=document.createElement("span");
+        new_section_delete.setAttribute("class", "btn glyphicon glyphicon-trash");
+        new_section_delete.setAttribute("onclick","delete_section(this)");
+        new_section_div_button.appendChild(new_section_delete);
+        //element list
+        var new_section_element_list_div=document.createElement("div");
+        new_section_element_list_div.setAttribute("class", "elements col-xs-12 col-md-9");
+        new_section_container_div.appendChild(new_section_element_list_div);
+        // element button ul
+        var new_section_ul_div=document.createElement("div");
+        new_section_ul_div.setAttribute("class", "col-xs-6 col-xs-offset-3 col-md-2 col-md-offset-1");
+        var new_section_element_ul=document.createElement("ul");
+        new_section_element_ul.setAttribute("class", "nav nav-stacked");
+        var new_section_li_1=document.createElement("li");
+        var new_section_li_2=document.createElement("li");
+        var new_section_li_button_1=document.createElement("button");
+        var new_section_li_button_2=document.createElement("button");
+        new_section_li_button_1.setAttribute("class", "btn btn-warning btn-block");
+        new_section_li_button_1.setAttribute("onclick", "return add_element(this, 'heading')");
+        new_section_li_button_1.innerHTML="Heading";
+        new_section_li_button_2.setAttribute("class", "btn btn-info btn-block");
+        new_section_li_button_2.setAttribute("onclick", "return add_element(this, 'para')");
+        new_section_li_button_2.innerHTML="Paragraph";
+        new_section_li_1.appendChild(new_section_li_button_1);
+        new_section_li_2.appendChild(new_section_li_button_2);
+        new_section_element_ul.appendChild(new_section_li_1);
+        new_section_element_ul.appendChild(new_section_li_2);
+        new_section_ul_div.appendChild(new_section_element_ul);
+        new_section_container_div.appendChild(new_section_ul_div);
+
+        base_div.insertBefore(new_section_panel_div, submit_button_form);
+        new_section_panel_div.appendChild(new_section_container_div);
+        new_section_container_div.appendChild(new_section_div);
+        return false;
+    }
+
+    function delete_section(obj) {
+        var section_elem = obj.parentNode.parentNode.parentNode;
+        var section_count = section_elem.getAttribute("data-section-id");
+        section_elem.parentNode.removeChild(section_elem);
+        section_count++;
+        current_section=document.getElementById("section_"+section_count+".div");
+        while(current_section!=null) {
+            // update data-section-id
+            current_section.parentNode.parentNode.setAttribute("data-section-id", section_count-1);
+            current_section.id="section_"+(section_count-1)+".div";
+            // update title
+            current_section.parentNode.parentNode.firstChild.firstChild.innerHTML="Section "+section_count;
+            var ques_count = 0;
+            // update question id
+            current_question=document.getElementById("section_"+section_count+"_ques_"+ques_count+".div");
+            console.log(current_question);
+            while(current_question!=null) {
+                current_question.id="section_"+(section_count-1)+"_ques_"+ques_count+".div";
+                // type
+                var current_question_type=document.getElementById("section_"+section_count+"_ques_"+ques_count+".type");
+                current_question_type.id="section_"+(section_count-1)+"_ques_"+ques_count+".type";
+                current_question_type.name="section_"+(section_count-1)+"_ques_"+ques_count+".type";
+                // description
+                var current_question_description=document.getElementById("section_"+section_count+"_ques_"+ques_count+".description");
+                current_question_description.id="section_"+(section_count-1)+"_ques_"+ques_count+".description";
+                current_question_description.name="section_"+(section_count-1)+"_ques_"+ques_count+".description";
+                ques_count++;
+                current_question=document.getElementById("section_"+section_count+"_ques_"+ques_count+".div");
+            }
+
+            section_count++;
+            current_section=document.getElementById("section_"+section_count+".div");
+        }
+    }
+
+    function move_section(obj,direction) {
+        var section_elem = obj.parentNode.parentNode.parentNode;
+        var section_count = section_elem.getAttribute("data-section-id");
+
+        var next_section_count=section_count;
+        if(direction==1){
+            next_section_count++;
+        }else{
+            next_section_count--;
+        }
+
+        var current_section_elem=document.getElementById("section_"+section_count+".div");
+        var next_section_elem=document.getElementById("section_"+next_section_count+".div");
+        if(next_section_elem==null||current_section_elem==null)return;
+
+        current_section_elem.parentNode.parentNode.firstChild.firstChild.innerHTML="Section "+(next_section_count+1);
+        next_section_elem.parentNode.parentNode.firstChild.firstChild.innerHTML="Section "+(parseInt(section_count)+1);
+        current_section_elem.parentNode.parentNode.setAttribute("data-section-id", next_section_count);
+        next_section_elem.parentNode.parentNode.setAttribute("data-section-id", section_count);
+        current_section_elem.id="section_"+next_section_count+".div";
+        next_section_elem.id="section_"+section_count+".div";
+
+        // updata questions
+        var ques_count=0;
+        var current_section_question=document.getElementById("section_"+section_count+"_ques_"+ques_count+".div");
+        var next_section_question=document.getElementById("section_"+next_section_count+"_ques_"+ques_count+".div");
+        while(current_section_question!=null||next_section_question!=null){
+            if(current_section_question!=null) {
+                var current_section_question_type=document.getElementById("section_"+section_count+"_ques_"+ques_count+".type");
+                var current_section_question_description=document.getElementById("section_"+section_count+"_ques_"+ques_count+".description");
+            }
+
+            if(next_section_question!=null) {
+                var next_section_question_type=document.getElementById("section_"+next_section_count+"_ques_"+ques_count+".type");
+                var next_section_question_description=document.getElementById("section_"+next_section_count+"_ques_"+ques_count+".description");
+            }
+
+            if(current_section_question!=null) {
+                // update div
+                current_section_question.id="section_"+next_section_count+"_ques_"+ques_count+".div";
+                // update type
+                current_section_question_type.id="section_"+next_section_count+"_ques_"+ques_count+".type";
+                current_section_question_type.name="section_"+next_section_count+"_ques_"+ques_count+".type";
+                // update description
+                current_section_question_description.id="section_"+next_section_count+"_ques_"+ques_count+".description";
+                current_section_question_description.type="section_"+next_section_count+"_ques_"+ques_count+".description";
+            }
+
+            if(next_section_question!=null) {
+                next_section_question.id="section_"+section_count+"_ques_"+ques_count+".div";
+                next_section_question_type.id="section_"+section_count+"_ques_"+ques_count+".type";
+                next_section_question_type.name="section_"+section_count+"_ques_"+ques_count+".type";
+                next_section_question_description.id="section_"+section_count+"_ques_"+ques_count+".description";
+                next_section_question_description.type="section_"+section_count+"_ques_"+ques_count+".description";
+            }
+
+            ques_count++;
+            var current_section_question=document.getElementById("section_"+section_count+"_ques_"+ques_count+".div");
+            var next_section_question=document.getElementById("section_"+next_section_count+"_ques_"+ques_count+".div");
+
+        }
+
+        if(direction==0)$(current_section_elem.parentNode.parentNode).insertBefore($(next_section_elem.parentNode.parentNode));
+        else $(next_section_elem.parentNode.parentNode).insertBefore($(current_section_elem.parentNode.parentNode));
+    }
+
+    function add_element(target, type){
+        var base_div=target.parentNode.parentNode.parentNode.previousSibling;
+        // var submit_button_form=document.getElementById("page-submit").parentNode;
+
+        // contains the question
+        var new_question_div=document.createElement("div");
+        // panel div
+        var new_question_panel_div=document.createElement("div");
+        new_question_panel_div.setAttribute("class", "panel panel-default element");
+
+        var new_question_title_div=document.createElement("div");
+        new_question_title_div.setAttribute("class", "panel-heading");
+        new_question_title_div.style.minHeight="40px";
+        new_question_title_div.style.paddingTop="5px";
+        new_question_title_div.style.paddingBottom="5px";
+        var new_question_container_div=document.createElement("div");
+        new_question_container_div.setAttribute("class", "panel-body");
+        new_question_container_div.style.border="none";
+
+        // get section id
+        var section_id=base_div.parentNode.parentNode.getAttribute("data-section-id");
+        var count=0;
+        // get new ques_id
+        while(document.getElementById("section_"+section_id+"_ques_"+count+".div")!=null)count++;
+        new_question_panel_div.setAttribute("data-question-id", count);
+        new_question_div.id="section_"+section_id+"_ques_"+count+".div";
+        new_question_div.name="section_"+section_id+"_ques_"+count+".div";
+        new_question_div.setAttribute("class", "form-group");
+        new_question_div.style.paddingLeft="10px";
+        // set title
+        var h5=document.createElement("h5");
+        // h5.innerHTML=(count+1)+" ";
+        if(type=="heading")h5.innerHTML="Heading";
+        else if(type=="para")h5.innerHTML="Paragraph";
+        new_question_title_div.appendChild(h5);
+        new_question_panel_div.appendChild(new_question_title_div);
+
+        var new_question_div_head=document.createElement("div");
+        new_question_div_head.setAttribute("class", "row");
+        new_question_div.appendChild(new_question_div_head);
+
+        // question type
+        var new_question_type=document.createElement("input");
+        new_question_type.id="section_"+section_id+"_ques_"+count+".type";
+        new_question_type.name="section_"+section_id+"_ques_"+count+".type";
+        new_question_type.type="Hidden";
+        new_question_type.value=type;
+        new_question_type.setAttribute("data-reuqire", false);
+        new_question_type.setAttribute("data-include", false);
+        new_question_div_head.appendChild(new_question_type);
+
+        // question description
+        if (type=="para") {
+            var new_question_description=document.createElement("textarea");
+            new_question_description.rows=5;
+        } else {
+            var new_question_description=document.createElement("input");
+            new_question_description.type="text";
+        }
+        new_question_description.id="section_"+section_id+"_ques_"+count+".description";
+        new_question_description.name="section_"+section_id+"_ques_"+count+".description";
+
+        if (type < 2) {
+            new_question_description.setAttribute("class", "form-control required option_check");
+        } else {
+            new_question_description.setAttribute("class", "form-control required");
+        }
+        //new_question_description.setAttribute("required", "required");
+        new_question_description.placeholder="Enter the content";
+        var new_question_description_div=document.createElement("div");
+        new_question_description_div.setAttribute("class", "col-md-11 padding-bottom-5");
+        new_question_description_div.appendChild(new_question_description);
+        new_question_div_head.appendChild(new_question_description_div);
+        var new_question_new_option_div=document.createElement("div");
+        new_question_new_option_div.setAttribute("class", "col-md-1");
+        new_question_new_option_div.style.paddingLeft="0px";
+        new_question_div_head.appendChild(new_question_new_option_div);
+        // question buttons
+        var new_question_div_button=document.createElement("div");
+        new_question_div_button.setAttribute("class","ibox-tools");
+        new_question_title_div.appendChild(new_question_div_button);
+        // move down button
+        var new_question_down=document.createElement("span");
+        new_question_down.setAttribute("class", "btn glyphicon glyphicon glyphicon-arrow-down");
+        new_question_down.setAttribute("onclick","move_element(this,1)");
+        new_question_div_button.appendChild(new_question_down);
+        // move up button
+        var new_question_up=document.createElement("span");
+        new_question_up.setAttribute("class", "btn glyphicon glyphicon glyphicon-arrow-up");
+        new_question_up.setAttribute("onclick","move_element(this,0)");
+        new_question_div_button.appendChild(new_question_up);
+        // delete button
+        var new_question_delete=document.createElement("span");
+        new_question_delete.setAttribute("class", "btn glyphicon glyphicon-trash");
+        new_question_delete.setAttribute("onclick","delete_element(this)");
+        new_question_div_button.appendChild(new_question_delete);
+
+        // add option button
+        if (type<2) {
+            var new_question_add=document.createElement("span");
+            new_question_add.setAttribute("class", "btn glyphicon glyphicon-plus");
+            new_question_add.setAttribute("onclick","add_option(this,"+type+")");
+            new_question_new_option_div.appendChild(new_question_add);
+        }
+
+        // options
+        var new_option_ul=document.createElement("ul");
+        new_option_ul.setAttribute("class", "form-inline");
+        new_option_ul.style.listStyleType="none";
+        new_question_div.appendChild(new_option_ul);
+
+        if(type<2){
+            new_option_ul.innerHTML=
+            "<li class=\"row padding-bottom-5\" onmouseover=\"show_buttons(this,1)\" onmouseout=\"hide_buttons(this,1)\"><input class=\"col-md-7 form-control required\" type=\"text\" id=\"ques_"+
+            count+".option_0\" name=\"ques_"+count+".option_0\" placeholder=\"new option\"/>"+
+            "<div class=\"col-md-5 option_button\" style=\"display:none\">"+
+            "<span class=\"btn glyphicon glyphicon-arrow-up\" onclick=\"move_option(this,0)\"></span>"+
+            "<span class=\"btn glyphicon glyphicon-arrow-down\" onclick=\"move_option(this,1)\"></span>"+
+            "<span class=\"btn glyphicon glyphicon-trash\" onclick=\"delete_option(this)\"></span></div></li>"+
+            "<li class=\"row padding-bottom-5\" onmouseover=\"show_buttons(this,1)\" onmouseout=\"hide_buttons(this,1)\"><input class=\"col-md-7 form-control required\" type=\"text\" id=\"ques_"+
+            count+".option_1\" name=\"ques_"+count+".option_1\" placeholder=\"new option\"/>"+
+            "<div class=\"col-md-5 option_button\" style=\"display:none\">"+
+            "<span class=\"btn glyphicon glyphicon-arrow-up\" onclick=\"move_option(this,0)\"></span>"+
+            "<span class=\"btn glyphicon glyphicon-arrow-down\" onclick=\"move_option(this,1)\"></span>"+
+            "<span class=\"btn glyphicon glyphicon-trash\" onclick=\"delete_option(this)\"></span></div></li>";
+        }
+
+        // base_div.insertBefore(new_question_panel_div, submit_button_form);
+        base_div.appendChild(new_question_panel_div);
+        new_question_panel_div.appendChild(new_question_container_div);
+        new_question_container_div.appendChild(new_question_div);
+        return false;
+    }
+
+    function delete_element(obj){
+        // console.log(obj.parentNode.parentNode.parentNode);
+        // get the target question's id
+        var question_elem=obj.parentNode.parentNode.parentNode;
+        count=question_elem.getAttribute("data-question-id");
+        //get section id
+        var section_id=question_elem.parentNode.parentNode.parentNode.getAttribute("data-section-id");
+        // var current_question=document.getElementById("ques_"+count+".div");
+        question_elem.parentNode.removeChild(question_elem);
+        count++;
+        current_question=document.getElementById("section_"+section_id+"_ques_"+count+".div");
+        // update each id of following questions
+        while(current_question!=null){
+            // update form div
+            var question_div=document.getElementById("section_"+section_id+"_ques_"+count+".div");
+            question_div.id="section_"+section_id+"_ques_"+(count-1)+".div";
+            question_div.name="section_"+section_id+"_ques_"+(count-1)+".div";
+            // update panel
+            question_div.parentNode.parentNode.setAttribute("data-question-id", count-1);
+            // update type
+            var question_type=document.getElementById("section_"+section_id+"_ques_"+count+".type");
+            question_type.id="section_"+section_id+"_ques_"+(count-1)+".type";
+            question_type.name="section_"+section_id+"_ques_"+(count-1)+".type";
+            var type=question_type.value;
+            // update description
+            var question_description=document.getElementById("section_"+section_id+"_ques_"+count+".description");
+            question_description.id="section_"+section_id+"_ques_"+(count-1)+".description";
+            question_description.name="section_"+section_id+"_ques_"+(count-1)+".description";
+
+            if(type<2){
+                // update options
+                var option_count=0;
+                var current_option=document.getElementById("ques_"+count+".option_"+option_count);
+                while(current_option!=null){
+                    current_option.id="ques_"+(count-1)+".option_"+option_count;
+                    current_option.name="ques_"+(count-1)+".option_"+option_count;
+                    option_count++;
+                    current_option=document.getElementById("ques_"+count+".option_"+option_count);
+                }
+            }
+            count++;
+            current_question=document.getElementById("section_"+section_id+"_ques_"+count+".div");
+        }
+    }
+
+    function move_element(obj,direction){
+        var question_elem=obj.parentNode.parentNode.parentNode;
+        count=question_elem.getAttribute("data-question-id");
+        var section_id=question_elem.parentNode.parentNode.parentNode.getAttribute("data-section-id");
+      // var count=obj.parentNode.parentNode.parentNode.id.split('_')[1].split('.')[0];
+        var next_count=count;
+        if(direction==1){
+            next_count++;
+        }else{
+            next_count--;
+        }
+
+        var current_question_div=document.getElementById("section_"+section_id+"_ques_"+count+".div");
+        var next_question_div=document.getElementById("section_"+section_id+"_ques_"+next_count+".div");
+
+        // check whether the current_question is last one or first one
+        if(current_question_div==null||next_question_div==null)return;
+
+        // update div
+        current_question_div.id="section_"+section_id+"_ques_"+next_count+".div";
+        current_question_div.name="section_"+section_id+"_ques_"+next_count+".div";
+        next_question_div.id="section_"+section_id+"_ques_"+count+".div";
+        next_question_div.name="section_"+section_id+"_ques_"+count+".div";
+
+        // update panel
+        current_question_div.parentNode.parentNode.setAttribute("data-question-id", next_count);
+        next_question_div.parentNode.parentNode.setAttribute("data-question-id", count);
+
+        // update type
+        var current_question_type=document.getElementById("section_"+section_id+"_ques_"+count+".type");
+        var next_question_type=document.getElementById("section_"+section_id+"_ques_"+next_count+".type");
+        current_question_type.id="section_"+section_id+"_ques_"+next_count+".type";
+        current_question_type.name="section_"+section_id+"_ques_"+next_count+".type";
+        next_question_type.id="section_"+section_id+"_ques_"+count+".type";
+        next_question_type.name="section_"+section_id+"_ques_"+count+".type";
+
+        var current_type=current_question_type.value;
+        var next_type=next_question_type.value;
+
+        // update description
+        var current_question_description=document.getElementById("section_"+section_id+"_ques_"+count+".description");
+        var next_question_description=document.getElementById("section_"+section_id+"_ques_"+next_count+".description");
+        current_question_description.id="section_"+section_id+"_ques_"+next_count+".description";
+        current_question_description.name="section_"+section_id+"_ques_"+next_count+".description";
+        next_question_description.id="section_"+section_id+"_ques_"+count+".description";
+        next_question_description.name="section_"+section_id+"_ques_"+count+".description";
+
+        var option_count=0;
+        var current_option=document.getElementById("section_"+section_id+"_ques_"+count+".option_"+option_count);
+        var next_option=document.getElementById("section_"+section_id+"_ques_"+next_count+".option_"+option_count);
+        if(current_type<2){
+            if(next_type<2){
+                while(current_option!=null&&next_option!=null){
+                    current_option.id="ques_"+next_count+".option_"+option_count;
+                    current_option.name="ques_"+next_count+".option_"+option_count;
+                    next_option.id="ques_"+count+".option_"+option_count;
+                    next_option.name="ques_"+count+".option_"+option_count;
+                    option_count++;
+                    current_option=document.getElementById("ques_"+count+".option_"+option_count);
+                    next_option=document.getElementById("ques_"+next_count+".option_"+option_count);
+                }
+                while(current_option!=null){
+                    current_option.id="ques_"+next_count+".option_"+option_count;
+                    current_option.name="ques_"+next_count+".option_"+option_count;
+                    option_count++;
+                    current_option=document.getElementById("ques_"+count+".option_"+option_count);
+                }
+                while(next_option!=null){
+                    next_option.id="ques_"+count+".option_"+option_count;
+                    next_option.name="ques_"+count+".option_"+option_count;
+                    option_count++;
+                    next_option=document.getElementById("ques_"+next_count+".option_"+option_count);
+                }
+        }else
+            while(current_option!=null){
+            current_option.id="ques_"+next_count+".option_"+option_count;
+            current_option.name="ques_"+next_count+".option_"+option_count;
+            option_count++;
+            current_option=document.getElementById("ques_"+count+".option_"+option_count);
+          }
+        }
+        else if(next_type<2){
+            while(next_option!=null){
+                next_option.id="ques_"+count+".option_"+option_count;
+                next_option.name="ques_"+count+".option_"+option_count;
+                option_count++;
+                next_option=document.getElementById("ques_"+next_count+".option_"+option_count);
+            }
+        }
+        if(direction==0)$(current_question_div.parentNode.parentNode).insertBefore($(next_question_div.parentNode.parentNode));
+        else $(next_question_div.parentNode.parentNode).insertBefore($(current_question_div.parentNode.parentNode));
+    }
+
+    $(document).ready(function () {
+
+        $('#page-edit').validate();
+        $('#page-submit').click(function(event){
+            event.preventDefault();
+            if ($("#page-edit").valid()) {
+                var sections = [];
+                // get new ques_id
+                $.each($(".section"), function(section_id, section){
+                    var section_json = {
+                        'id': section_id,
+                        'elements': []
+                    };
+
+                    $.each($(section).find(".element"), function(element_id, element){
+                        var element_json = {
+                            'id': element_id,
+                            'element': {
+                                'type': document.getElementById("section_"+section_id+"_ques_"+element_id+".type").value,
+                                'desc': document.getElementById("section_"+section_id+"_ques_"+element_id+".description").value
+                            }
+                        };
+                        section_json['elements'].push(element_json);
+                    });
+                    sections.push(section_json);
+
+                });
+
+                $.ajax({
+                    type: "PUT",
+                    url: "{{url_for('api.update_page_content', id=page.id)}}",
+                    contentType: "application/json",
+                    data: JSON.stringify(sections),
+                    success: function (response) {
+                        // console.log(response);
+                        swal({title: "Updated!", text: "Custom questions has been updated.", type: "success", timer: 2000,   showConfirmButton: false});
+                    }
+                })
+                    .fail(function(data, textStatus, error) {
+                        // console.log(data);
+                        swal({title: "Oops...", text: "Update failed. We are very sorry. Please contact the customer service.", type: "error", timer: 2000,   showConfirmButton: false});
+                });
+            }
+        });
+    });
+
+    </script>
+{% endblock %}

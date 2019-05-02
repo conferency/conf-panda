@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceRegistration" %}
+{% set active_subpage = "set_registration" %}
+{% set page_title = "Registration Settings" %}
+
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Registration', '#'), (page_title, url_for('conference.set_registration', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <!-- datepicker -->
+    <link href="{{ url_for('static', filename='conferency/css/datepicker3.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/switchery/switchery.css') }}" rel="stylesheet">
+    <style>
+        .margin-control {
+            margin-top: 15px;
+        }
+
+        .bottom-padding-control {
+            padding-bottom: 25px;
+        }
+    </style>
+
+{% endblock %}
+
+{% block page_content %}
+    <div class="row bottom-padding-control">
+        <div class="col-lg-12">
+            <div class="row">
+                <div class="col-md-4 margin-control">
+                    <h3>Open Registration?</h3>
+                </div>
+                <div class="col-md-8 margin-control">
+                    <input type="checkbox" id="registration_switch" class="switch-button" {% if conference.registration.status %}checked{% endif %}/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 margin-control">
+                    <h3>Web Link</h3>
+                </div>
+                <div class="col-md-4 margin-control">
+                    <a id="url_copy" href="{{ url_for('main.conf_registration', conf_name=conference.short_name) }}"
+                       target="_blank">
+                       <h4>{{ url_for('main.conf_registration', conf_name=conference.short_name,  _external=True) }}</h4>
+                    </a>
+                </div>
+                <div class="col-md-4 margin-control">
+                    <button id="url_copy_btn" class="btn btn-sm btn-primary m-t-n-xs" data-placement="bottom"
+                            data-clipboard-target="#url_copy"><i class="fa fa-copy"></i> Copy the link
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script>
+        var conferenceID = "{{ conference.id }}";
+    </script>
+
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- datepicker -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-datepicker.js') }}"></script>
+    <!-- Switchery -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/switchery/switchery.js') }}"></script>
+    <!-- Clipboard -->
+    <script src="{{ url_for('static', filename='conferency/js/clipboard.min.js') }}"></script>
+
+    <!-- Page specific js -->
+    <script src="{{ url_for('static', filename='conferency/js/registration_setting.js') }}"></script>
+
+{% endblock %}

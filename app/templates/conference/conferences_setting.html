@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "setting" %}
+{% set page_title = "Settings" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.conferences_setting', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block head %}
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-tagsinput.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/select2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/datepicker3.css') }}" rel="stylesheet">
+    {{ super() }}
+    <style>
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius: 0px;
+            box-shadow: none;
+        }
+
+        .bootstrap-tagsinput input {
+            width: 100% !important;
+        }
+
+        .center {
+            float: none;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        .panel-heading h5 {
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 0 7px;
+            padding: 0;
+            text-overflow: ellipsis;
+            float: left;
+        }
+
+        .padding-bottom-5 {
+            padding-bottom: 5px;
+        }
+
+        .padding-top-7 {
+            padding-top: 7px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-content clearfix">
+                        <p>Update conference information.</p>
+                        <div class="hr-line-dashed"></div>
+                        <div class="form-horizontal">
+                            <form id="conference-edit" method="post">
+                                {{ form.hidden_tag() }}
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        {{ form.conference_name.label }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        {{ form.conference_name(class_='form-control required', placeholder="Required") }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        {{ form.short_name.label }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        {{ form.short_name(class_='form-control required', placeholder="shortname (lowercase) + year, i.e., conf2015", **{'readonly':'readonly'}) }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                    </div>
+                                    <div class="col-md-7">
+                                        Paper management and registration system address:
+                                        https://app.conferency.com/<label
+                                            id="shortName">{{form.short_name.data}}</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        <label>Website</label>
+                                    </div>
+                                    <div class="col-md-7 padding-top-7 ">
+                                        {{ form.website_url(class_='form-control required website_url', placeholder="Required") }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        {{ form.contact_email.label }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        {{ form.contact_email(class_='form-control required email', placeholder="Required") }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        {{ form.contact_phone.label }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        {{ form.contact_phone(class_='form-control required', placeholder="Required") }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        {{ form.city.label }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        {{ form.city(class_='form-control required', placeholder="Required") }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        {{ form.state.label }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        {{ form.state(class_='form-control', placeholder="Optional") }}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        {{ form.country.label }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        <select class="form-control required" id="country" name="country"
+                                                aria-required="true" aria-invalid="false" autocomplete="off">
+                                                {{ macros.generate_country_options(form.country.data) }}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        {{ form.address.label }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        {{ form.address(class_='form-control', placeholder="Optional") }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        <label for="date">Start date and end date</label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <div class="input-daterange input-group" id="datepicker" style="width: 100%;">
+                                            <input type="text" id="start" class="input-sm form-control required"
+                                                   name="start" value="{{form.start.data}}">
+                                            <span class="input-group-addon control-height">to</span>
+                                            <input type="text" id="end" class="input-sm form-control required"
+                                                   name="end" value="{{form.end.data}}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        {{ form.timezone.label }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        <select class="form-control required" id="timezone" name="timezone"
+                                                aria-required="true" aria-invalid="false" autocomplete="off">
+                                                {{ macros.generate_timezone_options(form.timezone.data) }}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        <label for="subjects">Subjects</label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        {{ form.subjects(class_='form-control') }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        {{ form.tags.label }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        {{ form.tags(class_='form-control', placeholder="Optional, separated by commas or semi-colons", **{'data-role':'tagsinput'}) }}
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-3 control-label">
+                                        {{ form.info.label }}
+                                    </div>
+                                    <div class="col-md-7">
+                                        {{ form.info(class_='form-control', placeholder="Optional") }}
+                                    </div>
+                                </div>
+                                <input hidden name="website_url" value="{{ conference.website }}" />
+                                <input hidden name="website_type" value="{{ conference.configuration.get("website_type", "self_hosted") }}" />
+                                <div class="form-group">
+                                    {{ form.submit(class_='btn btn-primary center-block') }}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- Tag Input -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-tagsinput.js') }}"></script>
+    <!-- Autosize Textarea -->
+    <script src="{{ url_for('static', filename='conferency/js/autosize.min.js') }}"></script>
+    <!-- select -->
+    <script src="{{ url_for('static', filename='conferency/js/select2.full.min.js') }}"></script>
+    <!-- datepicker -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-datepicker.js') }}"></script>
+    <!-- Autocomplete -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+    <script>
+        var short_name_orig = "";
+
+        function resizeChosen() {
+            $(".select2-container").each(function () {
+                $(this).attr('style', 'width: 100%');
+            });
+        }
+
+        /*** functions used for updating conference info ***/
+
+        function start_autosize() {
+            // autosize the textarea
+            $('textarea').each(function () {
+                autosize(this);
+            });
+        }
+
+        // function country_option(selector, data, default_country) {
+        //     //console.log(default_country);
+        //     if (default_country === "None") {
+        //         $(selector).append("<option value='' selected></option>");
+        //     }
+        //     $.each(data, function (index, value) {
+        //         if (value.data !== default_country) {
+        //             $(selector).append("<option value='" + value.data + "'>" + value.value + "</option>");
+        //         } else {
+        //             $(selector).append("<option value='" + value.data + "' selected>" + value.value + "</option>");
+        //         }
+        //     });
+        // }
+
+        // function timezone_option(selector, data, default_timezone) {
+        //     if (default_timezone === "None") {
+        //         $(selector).append("<option value='' selected></option>");
+        //     }
+        //     $.each(data, function (index, value) {
+        //         if (value !== default_timezone) {
+        //             $(selector).append("<option value='" + value + "'>" + value + "</option>");
+        //         } else {
+        //             $(selector).append("<option value='" + value + "' selected>" + value + "</option>");
+        //         }
+        //     });
+        // }
+
+        function setUpAutocomplete(selector, data) {
+            $(selector).devbridgeAutocomplete({
+                lookup: data,
+                lookupLimit: 10,
+            });
+        }
+
+        // function fill_tags(selector, tags_str) {
+        //     $.each(tags_str.split(','), function (index, value) {
+        //         $(selector).tagsinput('add', value);
+        //     });
+        // }
+
+        // function set_country(country) {
+        //     // inject options in the country select
+        //     $.getJSON("{{ url_for('static', filename='json/countries.json')}}", function (data) {
+        //         country_option($('select[name="country"]'), data, country);
+        //     });
+        // }
+
+        // function set_timezone(timezone) {
+        //     $.getJSON("{{ url_for('static', filename='json/timezone.json')}}", function (data) {
+        //         timezone_option($('select[name="timezone"]'), data, timezone);
+        //     })
+        //         .fail(function (jqXHR, textStatus, errorThrown) {
+        //             console.log(jqXHR);
+        //             console.log(textStatus);
+        //             console.log(errorThrown);
+        //         });
+        // }
+
+        function init_datepicker() {
+            $('#datepicker').datepicker({
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                format: 'yyyy-mm-dd',
+            });
+        }
+
+        function short_name_validate(short_name_data, callback) {
+            if (short_name_orig === short_name_data) {
+                validity = 1;
+                $('#checkMarkIcon').attr('class', 'fa fa-check-square').attr('style', 'color:green');
+                $('#errorMessage').text("");
+                $('#short_name').removeClass("error");
+                return;
+            }
+            if (typeof short_name_data === 'undefined' || short_name_data === 'undefined') {
+                return;
+            }
+            // console.log("checking:" + short_name_data)
+            $.ajax({
+                contentType: 'application/json',
+                method: "POST",
+                url: "/api/conferences/check_short_name",
+                data: JSON.stringify({'short_name': short_name_data})
+            })
+                .done(function (data) {
+                    callback = typeof callback !== 'undefined' ? callback : jQuery.noop;
+                    valid_short_name = data.short_name;
+                    if (data.code == 200) {
+                        validity = 1;
+                        $('#checkMarkIcon').attr('class', 'fa fa-check-square').attr('style', 'color:green');
+                        $('#errorMessage').text("");
+                        $('#short_name').removeClass("error");
+                    } else {
+                        validity = 2;
+                        $('#checkMarkIcon').attr('class', 'fa fa-times').attr('style', 'color:red');
+                        $('#errorMessage').text(data.message).attr('style', 'color:red');
+                        $('#short_name').addClass("error");
+                    }
+                    callback();
+                }, "json");
+        }
+
+        $(document).ready(function () {
+            //resize the select2 form depends on window size
+            $(window).on('resize', resizeChosen);
+
+            init_datepicker();
+
+            start_autosize();
+
+            $('#short_name').on('blur', function () {
+                short_name_validate($('#short_name').val());
+            });
+
+            $("#subjects").select2({
+                placeholder: "You can choose multiple subjects"
+            });
+
+            $('#short_name').on('keyup', function () {
+                var name = $('#short_name').val().toLowerCase().trim();
+                $('#shortName').text(name);
+                $('#shortName2').text(name);
+                var patrn = /^[a-z]+\d{4}$/;
+                var patrn_space = /^[a-z]*\s+[a-z]*$/;
+                var patrn_letter_number_dash = /^[a-z0-9]+$/;
+                var patrn_digits = /^[a-z]+$/;
+
+                var change_check_mark_icon_color = function (valid, value) {
+                    if (valid) {
+                        $('#checkMarkIcon').attr('class', 'fa').attr('style', 'color:green');
+                        $('#errorMessage').attr('style', 'color:green').text(value);
+                        $('#short_name').removeClass("error");
+
+                    } else {
+                        $('#checkMarkIcon').attr('class', 'fa fa-times').attr('style', 'color:red');
+                        $('#errorMessage').attr('style', 'color:red').text(value);
+                        $('#short_name').addClass("error");
+                    }
+                };
+                if (patrn.exec(name)) {
+                    change_check_mark_icon_color(true, "");
+                }
+                else if (name == '') {
+                    change_check_mark_icon_color(false, "");
+                }
+                else if (patrn_space.exec(name)) {
+                    change_check_mark_icon_color(false, "Please remove spaces.");
+                }
+                else if (!patrn_letter_number_dash.exec(name)) {
+                    change_check_mark_icon_color(false, "Short names can only have letters, numbers and dashes.");
+                }
+                else if (patrn_digits.exec(name)) {
+                    change_check_mark_icon_color(false, "Please add a four-digit year.");
+                }
+                else {
+                    change_check_mark_icon_color(false, "Short name format should be 'name' + 'four-digit-year'.");
+                }
+            });
+
+            /*** edit conferences ***/
+                // conference info
+            // $.getJSON('/api/conferences/' + {{ conference.id }}, function (data) {
+            //     // $('#conference_name').val(data['name']);
+            //     // $('#short_name').val(data['short_name']);
+            //     // $('#website').val(data['website']);
+            //     // $('#contact_email').val(data['contact_email']);
+            //     // $('#contact_phone').val(data['contact_phone']);
+            //     // $('#city').val(data['city']);
+            //     // $('#state').val(data['state']);
+            //     // $('#shortName').html(data['short_name']);
+            //     // $('#shortName2').html(data['short_name']);
+            //     short_name_orig = data['short_name'];
+            //     short_name_validate($('#short_name').val());
+            //     // country = data['country'];
+            //     $('#address').val(data['address']);
+            //     // $('#start').val(data['start_date']);
+            //     // $('#end').val(data['end_date']);
+            //     fill_tags('#tags', data['tags'])
+            //     $('#info').val(data['info']);
+            //     // check_featured(data['featured']);
+            // })
+            //     .complete(function () {
+            //
+            //         // set_timezone(timezone);
+            //
+            //     });
+
+            $.validator.addMethod('validUrl', function(value, element) {
+                var url = $.validator.methods.url.bind(this);
+                return url(value, element) || url('http://' + value, element);
+            }, 'Please enter a valid URL');
+            // hook the form with validator
+            $("#conference-edit").validate({
+                rules: {
+                    website_url: {
+                        validUrl: true
+                    }
+                },
+                errorPlacement: function (error, element) {
+                    if (element.parent().attr("id") === "datepicker") {
+                        error.appendTo(element.parent().parent());
+                    } else {
+                        error.appendTo(element.parent());
+                    }
+                }
+            });
+
+            // inject options in the state select
+            $.getJSON("{{ url_for('static', filename='json/states.json')}}", function (data) {
+                setUpAutocomplete('#state', data);
+            })
+                .fail(function (data, textStatus, error) {
+                    console.error("error: " + error);
+                });
+
+            // here use $('#submit') will cause error!!!
+            $("form").submit(function (event) {
+                if (validity == 2) {
+                    if (valid_short_name != $('#short_name').val()) {
+                        short_name_validate($("#short_name").val(), $("form").submit);
+                    }
+                } else if (validity == 0) {
+                    short_name_validate($("#short_name").val(), $("form").submit);
+                } else if ($("#conference-edit").valid()) {
+                    return;
+                }
+                event.preventDefault();
+            });
+
+            // fill_tags('#descision_tags', "{{conference.configuration['descision_tags']}}")
+
+        });
+
+    </script>
+{% endblock %}

@@ -1,0 +1,556 @@
+{% macro pagination_widget(pagination, endpoint, fragment='') %}
+    <ul class="pagination">
+        <li{% if not pagination.has_prev %} class="disabled"{% endif %}>
+            <a href="{% if pagination.has_prev %}{{ url_for(endpoint, page=pagination.prev_num, **kwargs) }}{{ fragment }}{% else %}#{% endif %}">
+                &laquo;
+            </a>
+        </li>
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+                {% if p == pagination.page %}
+                    <li class="active">
+                        <a href="{{ url_for(endpoint, page = p, **kwargs) }}{{ fragment }}">{{ p }}</a>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{{ url_for(endpoint, page = p, **kwargs) }}{{ fragment }}">{{ p }}</a>
+                    </li>
+                {% endif %}
+            {% else %}
+                <li class="disabled"><a href="#">&hellip;</a></li>
+            {% endif %}
+        {% endfor %}
+        <li{% if not pagination.has_next %} class="disabled"{% endif %}>
+            <a href="{% if pagination.has_next %}{{ url_for(endpoint, page=pagination.next_num, **kwargs) }}{{ fragment }}{% else %}#{% endif %}">
+                &raquo;
+            </a>
+        </li>
+    </ul>
+{% endmacro %}
+
+{% macro pagination_tab_widget(pagination, endpoint, tab, fragment='') %}
+    <ul class="pagination">
+        <li{% if not pagination.has_prev %} class="disabled"{% endif %}>
+            <a href="{% if pagination.has_prev %}{{ url_for(endpoint, page=pagination.prev_num, tab=tab , **kwargs) }}{{ fragment }}{% else %}#{% endif %}">
+                &laquo;
+            </a>
+        </li>
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+                {% if p == pagination.page %}
+                    <li class="active">
+                        <a href="{{ url_for(endpoint, page = p, tab=tab, **kwargs) }}{{ fragment }}">{{ p }}</a>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{{ url_for(endpoint, page = p, tab=tab, **kwargs) }}{{ fragment }}">{{ p }}</a>
+                    </li>
+                {% endif %}
+            {% else %}
+                <li class="disabled"><a href="#">&hellip;</a></li>
+            {% endif %}
+        {% endfor %}
+        <li{% if not pagination.has_next %} class="disabled"{% endif %}>
+            <a href="{% if pagination.has_next %}{{ url_for(endpoint, page=pagination.next_num, tab=tab, **kwargs) }}{{ fragment }}{% else %}#{% endif %}">
+                &raquo;
+            </a>
+        </li>
+    </ul>
+{% endmacro %}
+
+{# A replacement for bootstrap/wtf quick_forms, this renders a single field
+   which works with bootstrap error #}
+{% macro render_field(form_field, placeholder, type='') -%}
+    {% if form_field.data and not form_field.errors %}
+        {% set value = form_field.data %}
+    {% else %}
+        {% set value = '' %}
+    {% endif %}
+    <div class="form-group {% if form_field.errors %}has-error{% endif %}">
+        {% if type %}
+            {{ form_field(class_="form-control", placeholder=placeholder, type=type, value=value)}}
+        {% else %}
+            {{ form_field(class_="form-control", placeholder=placeholder, value=value)}}
+        {% endif %}
+        {% if form_field.errors %}
+            {% for error in form_field.errors %}
+                <p class="help-block" id="{{ form_field.name }}-error">{{ error }}</p>
+            {% endfor %}
+        {% else %}
+            <p class="help-block" id="{{ form_field.name }}-error"></p>
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+{% macro render_checkbox(form_field, label) -%}
+    <div class="checkbox i-checks">
+        <label>
+            {{ form_field(class="checkbox")}}
+            {{ label }}
+        </label>
+    </div>
+{%- endmacro %}
+
+{% macro handle_notifications(flashed_messages) -%}
+    <script>
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "progressBar": true,
+            "preventDuplicates": false,
+            "positionClass": "toast-top-center",
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "3000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+
+        {% for category, message in flashed_messages %}
+            var toastr_category = '{{ category }}';
+
+            if (toastr_category === 'message') {
+                toastr_category = 'info';
+            }
+
+            if (toastr_category === 'error') {
+                toastr[toastr_category]('{{message}}', 'Error', {
+                    "timeOut": "0",
+                    "extendedTimeOut": "0",
+                });
+            } else {
+                toastr[toastr_category]('{{message}}');
+            }
+        {% endfor %}
+    </script>
+{%- endmacro %}
+
+{% macro add_author_widget(checked=False) %}
+    <div id="author_template" class="authorHolder">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Author #1</h5>
+                <button buttonindex="1" style="position: relative; top: -3px; right: -10px" type="button" class="btn btn-primary btn-xs autofill">add yourself as an author</button>
+                <div class="ibox-tools">
+                    <div class="pull-left checkbox checkbox-success checkbox-inline">
+                        <input id="author_sendnotification_" type="checkbox" name="author_sendnotification_" {% if checked %}checked{% endif %}>
+                        <label for="author_sendnotification_">
+                            Send notification to this author
+                        </label>
+                    </div>
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                    <a class="close-link" authorindex="1">
+                        <i class="fa fa-times"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content" style="display: block;">
+                <div class="row">
+                    <div class="col-sm-6 b-r">
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label>First Name *</label>
+                                <input name="author_firstname_" placeholder="Enter First Name" class="form-control required name-box autofill">
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name *</label>
+                                <input name="author_lastname_" placeholder="Enter Last Name" class="form-control required name-box autofill">
+                            </div>
+                            <div class="form-group">
+                                <label>Email *</label>
+                                <input type="email" name="author_email_" placeholder="Enter Email" class="form-control required email autofill">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>Organization *</label>
+                            <input name="author_organization_" placeholder="Please input the formal name of the affiliation without department, college, etc." class="form-control required organization">
+                        </div>
+                        <div class="form-group">
+                            <label>Country *</label>
+                            <!-- <input type="text" name="author_country_1" autocomplete="off" placeholder="Select Country" class="form-control country"> -->
+                            <select class="form-control required country" name="author_country_" aria-required="true" aria-invalid="false" autocomplete="off">
+                                {{ generate_country_options() }}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Website</label>
+                            <input type="text" name="author_website_" placeholder="Enter Website URL" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro pagination_widget(pagination, endpoint) %}
+    <div class="btn-group">
+        <a href="{% if pagination.has_prev %}{{ url_for(endpoint, page = pagination.page - 1, **kwargs ) }}{% else %}#{% endif %}" class="btn btn-white {% if not pagination.has_prev %}disabled{% endif %}">
+            <i class="fa fa-chevron-left"></i>
+        </a>
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+                <a href="{{ url_for(endpoint, page = p, **kwargs) }}" class="btn btn-white {% if p == pagination.page %}active{% endif %}">
+                    {{ p }}
+                </a>
+            {% else %}
+            <a class="btn btn-white disabled" href="#">&hellip;</a>
+            {% endif %}
+        {% endfor %}
+        <a class="btn btn-white {% if not pagination.has_next %}disabled{% endif %}" href="{% if pagination.has_next %}{{ url_for(endpoint, page = pagination.page + 1, **kwargs) }}{% else %}#{% endif %}">
+                <i class="fa fa-chevron-right"></i>
+            </a>
+        </a>
+    </div>
+
+{% endmacro %}
+
+{% macro breadcrumb_widget(breadcrumbs) %}
+    <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+            {% set is_last_element = (breadcrumb == breadcrumbs[-1]) %}
+            {% set has_link = not breadcrumb[1] == '#' %}
+
+            <li {% if is_last_element %}class="active"{% endif %}>
+                {% if has_link %}<a href="{{ breadcrumb[1] }}">{% endif %}
+                    {% if is_last_element %}<strong>{% endif %}
+                        {{ breadcrumb[0] }}
+                    {% if is_last_element %}</strong>{% endif %}
+                {% if has_link%}</a>{% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+{% endmacro %}
+
+{% macro generate_paper_reviewers(reviewer_status) %}
+    {% for status in reviewer_status %}
+        <a class="text-info {% if not status[0] %}text-warning{% endif %}" data-reviewer-id={{status[1].id}} href="{{ url_for('main.user', id=status[1].id) }}">
+            <nobr>{{ status[1].first_name }} {{ status[1].last_name }}</nobr>
+        </a><br>
+    {% endfor %}
+{% endmacro %}
+
+{% macro generate_paper_authors(authors) %}
+    {% for author in authors %}
+        <a class="text-info" href="{{ url_for('main.user', id=author.user_id) }}">
+            <nobr>{{ author.first_name }} {{ author.last_name }}</nobr>
+        </a><br>
+    {% endfor %}
+{% endmacro %}
+
+{% macro generate_orderForm_question(question) %}
+    {% set id = question['id'] if question.get('id', False) else question['desc'] %}
+    <div class="form-group">
+        <label for="{{id}}_1">{{question['desc']}}</label>{% if question['require'] %}<span style="color:#ed5565"> *</span>{% endif %}
+        {% if question['ques_type'] == 3 %}
+            <textarea class="form-control {% if question['require'] %}required{% endif %}" id="{{id}}_1" name="{{id}}_1" placeholder="{% if question['require'] %}Required{% else %}Optional{% endif %}" style="" aria-required="true"></textarea>
+        {% elif question['ques_type'] == 0 %}
+            {% for option in question['options'] %}
+                <br><input type="radio" id="{{id}}-{{ loop.index }}" value="{{option}}" name="{{id}}_1" class="question-i-checks {% if question['require'] %}required{% endif %}" {% if question['require'] and loop.index == 1 %} checked='true' {% endif %}> <label for="{{id}}-{{ loop.index }}"> {{option}}</label><br>
+            {% endfor %}
+        {% elif question['ques_type'] == 1 %}
+            {% for option in question['options'] %}
+                <br><input type="checkbox" id="{{id}}-{{ loop.index }}" value="{{option}}" name="{{id}}_1" class="question-i-checks {% if question['require'] %}required{% endif %}" {% if loop.index == 1 %} checked='true' {% endif %}> <label for="{{id}}-{{ loop.index }}"> {{option}}</label><br>
+            {% endfor %}
+        {% else %}
+            <input class="form-control {% if question['require'] %}required{% endif %}" id="{{id | replace(' ', '_')}}_1" name="{{id}}_1" placeholder="{% if question['require'] %}Required{% else %}Optional{% endif %}" type="text">
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{% macro generate_country_options(country) %}
+    {% if not country %}
+    {% set country = 'United States' %}
+    {% endif %}
+    {% set country_list = ['Afghanistan', '\xc5land Islands', 'Albania', 'Algeria', 'American Samoa', 'Andorra', 'Angola', 'Anguilla', 'Antarctica', 'Antigua And Barbuda', 'Argentina', 'Armenia', 'Aruba', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bermuda', 'Bhutan', 'Bolivia', 'Bonaire, Sint Eustatius and Saba', 'Bosnia and Herzegovina', 'Botswana', 'Bouvet Island', 'Brazil', 'British Indian Ocean Territory', 'Brunei Darussalam', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Cayman Islands', 'Central African Republic', 'Chad', 'Chile', 'China', 'Christmas Island', 'Cocos (Keeling) Islands', 'Colombia', 'Comoros', 'Congo', 'Congo, the Democratic Republic of the', 'Cook Islands', 'Costa Rica', "C\xf4te d'Ivoire", 'Croatia', 'Cuba', 'Cura\xe7ao', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Falkland Islands (Malvinas)', 'Faroe Islands', 'Fiji', 'Finland', 'France', 'French Guiana', 'French Polynesia', 'French Southern Territories', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Gibraltar', 'Greece', 'Greenland', 'Grenada', 'Guadeloupe', 'Guam', 'Guatemala', 'Guernsey', 'Guinea', 'Guinea-Bissa', 'Guyana', 'Haiti', 'Heard Island and McDonald Islands', 'Holy See (Vatican City State)', 'Honduras', 'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran, Islamic Republic of', 'Iraq', 'Ireland', 'Isle of Man', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jersey', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', "North Korea", 'South Korea', 'Kuwait', 'Kyrgyzstan', 'Lao People\'s Democratic Republic', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libyan Arab Jamahiriya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Macao', 'Macedonia, The Former Yugoslav Republic Of', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Martinique', 'Mauritania', 'Mauritius', 'Mayotte', 'Mexico', 'Micronesia, Federated States of', 'Moldova, Republic of', 'Monaco', 'Mongolia', 'Montenegro', 'Montserrat', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Naur', 'Nepal', 'Netherlands', 'New Caledonia', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Niue', 'Norfolk Island', 'Northern Mariana Islands', 'Norway', 'Oman', 'Pakistan', 'Pala', 'Palestinian Territory, Occupied', 'Panama', 'Papua New Guinea', 'Paraguay', 'Per', 'Philippines', 'Pitcairn', 'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'R\xe9union', 'Romania', 'Russian Federation', 'Rwanda', 'Saint Barth\xe9lemy', 'Saint Helena', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Martin (French Part)', 'Saint Pierre and Miquelon', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Sint Maarten (Dutch Part)', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'South Georgia and the South Sandwich Islands', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Svalbard and Jan Mayen', 'Swaziland', 'Sweden', 'Switzerland', 'Syrian Arab Republic', 'Taiwan, Province of China', 'Tajikistan', 'Tanzania, United Republic of', 'Thailand', 'Timor-Leste', 'Togo', 'Tokela', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Turks and Caicos Islands', 'Tuval', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'United States Minor Outlying Islands', 'Uruguay', 'Uzbekistan', 'Vanuat', 'Venezuela', 'Vietnam', 'Virgin Islands, British', 'Virgin Islands, U.S.', 'Wallis and Futuna', 'Western Sahara', 'Yemen', 'Zambia', 'Zimbabwe'] %}
+    {% for country_option in country_list %}
+        {% if country == country_option %}
+            <option value="{{country_option}}" selected>{{country_option}}</option>
+        {% else %}
+            <option value="{{country_option}}">{{country_option}}</option>
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+
+{% macro generate_timezone_options(timezone) %}
+    {% if not timezone %}
+    {% set timezone = 'UTC' %}
+    {% endif %}
+    {% set timezone_list = ['Africa/Abidjan', 'Africa/Accra', 'Africa/Addis_Ababa', 'Africa/Algiers', 'Africa/Asmara', 'Africa/Asmera', 'Africa/Bamako', 'Africa/Bangui', 'Africa/Banjul', 'Africa/Bissau', 'Africa/Blantyre', 'Africa/Brazzaville', 'Africa/Bujumbura', 'Africa/Cairo', 'Africa/Casablanca', 'Africa/Ceuta', 'Africa/Conakry', 'Africa/Dakar', 'Africa/Dar_es_Salaam', 'Africa/Djibouti', 'Africa/Douala', 'Africa/El_Aaiun', 'Africa/Freetown', 'Africa/Gaborone', 'Africa/Harare', 'Africa/Johannesburg', 'Africa/Juba', 'Africa/Kampala', 'Africa/Khartoum', 'Africa/Kigali', 'Africa/Kinshasa', 'Africa/Lagos', 'Africa/Libreville', 'Africa/Lome', 'Africa/Luanda', 'Africa/Lubumbashi', 'Africa/Lusaka', 'Africa/Malabo', 'Africa/Maputo', 'Africa/Maseru', 'Africa/Mbabane', 'Africa/Mogadishu', 'Africa/Monrovia', 'Africa/Nairobi', 'Africa/Ndjamena', 'Africa/Niamey', 'Africa/Nouakchott', 'Africa/Ouagadougou', 'Africa/Porto-Novo', 'Africa/Sao_Tome', 'Africa/Timbuktu', 'Africa/Tripoli', 'Africa/Tunis', 'Africa/Windhoek', 'America/Adak', 'America/Anchorage', 'America/Anguilla', 'America/Antigua', 'America/Araguaina', 'America/Argentina/Buenos_Aires', 'America/Argentina/Catamarca', 'America/Argentina/ComodRivadavia', 'America/Argentina/Cordoba', 'America/Argentina/Jujuy', 'America/Argentina/La_Rioja', 'America/Argentina/Mendoza', 'America/Argentina/Rio_Gallegos', 'America/Argentina/Salta', 'America/Argentina/San_Juan', 'America/Argentina/San_Luis', 'America/Argentina/Tucuman', 'America/Argentina/Ushuaia', 'America/Aruba', 'America/Asuncion', 'America/Atikokan', 'America/Atka', 'America/Bahia', 'America/Bahia_Banderas', 'America/Barbados', 'America/Belem', 'America/Belize', 'America/Blanc-Sablon', 'America/Boa_Vista', 'America/Bogota', 'America/Boise', 'America/Buenos_Aires', 'America/Cambridge_Bay', 'America/Campo_Grande', 'America/Cancun', 'America/Caracas', 'America/Catamarca', 'America/Cayenne', 'America/Cayman', 'America/Chicago', 'America/Chihuahua', 'America/Coral_Harbour', 'America/Cordoba', 'America/Costa_Rica', 'America/Creston', 'America/Cuiaba', 'America/Curacao', 'America/Danmarkshavn', 'America/Dawson', 'America/Dawson_Creek', 'America/Denver', 'America/Detroit', 'America/Dominica', 'America/Edmonton', 'America/Eirunepe', 'America/El_Salvador', 'America/Ensenada', 'America/Fort_Nelson', 'America/Fort_Wayne', 'America/Fortaleza', 'America/Glace_Bay', 'America/Godthab', 'America/Goose_Bay', 'America/Grand_Turk', 'America/Grenada', 'America/Guadeloupe', 'America/Guatemala', 'America/Guayaquil', 'America/Guyana', 'America/Halifax', 'America/Havana', 'America/Hermosillo', 'America/Indiana/Indianapolis', 'America/Indiana/Knox', 'America/Indiana/Marengo', 'America/Indiana/Petersburg', 'America/Indiana/Tell_City', 'America/Indiana/Vevay', 'America/Indiana/Vincennes', 'America/Indiana/Winamac', 'America/Indianapolis', 'America/Inuvik', 'America/Iqaluit', 'America/Jamaica', 'America/Jujuy', 'America/Juneau', 'America/Kentucky/Louisville', 'America/Kentucky/Monticello', 'America/Knox_IN', 'America/Kralendijk', 'America/La_Paz', 'America/Lima', 'America/Los_Angeles', 'America/Louisville', 'America/Lower_Princes', 'America/Maceio', 'America/Managua', 'America/Manaus', 'America/Marigot', 'America/Martinique', 'America/Matamoros', 'America/Mazatlan', 'America/Mendoza', 'America/Menominee', 'America/Merida', 'America/Metlakatla', 'America/Mexico_City', 'America/Miquelon', 'America/Moncton', 'America/Monterrey', 'America/Montevideo', 'America/Montreal', 'America/Montserrat', 'America/Nassau', 'America/New_York', 'America/Nipigon', 'America/Nome', 'America/Noronha', 'America/North_Dakota/Beulah', 'America/North_Dakota/Center', 'America/North_Dakota/New_Salem', 'America/Ojinaga', 'America/Panama', 'America/Pangnirtung', 'America/Paramaribo', 'America/Phoenix', 'America/Port-au-Prince', 'America/Port_of_Spain', 'America/Porto_Acre', 'America/Porto_Velho', 'America/Puerto_Rico', 'America/Rainy_River', 'America/Rankin_Inlet', 'America/Recife', 'America/Regina', 'America/Resolute', 'America/Rio_Branco', 'America/Rosario', 'America/Santa_Isabel', 'America/Santarem', 'America/Santiago', 'America/Santo_Domingo', 'America/Sao_Paulo', 'America/Scoresbysund', 'America/Shiprock', 'America/Sitka', 'America/St_Barthelemy', 'America/St_Johns', 'America/St_Kitts', 'America/St_Lucia', 'America/St_Thomas', 'America/St_Vincent', 'America/Swift_Current', 'America/Tegucigalpa', 'America/Thule', 'America/Thunder_Bay', 'America/Tijuana', 'America/Toronto', 'America/Tortola', 'America/Vancouver', 'America/Virgin', 'America/Whitehorse', 'America/Winnipeg', 'America/Yakutat', 'America/Yellowknife', 'Antarctica/Casey', 'Antarctica/Davis', 'Antarctica/DumontDUrville', 'Antarctica/Macquarie', 'Antarctica/Mawson', 'Antarctica/McMurdo', 'Antarctica/Palmer', 'Antarctica/Rothera', 'Antarctica/South_Pole', 'Antarctica/Syowa', 'Antarctica/Troll', 'Antarctica/Vostok', 'Arctic/Longyearbyen', 'Asia/Aden', 'Asia/Almaty', 'Asia/Amman', 'Asia/Anadyr', 'Asia/Aqtau', 'Asia/Aqtobe', 'Asia/Ashgabat', 'Asia/Ashkhabad', 'Asia/Baghdad', 'Asia/Bahrain', 'Asia/Baku', 'Asia/Bangkok', 'Asia/Barnaul', 'Asia/Beirut', 'Asia/Bishkek', 'Asia/Brunei', 'Asia/Calcutta', 'Asia/Chita', 'Asia/Choibalsan', 'Asia/Chongqing', 'Asia/Chungking', 'Asia/Colombo', 'Asia/Dacca', 'Asia/Damascus', 'Asia/Dhaka', 'Asia/Dili', 'Asia/Dubai', 'Asia/Dushanbe', 'Asia/Gaza', 'Asia/Harbin', 'Asia/Hebron', 'Asia/Ho_Chi_Minh', 'Asia/Hong_Kong', 'Asia/Hovd', 'Asia/Irkutsk', 'Asia/Istanbul', 'Asia/Jakarta', 'Asia/Jayapura', 'Asia/Jerusalem', 'Asia/Kabul', 'Asia/Kamchatka', 'Asia/Karachi', 'Asia/Kashgar', 'Asia/Kathmandu', 'Asia/Katmandu', 'Asia/Khandyga', 'Asia/Kolkata', 'Asia/Krasnoyarsk', 'Asia/Kuala_Lumpur', 'Asia/Kuching', 'Asia/Kuwait', 'Asia/Macao', 'Asia/Macau', 'Asia/Magadan', 'Asia/Makassar', 'Asia/Manila', 'Asia/Muscat', 'Asia/Nicosia', 'Asia/Novokuznetsk', 'Asia/Novosibirsk', 'Asia/Omsk', 'Asia/Oral', 'Asia/Phnom_Penh', 'Asia/Pontianak', 'Asia/Pyongyang', 'Asia/Qatar', 'Asia/Qyzylorda', 'Asia/Rangoon', 'Asia/Riyadh', 'Asia/Saigon', 'Asia/Sakhalin', 'Asia/Samarkand', 'Asia/Seoul', 'Asia/Shanghai', 'Asia/Singapore', 'Asia/Srednekolymsk', 'Asia/Taipei', 'Asia/Tashkent', 'Asia/Tbilisi', 'Asia/Tehran', 'Asia/Tel_Aviv', 'Asia/Thimbu', 'Asia/Thimphu', 'Asia/Tokyo', 'Asia/Tomsk', 'Asia/Ujung_Pandang', 'Asia/Ulaanbaatar', 'Asia/Ulan_Bator', 'Asia/Urumqi', 'Asia/Ust-Nera', 'Asia/Vientiane', 'Asia/Vladivostok', 'Asia/Yakutsk', 'Asia/Yekaterinburg', 'Asia/Yerevan', 'Atlantic/Azores', 'Atlantic/Bermuda', 'Atlantic/Canary', 'Atlantic/Cape_Verde', 'Atlantic/Faeroe', 'Atlantic/Faroe', 'Atlantic/Jan_Mayen', 'Atlantic/Madeira', 'Atlantic/Reykjavik', 'Atlantic/South_Georgia', 'Atlantic/St_Helena', 'Atlantic/Stanley', 'Australia/ACT', 'Australia/Adelaide', 'Australia/Brisbane', 'Australia/Broken_Hill', 'Australia/Canberra', 'Australia/Currie', 'Australia/Darwin', 'Australia/Eucla', 'Australia/Hobart', 'Australia/LHI', 'Australia/Lindeman', 'Australia/Lord_Howe', 'Australia/Melbourne', 'Australia/NSW', 'Australia/North', 'Australia/Perth', 'Australia/Queensland', 'Australia/South', 'Australia/Sydney', 'Australia/Tasmania', 'Australia/Victoria', 'Australia/West', 'Australia/Yancowinna', 'Brazil/Acre', 'Brazil/DeNoronha', 'Brazil/East', 'Brazil/West', 'CET', 'CST6CDT', 'Canada/Atlantic', 'Canada/Central', 'Canada/East-Saskatchewan', 'Canada/Eastern', 'Canada/Mountain', 'Canada/Newfoundland', 'Canada/Pacific', 'Canada/Saskatchewan', 'Canada/Yukon', 'Chile/Continental', 'Chile/EasterIsland', 'Cuba', 'EET', 'EST', 'EST5EDT', 'Egypt', 'Eire', 'Etc/GMT', 'Etc/GMT+0', 'Etc/GMT+1', 'Etc/GMT+10', 'Etc/GMT+11', 'Etc/GMT+12', 'Etc/GMT+2', 'Etc/GMT+3', 'Etc/GMT+4', 'Etc/GMT+5', 'Etc/GMT+6', 'Etc/GMT+7', 'Etc/GMT+8', 'Etc/GMT+9', 'Etc/GMT-0', 'Etc/GMT-1', 'Etc/GMT-10', 'Etc/GMT-11', 'Etc/GMT-12', 'Etc/GMT-13', 'Etc/GMT-14', 'Etc/GMT-2', 'Etc/GMT-3', 'Etc/GMT-4', 'Etc/GMT-5', 'Etc/GMT-6', 'Etc/GMT-7', 'Etc/GMT-8', 'Etc/GMT-9', 'Etc/GMT0', 'Etc/Greenwich', 'Etc/UCT', 'Etc/UTC', 'Etc/Universal', 'Etc/Zulu', 'Europe/Amsterdam', 'Europe/Andorra', 'Europe/Astrakhan', 'Europe/Athens', 'Europe/Belfast', 'Europe/Belgrade', 'Europe/Berlin', 'Europe/Bratislava', 'Europe/Brussels', 'Europe/Bucharest', 'Europe/Budapest', 'Europe/Busingen', 'Europe/Chisinau', 'Europe/Copenhagen', 'Europe/Dublin', 'Europe/Gibraltar', 'Europe/Guernsey', 'Europe/Helsinki', 'Europe/Isle_of_Man', 'Europe/Istanbul', 'Europe/Jersey', 'Europe/Kaliningrad', 'Europe/Kiev', 'Europe/Kirov', 'Europe/Lisbon', 'Europe/Ljubljana', 'Europe/London', 'Europe/Luxembourg', 'Europe/Madrid', 'Europe/Malta', 'Europe/Mariehamn', 'Europe/Minsk', 'Europe/Monaco', 'Europe/Moscow', 'Europe/Nicosia', 'Europe/Oslo', 'Europe/Paris', 'Europe/Podgorica', 'Europe/Prague', 'Europe/Riga', 'Europe/Rome', 'Europe/Samara', 'Europe/San_Marino', 'Europe/Sarajevo', 'Europe/Simferopol', 'Europe/Skopje', 'Europe/Sofia', 'Europe/Stockholm', 'Europe/Tallinn', 'Europe/Tirane', 'Europe/Tiraspol', 'Europe/Ulyanovsk', 'Europe/Uzhgorod', 'Europe/Vaduz', 'Europe/Vatican', 'Europe/Vienna', 'Europe/Vilnius', 'Europe/Volgograd', 'Europe/Warsaw', 'Europe/Zagreb', 'Europe/Zaporozhye', 'Europe/Zurich', 'GB', 'GB-Eire', 'GMT', 'GMT+0', 'GMT-0', 'GMT0', 'Greenwich', 'HST', 'Hongkong', 'Iceland', 'Indian/Antananarivo', 'Indian/Chagos', 'Indian/Christmas', 'Indian/Cocos', 'Indian/Comoro', 'Indian/Kerguelen', 'Indian/Mahe', 'Indian/Maldives', 'Indian/Mauritius', 'Indian/Mayotte', 'Indian/Reunion', 'Iran', 'Israel', 'Jamaica', 'Japan', 'Kwajalein', 'Libya', 'MET', 'MST', 'MST7MDT', 'Mexico/BajaNorte', 'Mexico/BajaSur', 'Mexico/General', 'NZ', 'NZ-CHAT', 'Navajo', 'PRC', 'PST8PDT', 'Pacific/Apia', 'Pacific/Auckland', 'Pacific/Bougainville', 'Pacific/Chatham', 'Pacific/Chuuk', 'Pacific/Easter', 'Pacific/Efate', 'Pacific/Enderbury', 'Pacific/Fakaofo', 'Pacific/Fiji', 'Pacific/Funafuti', 'Pacific/Galapagos', 'Pacific/Gambier', 'Pacific/Guadalcanal', 'Pacific/Guam', 'Pacific/Honolulu', 'Pacific/Johnston', 'Pacific/Kiritimati', 'Pacific/Kosrae', 'Pacific/Kwajalein', 'Pacific/Majuro', 'Pacific/Marquesas', 'Pacific/Midway', 'Pacific/Nauru', 'Pacific/Niue', 'Pacific/Norfolk', 'Pacific/Noumea', 'Pacific/Pago_Pago', 'Pacific/Palau', 'Pacific/Pitcairn', 'Pacific/Pohnpei', 'Pacific/Ponape', 'Pacific/Port_Moresby', 'Pacific/Rarotonga', 'Pacific/Saipan', 'Pacific/Samoa', 'Pacific/Tahiti', 'Pacific/Tarawa', 'Pacific/Tongatapu', 'Pacific/Truk', 'Pacific/Wake', 'Pacific/Wallis', 'Pacific/Yap', 'Poland', 'Portugal', 'ROC', 'ROK', 'Singapore', 'Turkey', 'UCT', 'US/Alaska', 'US/Aleutian', 'US/Arizona', 'US/Central', 'US/East-Indiana', 'US/Eastern', 'US/Hawaii', 'US/Indiana-Starke', 'US/Michigan', 'US/Mountain', 'US/Pacific', 'US/Pacific-New', 'US/Samoa', 'UTC', 'Universal', 'W-SU', 'WET', 'Zulu'] %}
+    {% for timezone_option in timezone_list %}
+        {% if timezone == timezone_option %}
+            <option value="{{timezone_option}}" selected>{{timezone_option}}</option>
+        {% else %}
+            <option value="{{timezone_option}}">{{timezone_option}}</option>
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+
+{% macro render_customized_questions(review_questions) %}
+    {# will be replaced by js #}
+    {% for id, question in review_questions.items() if not question.get('deleted', False) %}
+        {% set outer_loop = loop %}
+        <div class="panel panel-default" data-question-id="{{outer_loop.index0}}" name="{{ id }}">
+            <div class="panel-heading" style="min-height: 40px; padding-top: 5px; padding-bottom: 5px;">
+                <h5>{% if question['ques_type'] == 0 %}Single Choice{% elif question['ques_type'] == 1 %}Multiple Choice{% elif question['ques_type'] == 2 %}Single-line Textbox{% else %}Essay Textbox{% endif %}</h5>
+                <div class="ibox-tools">
+                    <span class="btn glyphicon glyphicon glyphicon-arrow-down edit-button" onclick="move_question(this,1)"></span>
+                    <span class="btn glyphicon glyphicon glyphicon-arrow-up edit-button" onclick="move_question(this,0)"></span>
+                    <span class="btn glyphicon glyphicon-trash edit-button" onclick="delete_question(this)"></span>
+                </div>
+            </div>
+            {# do not change the list #}
+            <div class="panel-body" style="border: none;">
+                <div id="ques_{{outer_loop.index0}}.div" class="form-group" style="padding-left: 10px;">
+                    <div class="row">
+                        <input id="ques_{{outer_loop.index0}}.type" name="ques_{{outer_loop.index0}}.type" type="Hidden" value="{{question['ques_type']}}" data-reuqire="{% if question['require'] %}true{% else %}false{% endif %}" data-include="{% if question['include'] %}true{% else %}false{% endif %}">
+                        <div class="col-md-11 padding-bottom-5">
+                            <input id="ques_{{outer_loop.index0}}.description" name="ques_{{outer_loop.index0}}.description" type="text" class="form-control required {% if question['ques_type'] < 2 %}option_check{% endif %}" placeholder="Enter the question description" value="{{question['desc']}}">
+                        </div>
+                        <div class="col-md-1" style="padding-left: 0px;">
+                            {% if question['ques_type'] < 2 %}
+                                <span class="btn glyphicon glyphicon-plus edit-button" onclick="add_option(this,{{question['ques_type']}})"></span>
+                            {% endif %}
+                        </div>
+                    </div><ul class="form-inline" style="list-style-type: none;">{% if question['ques_type'] < 2 %}{% for option in question['options'] %}<li class="row padding-bottom-5" onmouseover="show_buttons(this,1)" onmouseout="hide_buttons(this,1)">
+                                    <input class="col-md-7 form-control required" type="text" id="ques_{{outer_loop.index0}}.option_{{loop.index0}}" name="ques_{{outer_loop.index0}}.option_{{loop.index0}}" placeholder="new option" value="{{option}}"><div class="col-md-5 option_button" style="display: none;">
+                                        <span class="btn glyphicon glyphicon-arrow-up edit-button" onclick="move_option(this,0)"></span>
+                                        <span class="btn glyphicon glyphicon-arrow-down edit-button" onclick="move_option(this,1)"></span>
+                                        <span class="btn glyphicon glyphicon-trash edit-button" onclick="delete_option(this)"></span>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endmacro %}
+
+{% macro render_products(products) %}
+    {% for product in products %}
+        <div class="panel panel-default" data-product-id="{{ product.id }}">
+            <div class="panel-heading" style="min-height: 40px; padding-top: 5px; padding-bottom: 5px;">
+                <h5>{{ product.name }}</h5>
+                <div class="ibox-tools">
+                    <span class="btn glyphicon glyphicon-edit" onclick="edit_product(this)"></span>
+                </div>
+            </div>
+            <div class="panel-body" style="border: none;">
+                <div id="ques_{{ loop.index }}" class="form-group" style="padding-left: 10px;">
+                    <div class="row">
+                        <p>Create: {{ moment(product.timestamp).format('dddd, MMMM Do YYYY') }}</p>
+                    </div>
+                    <ul class="form-inline" style="list-style-type: none;">
+                        {% for option in product.options.all() %}
+                            <li class="row padding-bottom-5">
+                                <p>{{ option.option_name }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endmacro %}
+
+{% macro render_questions(questions, answer={}, disabled=False) %}
+    {% for id, question in questions.items() if question['include'] and not question.get('deleted', False) %}
+        <div class="form-group {% if question['ques_type'] == 0 or question['ques_type'] == 1 %}row{% endif %}">
+            <label class="control-label {% if question['ques_type'] == 0 or question['ques_type'] == 1 %}col-sm-4{% endif %}" for="{{id}}_1">{{question['desc']}}{% if question['require'] %} *{% endif %}</label>
+            {% if question['ques_type'] == 0 or question['ques_type'] == 1 %}
+                <div class="col-sm-8">
+                    {% for option in question['options'] %}
+                        <div class="radio i-checks">
+                            <input class="{% if question['require'] %}required{% endif %}" id="{{ id }}.{{ loop.index }}" name="{{id}}_1" type="{% if question['ques_type'] == 0 %}radio{% else %}checkbox{% endif %}" value="{{option}}" aria-required="true" {% if option in answer.get(id, {}).get('answer', []) %} checked {% endif %} {% if disabled %}disabled{% endif %}>
+                            <label for="{{ id }}.{{ loop.index }}">{{option}}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% elif question['ques_type'] == 2 %}
+                <input class="form-control {% if question['require'] %}required{% endif %}" id="{{id}}_1" name="{{id}}_1" placeholder="{% if question['require'] %}Required{% else %}Optional{% endif %}" type="text" value={{ answer.get(id, {}).get('answer', '') }} {% if disabled %}disabled{% endif %}>
+            {% elif question['ques_type'] == 3 %}
+                <textarea class="form-control {% if question['require'] %}required{% endif %}" id="{{id}}_1" name="{{id}}_1" placeholder="{% if question['require'] %}Required{% else %}Optional{% endif %}" style="" aria-required="true" rows="5" {% if disabled %}disabled{% endif %}>{{ answer.get(id, {}).get('answer', '') }}</textarea>
+            {% endif %}
+        </div>
+        <div class="hr-line-dashed"></div>
+    {% endfor%}
+{% endmacro %}
+
+{% macro render_review_answers(review) %}
+    {% set questions = review.paper.conference.review_questions %}
+    {% set answers = review.custom_question_answer %}
+    {% if answers %}
+        {% for id, question in questions.items() if question['include'] and question.get('deleted', False) != True %}
+            <br><br>
+            <h4 class="media-heading">{{ question['desc'] }}</h4>
+            {% if answers[id]['ques_type'] == 1 %}
+                {{ answers[id]['answer'] | join(', ') }}
+            {% else %}
+                {{ answers.get(id, {}).get('answer', "") }}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+{% endmacro %}
+
+{% macro render_sections(sections) %}
+    {# will be replaced by js #}
+    {% for i in range(sections|length) %}
+        <div class="panel panel-default section" data-section-id="{{i}}"><div class="panel-heading" style="min-height: 40px; padding-top: 5px; padding-bottom: 5px;"><h5>Section {{i+1}}</h5>
+                <div class="ibox-tools">
+                    <span class="btn glyphicon glyphicon glyphicon-arrow-down" onclick="move_section(this,1)"></span>
+                    <span class="btn glyphicon glyphicon glyphicon-arrow-up" onclick="move_section(this,0)"></span>
+                    <span class="btn glyphicon glyphicon-trash" onclick="delete_section(this)"></span>
+                </div>
+            </div>
+            <div class="panel-body" style="border: none;">
+                <div class="elements col-xs-12 col-md-9">
+                    {% set outer_loop = loop %}
+                    {% for element in sections[i|string] %}
+                    <div class="panel panel-default element" data-question-id="{{loop.index0}}">
+                        <div class="panel-heading" style="min-height: 40px; padding-top: 5px; padding-bottom: 5px;">
+                            <h5>{% if element['element']['type'] == 'heading' %}Heading{% elif element['element']['type'] == 'para' %}Paragraph{% endif %}</h5>
+                            <div class="ibox-tools">
+                                <span class="btn glyphicon glyphicon glyphicon-arrow-down" onclick="move_element(this,1)"></span>
+                                <span class="btn glyphicon glyphicon glyphicon-arrow-up" onclick="move_element(this,0)"></span>
+                                <span class="btn glyphicon glyphicon-trash" onclick="delete_element(this)"></span>
+                            </div>
+                        </div>
+                        {# do not change the list #}
+                        <div class="panel-body" style="border: none;">
+                            <div id="section_{{i}}_ques_{{loop.index0}}.div" class="form-group" style="padding-left: 10px;">
+                                <div class="row">
+                                    <input id="section_{{i}}_ques_{{loop.index0}}.type" name="section_{{i}}_ques_{{loop.index0}}.type" type="Hidden" value="{{element['element']['type']}}">
+                                    <div class="col-md-11 padding-bottom-5">
+                                        {% if element['element']['type'] == 'para' %}
+                                        <textarea rows="5" id="section_{{i}}_ques_{{loop.index0}}.description" name="section_{{i}}_ques_{{loop.index0}}.description" class="form-control required" placeholder="Enter the content">{{element['element']['desc']}}</textarea>
+                                        {% else %}
+                                        <input id="section_{{i}}_ques_{{loop.index0}}.description" name="section_{{i}}_ques_{{loop.index0}}.description" type="text" class="form-control required" placeholder="Enter the content" value="{{element['element']['desc']}}">
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-1" style="padding-left: 0px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="col-xs-6 col-xs-offset-3 col-md-2 col-md-offset-1">
+                    <ul class="nav nav-stacked">
+                        <li>
+                            <button class="btn btn-warning btn-block" onclick="return add_element(this, 'heading')">Heading</button>
+                        </li>
+                        <li>
+                            <button class="btn btn-info btn-block" onclick="return add_element(this, 'para')">Paragraph</button>
+                        </li>
+                    </ul>
+                </div>
+                <div id="section_{{i}}.div" class="form-group" style="padding-left: 10px;"></div>
+            </div>
+        </div>
+    {% endfor %}
+{% endmacro %}
+
+{% macro avatar_src(user) %}
+    {{ user.avatar }}?{{ range(1, 200) | random }}
+{% endmacro %}
+
+{% macro render_pdf_modal() %}
+    <div class="modal inmodal fade" id="Modal_pdf" role="dialog" aria-hidden="true" tabindex="-1">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span><span
+                            class="sr-only">Close</span></button>
+                    <a class="btn btn-primary" href="#"><i class="fa fa-download"></i> Download PDF</a>
+                </div>
+                <div class="modal-body">
+                    <div class="pdfjs-viewer full-height">
+                        <iframe id="pdfjs-viewer" src="about:blank"></iframe>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro render_word_modal() %}
+    <div class="modal inmodal fade" id="Modal_word" role="dialog" aria-hidden="true" tabindex="-1">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span><span
+                            class="sr-only">Close</span></button>
+                    <a class="btn btn-primary" href="#"><i class="fa fa-download"></i> Download File</a>
+                </div>
+                <div class="modal-body">
+                    <p>We are unable to provide a preview for Word file yet. Please download and view using local
+                        software.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro render_files_button(paper, files, use_timestamp=False, show_deleted_only=False) %}
+    {% if show_deleted_only %}
+        {% for paper_doc in files %}
+            {% if paper_doc.filename and paper_doc.status == "Deleted" %}
+                {% if paper_doc.filename.endswith('.pdf') %}
+                    <a data-paperfile="{{ paper_doc.filename }}" data-paperid="{{ paper.id }}"
+                       data-docid="{{ paper_doc.id }}"
+                       class="btn btn-white btn-sm pdfbtn addmargin">
+                        <i class="fa fa-folder"></i>
+                        {% if use_timestamp %}{{ moment(paper_doc.timestamp).format('lll') }}{% else %}View
+                            PDF{% endif %}
+                    </a>
+                {% else %}
+                    <a href="/paper/download/{{ paper.id }}/{{ paper_doc.id }}"
+                       class="btn btn-white btn-sm addmargin">
+                        <i class="fa fa-folder"></i>
+                        {% if use_timestamp %}{{ moment(paper_doc.timestamp).format('lll') }}{% else %}Download
+                            File{% endif %}</a>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        {% for paper_doc in files %}
+            {% if paper_doc.filename %}
+                {% if paper_doc.status != "Deleted" %}
+                    {% if paper_doc.filename.endswith('.pdf') %}
+                        <a data-paperfile="{{ paper_doc.filename }}" data-paperid="{{ paper.id }}"
+                           data-docid="{{ paper_doc.id }}"
+                           class="btn btn-white btn-sm pdfbtn addmargin">
+                            <i class="fa fa-folder"></i>
+                            {% if use_timestamp %}{{ moment(paper_doc.timestamp).format('lll') }}{% else %}View
+                                PDF{% endif %}
+                        </a>
+                    {% else %}
+                        <a href="/paper/download/{{ paper.id }}/{{ paper_doc.id }}"
+                           class="btn btn-white btn-sm addmargin">
+                            <i class="fa fa-folder"></i>
+                            {% if use_timestamp %}{{ moment(paper_doc.timestamp).format('lll') }}{% else %}Download
+                                File{% endif %}</a>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+{% endmacro %}

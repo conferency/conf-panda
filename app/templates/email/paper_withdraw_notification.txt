@@ -1,0 +1,5 @@
+Dear {{receiver.first_name}},
+
+The paper '{{paper.title}}' has been withdrawn by {{current_user.first_name}} {{current_user.last_name}}.
+
+Conferency.com Management Team

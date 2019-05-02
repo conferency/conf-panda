@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% set active_page = "conferences" %}
+{% set active_subpage = "request-conferences" %}
+{% set page_title = "Conference Requests" %}
+
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Conferences', '#'), (page_title, url_for('conference.request_conference', conference_id=conference_id))]) }}
+{% endblock %}
+
+{% block head %}
+    <!-- <link href="{{ url_for('static', filename='inspinia/css/plugins/chosen/chosen.css') }}" rel="stylesheet"> -->
+    <link href="{{ url_for('static', filename='conferency/css/select2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/datepicker3.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-tagsinput.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    {{ super() }}
+
+    <style>
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius: 0px;
+            box-shadow: none;
+        }
+
+        .bootstrap-tagsinput > input{
+            width: 100% !important;
+        }
+
+        .center {
+            float: none;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <!-- <div class="wrapper wrapper-content animated fadeInRight"> -->
+        <div class="row">
+            <div class="ibox">
+                <div class="ibox-content">
+                    {% if conferences | count != 0 %}
+                    <a class="request_new_conference btn btn-primary" href="{{ url_for('conference.request_new_conference', type='new') }}"><i class="fa fa-pencil"></i>
+                        Request New Conference</a>
+                        <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny"
+                               data-page-size="20">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <th>Conference Name</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th data-hide="phone">Location</th>
+                                <th>Status</th>
+                                <th>Type</th>
+                                <th class="hide" data-hide="all">Website</th>
+                                <th class="hide" data-hide="all">Tags</th>
+                                <th class="hide" data-hide="all">Subjects</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for conference in conferences %}
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        {{ conference.name }} - {{ conference.short_name.upper() }}
+                                    </td>
+                                    <td>{{ conference.start_date }}</td>
+                                    <td>{{ conference.end_date }}</td>
+                                    <td>
+                                        {{ conference.city }}{% if conference.state %},
+                                            {{ conference.state }}{% endif %}, {{ conference.country }}
+                                    </td>
+                                    <td>{{ conference.status }}</td>
+                                    <td>{{ conference.type }}</td>
+                                    <td class="hide">
+                                        <a href="http://{{ conference.website }}"
+                                           target="_blank">{{ conference.website }}</a>
+                                    </td>
+                                    <td class="hide">{{ conference.tags }}</td>
+                                    <td class="hide">{{ conference.subjects }} </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="6">
+                                    <ul class="pagination pagination-centered hide-if-no-paging"></ul>
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    {% else %}
+                        <div class="middle-box text-center animated fadeInRightBig"
+                             style="margin-bottom: 140px;">
+                            <h3 class="font-bold">You have not requested any conference...</h3>
+                            <a class="request_new_conference btn btn-primary" href="{{ url_for('conference.request_new_conference', type='new') }}"><i class="fa fa-pencil"></i>
+                                Request New Conference</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    <!-- </div> -->
+
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+
+
+    <script>
+        validity = 0;
+
+        function resizeChosen() {
+            $(".select2-container").each(function () {
+                $(this).attr('style', 'width: 100%');
+            });
+        }
+
+        //use strict;
+        // autosize the textarea
+        $('textarea').each(function () {
+            autosize(this);
+        });
+
+        // function country_option(selector, data) {
+        //     $.each(data, function (index, value) {
+        //         if (value.value !== 'United States') {
+        //             $(selector).append("<option value='" + value.data + "'>" + value.value + "</option>");
+        //         } else {
+        //             $(selector).append("<option value='" + value.data + "' selected>" + value.value + "</option>");
+        //         }
+        //     });
+        // }
+
+        function subject_option(selector, data) {
+            $.each(data, function (index, value) {
+                $(selector).append("<option value='" + value + "'>" + value + "</option>");
+
+            });
+        }
+
+        function setUpAutocomplete(selector, data) {
+            $(selector).devbridgeAutocomplete({
+                lookup: data,
+                lookupLimit: 10,
+            });
+        }
+        $(document).ready(function () {
+            $('.footable').footable();
+
+        }); //end of ready
+
+
+    </script>
+
+
+{% endblock %}

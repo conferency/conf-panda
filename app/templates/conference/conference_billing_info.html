@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "payment" %}
+{% set page_title = "Payment" %}
+
+{% block head %}
+    {{ super() }}
+        <link href="{{ url_for('static', filename='inspinia/css/plugins/jasny/jasny-bootstrap.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.payment', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+            <div class="col-md-4">
+                <div class="payment-card">
+                    <i class="fa fa-credit-card payment-icon-big text-success"></i>
+                    <h2>
+                        **** **** **** 1060
+                    </h2>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <small>
+                                <strong>Expiry date:</strong> 10/16
+                            </small>
+                        </div>
+                        <div class="col-sm-6 text-right">
+                            <small>
+                                <strong>Name:</strong> David Williams
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox">
+            <div class="ibox-title">
+                <h5>Billing</h5>
+            </div>
+            <div class="ibox-content">
+                <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny"
+                       data-page-size="20">
+                    <thead>
+                    <tr>
+                        <!-- <th data-type="numeric" class="col-lg-1">ID</th> -->
+                        <th class="col-md-7">Title</th>
+                        <th class="col-md-2">Total</th>
+                        <th class="col-md-2">Status</th>
+                        <th class="col-md-1"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Basic fee</td>
+                            <td>$1500</td>
+                            <td>Charge</td>
+                            <td>View</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+        <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('.footable').footable({});
+            });
+        </script>
+{% endblock %}

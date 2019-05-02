@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% set active_page = "" %}
+{% set page_title = "Edit Profile" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), (page_title, url_for('auth.settings'))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/cropper/cropper.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="tabs-container">
+        <ul class="nav nav-tabs">
+            <li class=""><a href="{{ url_for('auth.settings') }}">Account Settings</a></li>
+            <li class="active"><a data-toggle="tab" href="#tab-1">My Profile</a></li>
+        </ul>
+        <div class="tab-content">
+        {# Profile tab #}
+            <div id="tab-1" class="tab-pane active">
+                <div class="panel-body">
+                    <div class="col-sm-12 col-md-offset-1 col-md-4 col-md-push-5 {% if hide_msg %}hide{% endif %}">
+                        <div class="widget yellow-bg p-lg text-center">
+                            <div class="m-b-md">
+                                <i class="fa fa-warning fa-4x"></i>
+                                <h3 class="font-bold">
+                                    Please fill in your organization, city and country.
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-5 {% if not hide_msg %}col-md-pull-5{% endif %}">
+                        <form action="{{ url_for('main.edit_profile') }}" id="editform" role="form" method="post">
+                            {{ form.hidden_tag() }}
+                            <div class="form-group">
+                                {{ form.first_name.label }}
+                                {{ form.first_name(class_='form-control required', placeholder="Required") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.last_name.label }}
+                                {{ form.last_name(class_='form-control required', placeholder="Required") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.organization.label }}
+                                {{ form.organization(class_='form-control required organization', placeholder="Please input the formal name of the affiliation without department, college, etc.") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.location.label }}
+                                {{ form.location(class_='form-control required', placeholder="Required") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.state.label }}
+                                {{ form.state(class_='form-control', placeholder="Optional") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.country.label }}
+                                <select class="form-control required valid" name="country" aria-required="true" aria-invalid="false" autocomplete="off">
+                                    {{ macros.generate_country_options(form.country.data)}}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                {{ form.website.label }}
+                                {{ form.website(class_='form-control', placeholder="Optional") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.about_me.label }}
+                                {{ form.about_me(class_='form-control', placeholder="Optional") }}
+                            </div>
+                            <div class="form-group">
+                                <label>Profile Picture</label>
+                                <div style="margin-bottom: 10px;">
+                                    <img id="image" src="{% if user.avatar %}{{ macros.avatar_src(user) }}{% else %}../static/avatar/default.png{% endif %}" style="max-width: 100%">
+                                </div>
+                                <div class="image_preview" hidden style="overflow: hidden; width: 320px; height: 320px; margin-bottom: 10px">
+                                    <label>Preview</label>
+                                    <img>
+                                </div>
+                                <div id="upload_picture_button">
+                                <label title="Upload image file" for="inputImage" class="btn btn-default">
+                                    <input type="file" accept="image/*" name="file" id="inputImage" class="hide">
+                                    Upload new image
+                                </label>
+                                </div>
+                                <div hidden id="save_picture_button">
+                                    <span class="btn btn-primary" type="save_pic" id="picture_save" onclick="save_picture()">Save picture</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" type="submit" id="submit_button">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="col-md-6">
+
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h3>Edit Your Profile</h3>
+            </div>
+            <div class="ibox-content profile-content">
+                <form id="editform" role="form" method="post">
+                    {{ form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ form.first_name.label }}
+                        {{ form.first_name(class_='form-control required', placeholder="Required") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.last_name.label }}
+                        {{ form.last_name(class_='form-control required', placeholder="Required") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.organization.label }}
+                        {{ form.organization(class_='form-control required', placeholder="Required") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.location.label }}
+                        {{ form.location(class_='form-control required', placeholder="Required") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.state.label }}
+                        {{ form.state(class_='form-control', placeholder="Optional") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.country.label }}
+                        <select class="form-control required valid" name="country" aria-required="true" aria-invalid="false" autocomplete="off">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        {{ form.website.label }}
+                        {{ form.website(class_='form-control', placeholder="Optional") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.about_me.label }}
+                        {{ form.about_me(class_='form-control', placeholder="Optional") }}
+                    </div>
+                    <button class="btn btn-sm btn-primary" type="submit"><strong>Save</strong></button>
+                </form>
+            </div>
+        </div>
+    </div> -->
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- Autocomplete -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+    <!-- Autosize Textarea -->
+    <script src="{{ url_for('static', filename='conferency/js/autosize.min.js') }}"></script>
+    <!-- Image Cropper -->
+    <script src="{{ url_for('static', filename='conferency/inspinia/js/cropper/cropper.js') }}"></script>
+
+
+    <script>
+    // autosize the textarea
+    $('textarea').each(function(){
+        autosize(this);
+    });
+
+    function validate_organization() {
+        var containSpecial = RegExp(/^[a-zA-Z(\s)]+$/);
+        too_long = false;
+        special = false;
+        $(".organization").each(function() {
+            special = ! containSpecial.test($(this).val());
+            if ($(this).val().length >= 70) {
+                too_long = true;
+            }
+            else {
+                too_long = false;
+            }
+        });
+        return ! (too_long || special);
+    }
+
+    function edit_picture() {
+        $(".image_preview").removeAttr("hidden");
+        document.getElementById("image").className = "cropper-image";
+        $('.cropper-image').cropper({
+            aspectRatio: 1,
+            preview: ".image_preview"
+        });
+        $('#save_picture_button').removeAttr('hidden');
+        document.getElementById('upload_picture_button').setAttribute('hidden', true);
+    }
+
+    function save_picture() {
+        if (document.getElementById("image").getAttribute('class')) {
+            var cropped_canvas = $("#image").cropper('getCroppedCanvas', {
+                width: 320,
+                height: 320
+            });
+            var new_url = cropped_canvas.toDataURL('image/png');
+            document.getElementById('image').src = new_url;
+            $.ajax({
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify({"dataUrl": new_url}),
+                url: "{{ url_for('api.change_avatar', user_id=current_user.id) }}",
+                success: function () {
+                    $(".cropper-image").cropper("destroy");
+                    $("#image").removeAttr("class");
+                    document.getElementsByClassName('image_preview')[0].setAttribute('hidden', "true");
+                    document.getElementById('save_picture_button').setAttribute('hidden', true);
+                    $("#upload_picture_button").removeAttr("hidden");
+                            document.getElementById("side-bar-avatar").setAttribute('src', new_url );
+                            swal({
+                                title: "Updated!",
+                                text: "User avatar has been updated.",
+                                type: "success",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            }
+            })
+                .fail(function (data, textStatus, error) {
+                                swal({
+                                    title: "Oops...",
+                                    text: "Update failed. We are very sorry. Please contact the customer service.",
+                                    type: "error",
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            });
+        }
+    }
+
+    function setUpAutocomplete(selector, data) {
+            $(selector).devbridgeAutocomplete({
+                lookup: data,
+                lookupLimit: 10,
+                //triggerSelectOnValidInput: true,
+                // onInvalidateSelection: function(){
+                //     $(this).val('');
+                // },
+                // onSelect: function(suggestion) {
+                //     //console.log('select');
+                //     $(this).val(suggestion.value);
+                // },
+            });
+    }
+
+    $(document).ready(function(){
+        var countries = [], all_univ_names = [];
+            //var country_list = [];
+
+            $.getJSON("{{ url_for('static', filename='json/affiliations.json')}}", function(data) {
+                all_univ_names = data;
+                setUpAutocomplete('#organization', data);
+            });
+
+            $.getJSON("{{ url_for('static', filename='json/states.json')}}", function(data) {
+                setUpAutocomplete('#state', data);
+            });
+
+            jQuery.validator.addMethod("checkOrganization", function (value) {
+                var containSpecial = RegExp(/^[a-zA-Z(\s)]+$/);
+                too_long = false;
+                special = false;
+                $(".organization").each(function() {
+                    special = ! containSpecial.test($(this).val());
+                    if ($(this).val().length >= 70) {
+                        too_long = true;
+                    }
+                    else {
+                        too_long = false;
+                    }
+                });
+                return too_long && special;
+            });
+
+            $("#editform").validate({
+                //tags plugin hides actual input, we make sure jquery still checks it
+                ignore: "",
+
+            });
+
+            $("#submit_button").click(function(event){
+                event.preventDefault();
+                if (! validate_organization()) {
+                    swal({
+                        title: "Are you sure?",
+                        text: "Organization name contains special symbol(s), or it's longer than 70 letters!",
+                        type: "warning",
+                        showConfirmButton: true
+                    }, function (){
+                        document.getElementById("editform").submit();
+                    })
+                }
+                else {
+                    document.getElementById("editform").submit();
+                }
+            });
+
+            var inputImage = $("#inputImage");
+            var image = $(".cropper-image");
+            if (window.FileReader) {
+                inputImage.change(function() {
+                    var fileReader = new FileReader(),
+                        files = this.files,
+                        file;
+                    if (!files.length) {
+                        return;
+                    }
+                    file = files[0];
+
+                    if (/^image\/\w+$/.test(file.type)) {
+                        fileReader.readAsDataURL(file);
+                        fileReader.onload = function () {
+                            inputImage.val("");
+                            document.getElementById("image").setAttribute('src', this.result);
+                            image.cropper("reset", true).cropper("replace", this.result);
+                            edit_picture();
+                        };
+                    } else {
+                        showMessage("Please choose an image file.");
+                    }
+                });
+            } else {
+                inputImage.addClass("hide");
+            }
+
+    });
+
+    </script>
+{% endblock %}

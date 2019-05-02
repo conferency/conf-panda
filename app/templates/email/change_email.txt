@@ -1,0 +1,13 @@
+Dear {{ user.first_name }},
+
+To confirm your new email address, please click on the following link:
+
+{{ url_for('auth.change_email', token=token, _external=True) }}
+
+If any questions, please feel free to contact us.
+
+Sincerely,
+
+Conferency
+
+

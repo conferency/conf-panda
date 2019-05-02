@@ -1,0 +1,692 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "invitation_menu" %}
+{% if 'track' in endpoint %}
+    {% set active_second_subpage = "track-invitations" %}
+    {% set page_title = "Track Invitations" %}
+{% else %}
+    {% set active_second_subpage = "conference-invitations" %}
+    {% set page_title = "Conference Invitations" %}
+{% endif %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/summernote/summernote.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <style>
+        .add_cursor {
+            cursor: pointer;
+        }
+
+        .wrapper .middle-box {
+            margin-top: 140px;
+            margin-bottom: 140px;
+        }
+
+        .padding-top-7 {
+            padding-top: 7px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.' + endpoint, conference_id=current_user.curr_conf_id))]) }}
+{% endblock %}
+
+{% block page_content %}
+<div class="wrapper animated fadeInRight">
+    <div class="row">
+        <div class="tabs-container">
+            <ul class="nav nav-tabs">
+                {# generate tab nav #}
+                {% set nav_list = [('send_invitations', 'Send Invitations'),
+                ('invitation_pending', 'Pending Invitations (' + invitations_count[0] | string + ')'), ('invitation_joined', 'Accepted Invitations (' + invitations_count[1] | string + ')'),
+                ('invitation_declined', 'Declined Invitations (' + invitations_count[2] | string + ')')] %}
+                {% if 'track' in endpoint %}
+                    {% set prefix = 'track_' %}
+                {% else %}
+                    {% set prefix = '' %}
+                {% endif %}
+                {% for li in nav_list %}
+                    {% if li[0] in endpoint %}
+                        <li id="nav-tab-{{ loop.index }}" class="active"><a data-toggle="tab"
+                                                                            href="#tab-{{ loop.index }}">{{ li[1] }}</a>
+                        </li>
+                    {% else %}
+                        <li id="nav-tab-{{ loop.index }}" class=""><a
+                                href="{{ url_for('conference.' + prefix + li[0], conference_id=conference.id) }}">{{ li[1] }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            <div class="tab-content">
+                {% if not 'send_invitations' in endpoint %}
+                <div class="ibox-content m-b-sm border-bottom">
+                        {% if show_error_msg %}
+                            <div class="alert alert-danger alert-dismissable">
+                                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                                We couldn't find members that match your search criteria. View all members below.
+                            </div>
+                        {% endif %}
+                        <div class="row">
+                            <form action="{{ url_for('conference.invitation_pending', conference_id=conference.id) }}"
+                                  id="searchform" method="get">
+                                <div class="col-sm-2 less-padding">
+                                    <div class="form-group">
+                                        <label class="control-label" for="search_type">Search By...</label>
+                                        <select id="search_type" name="search_type" class="form-control">
+                                            {% for key, option in search_options.items() %}
+                                                <option value="{{ key }}"
+                                                        {% if request.args.get("search_type", 0) | int == key %}
+                                                        selected {% endif %}>{{ option }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 less-padding">
+                                    <div class="form-group">
+                                        <label class="control-label" for="search_keywords">Keyword</label>
+                                        <input type="text" id="search_keywords" name="search_keyword"
+                                               value="{{ search_keyword }}"
+                                               placeholder="Keywords..." class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-sm-3 less-padding">
+                                    <div class="form-group">
+                                        <label class="control-label" for="role">Role</label>
+                                        <select name="role" id="role" class="form-control" onchange="this.form.submit()">
+                                            <option value="">All</option>
+                                            <option value="chair" {% if role == 'chair' %}selected{% endif %}>Chair</option>
+                                            <option value="author" {% if role == 'author' %}selected{% endif %}>Author</option>
+                                            <option value="pc" {% if role == 'pc' %}selected{% endif %}>Program Committee</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-1 less-padding">
+                                    <div class="form-group">
+                                        <label class="control-label">&nbsp;</label>
+                                        <button type="submit" class="form-control btn btn-sm btn-primary ">Search</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if 'send_invitations' in endpoint %}
+                    <div id="tab-1" class="tab-pane active animated fadeInDown">
+                        <div class="panel-body">
+                            {% if not (form.track_id and form.track_id.choices == []) %}
+                                <div class="col-md-12">
+                                    <p>
+                                        <b>Enter comma separated emails to invite multiple users without specifying their names</b>
+                                    </p>
+                                    <!-- <p>
+                                    You can only send 30 invitations at most each time.
+                                    </p> -->
+                                </div>
+                                <div class="col-md-12">
+                                    <form id="invitation_form" role="form" method="post">
+                                        {{ form.hidden_tag() }}
+                                        <div class="form-group i-checks">
+                                            <p>{{ form.invitee_with_name() }} &nbsp; Include invitee's name on
+                                                invitation</p>
+                                            <p>
+                                                Please write invitee's information <b>one per line</b> using the following format:
+                                                <b>First_Name Last_Name Email_Address</b> <br>
+                                                Note: if unchecked, template variables *FIRST_NAME* and *LAST_NAME* below won't work
+                                            </p>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group {% if form.emails_default.errors %}has-error{% endif %}">
+                                                    {{ form.emails_default.label }}
+                                                    <textarea name="emails_default" rows="5" ,
+                                                              class="form-control full-width required"
+                                                              id="emails_default"
+                                                              placeholder="Required">{% if form.emails_default.data %}
+                                                        {{ form.emails_default.data }}{% endif %}</textarea>
+                                                    {% if form.emails_default.errors %}
+                                                        {% for error in form.emails_default.errors %}
+                                                            <p class="help-block">{{ error | safe}}</p>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                </div>
+                                                <div class="form-group">
+                                                    {{ form.role.label }}
+                                                    {{ form.role(class_='form-control') }}
+                                                </div>
+                                                {% if form.track_id %}
+                                                    <div class="form-group">
+                                                        {{ form.track_id.label }}
+                                                        {{ form.track_id(class_='form-control') }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="hr-line-dashed"></div>
+                                        <div class="mail-box form-horizontal">
+                                            <div class="mail-body">
+                                                <div class="form-group">
+                                                    <div class="col-md-2 control-label">
+                                                        {{ form.email_subject.label }}
+                                                    </div>
+                                                    <div class="col-sm-10">
+                                                        {{ form.email_subject(class_='form-control required', placeholder="Required") }}
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <div class="col-md-2 control-label">
+                                                        <label>Hint</label>
+                                                    </div>
+                                                    <div class="col-sm-10 padding-top-7 text-info">
+                                                        <p>You can add template variables in the body of the email by
+                                                            clicking the blue buttons below.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mail-text h-200">
+                                                {{ form.email_content(class_='summernote required hide', placeholder="Required") }}
+                                                <div class="clearfix"></div>
+                                            </div>
+                                            <div class="mail-body text-right tooltip-demo">
+                                                <div id="errorMsg" class="pull-left"></div>
+                                                <button type="button" id="preview" class="btn btn-primary"
+                                                        data-toggle="modal" data-target="#invitation_email_preview">
+                                                    Preview
+                                                </button>
+                                                {{ form.submit(class_='btn btn-primary') }}
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <div class="middle-box text-center animated fadeInRightBig">
+                                    <h3 class="font-bold">There is no track in this conference...yet :)</h3>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% elif 'invitation_pending' in endpoint %}
+                    <div id="tab-2" class="tab-pane active">
+                        <div class="panel-body float-e-margins">
+                            {% if invitations|count %}
+                                <button class="btn btn-w-m btn-primary m-b" onclick="change_all('resend')">Resend All
+                                </button>
+                                <button class="btn btn-w-m btn-danger m-b" onclick="change_all('revoke')">Revoke All
+                                </button>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Name</th>
+                                            <th>Role</th>
+                                            <th>Track</th>
+                                            <th>Invitation Sent</th>
+                                            <th data-hide="phone,tablet">Invited By</th>
+                                            <th data-hide="phone,tablet">Status</th>
+                                            <th></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for invited in invitations %}
+                                            <tr>
+                                                <td>{{ invited.invitee_email }}</td>
+                                                {% if invited.invitee_first_name != '' %}
+                                                    <td>{{ invited.invitee_first_name }} {{ invited.invitee_last_name }}</td>
+                                                {% else %}
+                                                    <td></td>
+                                                {% endif %}
+                                                <td>{{ invited.invitee_role }}</td>
+                                                {% set track = conference.tracks.filter_by(id=invited.track_id, default=False).first() %}
+                                                {% if track %}
+                                                    <td>{{ track.name }}</td>
+                                                {% else %}
+                                                    <td></td>
+                                                {% endif %}
+                                                <td>{{ moment(invited.invitation_time).fromNow() }}</td>
+                                                <td>{{ invited.inviter.first_name }} {{ invited.inviter.last_name }}</td>
+                                                <td class="text-warning">Pending {% if invited.reaction_time != None %}
+                                                    {{ moment(invited.reaction_time).fromNow() }}{% else %}{% endif %}</td>
+                                                <td>
+                                                    <button type="button"
+                                                            class="btn btn-primary btn-xs invitation_operation"
+                                                            data-invitation-id="{{ invited.id }}"
+                                                            data-operation="resend">Resend
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-danger btn-xs invitation_operation"
+                                                            data-invitation-id="{{ invited.id }}"
+                                                            data-operation="revoke">Revoke
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    {{ macros.pagination_widget(pagination, 'conference.'+prefix+'invitation_pending', conference_id=conference.id) }}
+                                </div>
+                            {% else %}
+                                {# bug here #}
+                                <p>You have not sent invitations. Fill out the invitations form to invite others to join
+                                    the conference.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% elif 'invitation_joined' in endpoint %}
+                    <div id="tab-3" class="tab-pane active">
+                        <div class="panel-body">
+                            {% if invitations|count %}
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Name</th>
+                                            <th>Role</th>
+                                            <th>Track</th>
+                                            <th>Invitation Sent</th>
+                                            <th data-hide="phone,tablet">Invited By</th>
+                                            <th data-hide="phone,tablet">Status</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for invited in invitations %}
+                                            <tr>
+                                                <td>{{ invited.invitee_email }}</td>
+                                                {% if invited.invitee_first_name != '' %}
+                                                    <td>{{ invited.invitee_first_name }} {{ invited.invitee_last_name }}</td>
+                                                {% else %}
+                                                    <td></td>
+                                                {% endif %}
+                                                <td>{{ invited.invitee_role }}</td>
+                                                {% set track = conference.tracks.filter_by(id=invited.track_id, default=False).first() %}
+                                                {% if track %}
+                                                    <td>{{ track.name }}</td>
+                                                {% else %}
+                                                    <td></td>
+                                                {% endif %}
+                                                <td>{{ moment(invited.invitation_time).fromNow() }}</td>
+                                                <td>{{ invited.inviter.first_name }} {{ invited.inviter.last_name }}</td>
+                                                <td class="text-success">Joined {% if invited.reaction_time != None %}
+                                                    {{ moment(invited.reaction_time).fromNow() }}{% else %}{% endif %}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="7">Message:
+                                                    <p>{{ invited.note }}</p>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    {{ macros.pagination_widget(pagination, 'conference.'+prefix+'invitation_joined', conference_id=conference.id) }}
+                                </div>
+                            {% else %}
+                                {# bug here #}
+                                <p>You have not sent invitations. Fill out the invitations form to invite others to join
+                                    the conference.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% elif 'invitation_declined' in endpoint %}
+                    <div id="tab-4" class="tab-pane active">
+                        <div class="panel-body">
+                            {% if invitations|count %}
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Name</th>
+                                            <th>Role</th>
+                                            <th>Track</th>
+                                            <th>Invitation Sent</th>
+                                            <th data-hide="phone,tablet">Invited By</th>
+                                            <th data-hide="phone,tablet">Status</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for invited in invitations %}
+                                            <tr>
+                                                <td>{{ invited.invitee_email }}</td>
+                                                {% if invited.invitee_first_name != '' %}
+                                                    <td>{{ invited.invitee_first_name }} {{ invited.invitee_last_name }}</td>
+                                                {% else %}
+                                                    <td></td>
+                                                {% endif %}
+                                                <td>{{ invited.invitee_role }}</td>
+                                                {% set track = conference.tracks.filter_by(id=invited.track_id, default=False).first() %}
+                                                {% if track %}
+                                                    <td>{{ track.name }}</td>
+                                                {% else %}
+                                                    <td></td>
+                                                {% endif %}
+                                                <td>{{ moment(invited.invitation_time).fromNow() }}</td>
+                                                <td>{{ invited.inviter.first_name }} {{ invited.inviter.last_name }}</td>
+                                                <td class="text-success">Declined {% if invited.reaction_time != None %}
+                                                    {{ moment(invited.reaction_time).fromNow() }}{% else %}{% endif %}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="7">Message:
+                                                    <p>{{ invited.note }}</p>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    {{ macros.pagination_widget(pagination, 'conference.'+prefix+'invitation_declined', conference_id=conference.id) }}
+                                </div>
+                            {% else %}
+                                {# bug here #}
+                                <p>No declined invitations.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="modal inmodal fade" id="invitation_email_preview" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mail-box-header">
+                        <div class="mail-tools tooltip-demo m-t-md">
+                            <h3>
+                                <span id="subject_title" class="font-noraml"></span>
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="mail-box">
+                        <div class="mail-body">
+                            <div class="m-b-md">
+                                <img src="https://s3-us-west-2.amazonaws.com/conferency/img/conferency-email-logo.png"
+                                     width="40" height="40" alt="Conferency" border="0" class="center-block">
+                            </div>
+                            <div id="content" class="m-b-md">
+                                <!-- mail content -->
+                            </div>
+                            <div class="text-center">
+                                <button type="button" disabled class="btn btn-w-m btn-primary m-sm">Accept</button>
+                                <button type="button" disabled class="btn btn-w-m btn-danger m-sm">Decline</button>
+                                <p class="m-t-xs"><a style="color:#95a5a6;text-align:center;text-decoration:underline"
+                                                     href="mailto:xxx@xxxx.com" target="_blank" disabled>Click here to
+                                    contact the organizers</a></p>
+                                <p class="text-warning">PLEASE DO NOT REPLY TO THIS MESSAGE</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <form role="form" id="testEmailForm" class="form-inline">
+                        <div class="form-group pull-left">
+                            <input type="email" placeholder="Enter a testing email address" id="testEmail"
+                                   class="form-control required email" style="width:400px">
+                        </div>
+                    </form>
+                    <button class="btn btn-primary" type="submit" id="sendTestEmail">Send a testing email</button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ template }}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- Autosize Textarea -->
+    <script src="{{ url_for('static', filename='conferency/js/autosize.min.js') }}"></script>
+    <!-- summernote -->
+    <script src="{{ url_for('static', filename='conferency/inspinia/js/summernote/summernote.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/summernote_buttons.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/summernote-cleaner.js') }}"></script>
+    <!-- custom radio buttons -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+    <script id="templateChair" type="text/x-custom-template">
+        <p>Hi *FIRST_NAME*,</p>
+        <p><br></p>
+        <p>I would like to invite you to join the *CONFERENCE_NAME* conference system as a chair. I hope you can accept my invitation by clicking the Accept button below.</p>
+        <p><br></p>
+        <p>Thanks,</p>
+        <p><br></p>
+        <p>{{ current_user.full_name }}</p>
+    </script>
+    <script id="templatePC" type="text/x-custom-template">
+        <p>Dear *FIRST_NAME*,</p>
+        <p><br></p>
+        <p>We would like to invite you to serve in the Program Committee (PC) of *CONFERENCE_NAME*. Your support to the conference means a lot to us and to the participants of {{ conference.short_name.upper() }}.</p>
+        <p><br></p>
+        <p>We hope you can accept the invitation by clicking the Accept button below. Thanks a lot for your help.</p>
+        <p><br/><p/>
+        <p>{{ current_user.full_name }}</p>
+    </script>
+
+    <script>
+
+        function convert_variables(data, content) {
+            content = content.replace(/\*CONFERENCE_WEBSITE\*/g, data.website)
+                .replace(/\*CONFERENCE_NAME\*/g, data.name)
+                .replace(/\*NAME\*/g, "{{ current_user.first_name + " " + current_user.last_name }}")
+                .replace(/\*CONFERENCE_SHORTNAME\*/g, "{{ conference.short_name.upper() }}")
+                .replace(/\*FIRST_NAME\*/g, "First name placeholder")
+                .replace(/\*LAST_NAME\*/g, "Last name placeholder")
+                .replace(/\*CONTACT_EMAIL\*/g, data.contact_email)
+                .replace(/\*TRACK_NAME\*/g, $("#track_id option:selected").text());
+            return content;
+        }
+
+        function change_all(commond) {
+            swal({
+                title: "Are you sure?",
+                text: "You will " + commond + " " + {{ invitations_count[0] }} +" invitations!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes",
+                closeOnConfirm: false
+            }, function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/all_invitation_email",
+                    contentType: "application/json",
+                    data: JSON.stringify({'commond': commond, 'conference_id': {{ conference.id }}}),
+                    success: function (response) {
+                        swal({
+                                title: "All set!",
+                                text: "",
+                                type: "success",
+                                showConfirmButton: true,
+                                closeOnConfirm: false
+                            },
+                            function () {
+                                location.reload();
+                            });
+                    }
+                });
+            });
+        }
+
+        function change_content(template_name) {
+            // console.log(template_name);
+            $('#email_content').summernote("code", "");
+            $('#email_subject').val("");
+            var template = {
+                'invitation_chair': $('#templateChair').html(),
+                'invitation_PC': $('#templatePC').html()
+            };
+
+            // get template
+            $.ajax({
+                    type: "GET",
+                    url: "{{url_for('api.get_email_template', conference_id=conference.id)}}",
+                    contentType: "application/json",
+                    data: {template_name: template_name},
+                    success: function (response) {
+                        $('#email_subject').val(response.subject);
+                        $('#email_content').summernote("code", response.content);
+                    },
+                    error: function () {
+                        $('#email_content').summernote("code", template[template_name]);
+                    }
+                });
+        }
+
+        function data_init() {
+            {% if 'send_invitations' in endpoint %}
+            change_content("{{ template_name }}");
+            {% endif %}
+        }
+
+        $(document).ready(function () {
+            {% if 'send_invitations' in endpoint %}
+                // autosize the textarea
+                $('textarea').each(function () {
+                    autosize(this);
+                });
+
+                var my_buttons = ['first_name_recipient', 'last_name_recipient', 'name_current_user', 'conference_name', 'conference_website', 'conference_shortname', 'contact_email'{% if form.track_id %}, 'track_name'{% endif %}];
+                summernote_activate($('#email_content'), my_buttons, 300);
+                data_init();
+                try {
+                    $('#invitation_form').validate({
+                        errorPlacement: function (error, element) {
+                            // console.log(error);
+                            $("#errorMsg").html(error);
+                        }
+                    }).settings.ignore = [];
+                }
+                catch(err) {}
+
+                jQuery.validator.messages.required = "Some required fields are missing.";
+
+                // stop modal showing up automatically
+                $('#invitation_email_preview').on('show.bs.modal', function (e) {
+                    if ($('#invitation_form').valid()) {
+                        $('#subject_title').text('Subject: ' + $('#email_subject').val());
+                        // getJson is unnessary here
+                        $.getJSON("{{ url_for('api.get_conference', id=conference.id) }}", function (data) {
+                            $('#content').empty().html(convert_variables(data, $('#email_content').summernote('code')));
+                        });
+
+                    } else {
+                        e.stopPropegation();
+                    }
+                });
+
+                $('#sendTestEmail').click(function (event) {
+                    event.preventDefault();
+                    // console.log($("#notification").valid());
+                    $('#testEmailForm').validate();
+
+                    if ($("#testEmailForm").valid()) {
+                        var email = {
+                            'address': $('#testEmail').val(),
+                            'subject': $('#email_subject').val(),
+                            'content': $('#email_content').summernote('code')
+                        };
+                        // console.log(email);
+                        $.ajax({
+                            type: "POST",
+                            url: "/send_invitation_email",
+                            contentType: "application/json",
+                            data: JSON.stringify(email),
+                            success: function (response) {
+                                swal({
+                                    title: "Invitation Sent!",
+                                    text: "Invitation email has been sent.",
+                                    type: "success",
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        });
+                    }
+                });
+
+                $("#role").change(function () {
+                    var select_val = $(this).val();
+                    var template_name = "";
+                    if (select_val === "Program Committee") {
+                        template_name = "invitation_PC";
+                    } else if (select_val === "Author") {
+                        template_name = "invitation_author";
+                    } else if (select_val === "Chair") {
+                        template_name = "invitation_chair";
+                    } else if (select_val === "Track Program Committee") {
+                        template_name = "invitation_trackChair";
+                    } else if (select_val === "Track Chair") {
+                        template_name = "invitation_trackPC";
+                    }
+                    change_content(template_name);
+                });
+            {% endif %}
+
+            // resend or revoke Invitation
+            $(".invitation_operation").click(function (event) {
+                event.preventDefault();
+                var invitation_id = $(this).data("invitation-id");
+                var operation = $(this).data("operation");
+                // var invitation_ele = $(this.parentNode.parentNode);
+
+                swal({
+                    title: "Are you sure?",
+                    text: "You will " + $(this).data("operation") + " this invitation.",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Yes",
+                    closeOnConfirm: false
+                }, function () {
+                    $.ajax({
+                        type: "PUT",
+                        url: "/api/invitations/" + invitation_id + "/" + operation,
+                        contentType: "application/json",
+                        data: JSON.stringify({"invitation_id": invitation_id}),
+                        success: function (response) {
+                            if (operation === "revoke") {
+                                location.reload();
+                            }
+                            swal({title: "Done!", type: "success", timer: 2000, showConfirmButton: false});
+                        }
+                    });
+                });
+            });
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green'
+            });
+
+            // insert invitee button
+            // $('.i-checks').on('ifChecked', function (event) {
+            //     $(".ulist-padding").append('<li><code class="add_cursor">*FIRST_NAME*</code>: Invitee\'s first name</li>\
+            //     <li><code class="add_cursor">*LAST_NAME*</code>: Invitee\'s last name</li>');
+            // });
+
+            // remove invitee name button
+            $('.i-checks').on('ifUnchecked', function (event) {
+                $(".ulist-padding li:gt(2)").remove();
+            });
+
+            // auto save
+            $('#invitation_form').sisyphus({
+                locationBased: true,
+                excludeFields: $("#csrf_token")
+            });
+            //
+            // $(document).on('keyup', '.note-editable', function() {
+            //     var textarea = $(this).parent().prev('textarea');
+            //     textarea.val($(this).html());
+            //     textarea.trigger('change');
+            // });
+        });
+    </script>
+{% endblock %}

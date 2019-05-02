@@ -1,0 +1,9 @@
+Dear {{ user.first_name }},
+ A paper titled: "{{ title }}" with you as a co-author has been submitted to "{{conference}}". For your convenience, we have set up a new account for you. You can log in with your current email address and password: {{ password }}. We highly recommend that you change the password after first-time login.
+
+Click here to update your profile
+
+ Sincerely,
+ Conferency
+
+{{ url_for('auth.login', _external=True) }}

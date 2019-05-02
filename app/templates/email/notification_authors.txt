@@ -1,0 +1,10 @@
+{{ content | safe }}
+
+{% set i = 0 %}
+{% for review in reviews %}
+    {% set i = i + 1 %}
+        <h4>Review {{ i }}</h4>
+        <p>{{ review.review_body }}</p>
+{% endfor %}
+
+Email us: {{conference.contact_email}}

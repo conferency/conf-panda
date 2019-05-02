@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% set active_page = "submissions" %}
+{% set active_subpage = "my-submissions" %}
+{% set page_title = "My Submissions" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Submissions', '#'), (page_title, url_for('submission.my_submissions', id=current_user.id))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <style>
+        /* PROJECTS */
+
+        .project-title {
+            font-size: 14px;
+            color: #676a6c;
+            font-weight: 600;
+        }
+
+        .project-people {
+            color: #337ab7;
+        }
+
+        .project-actions {
+        }
+
+        button, a.addmargin {
+            margin: 0px 0px;
+        }
+
+        span.label {
+            position: relative;
+            top: 7px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    {% if my_submissions | count != 0 %}
+        <div class="wrapper animated fadeInRight">
+            {% if current_user.curr_conf_is_main() %}
+                {# main my submission #}
+                <div class="ibox-content m-b-sm border-bottom">
+                  <h2 class="text-warning">
+                      Switch to an individual conference to see more options <a href="https://conferency.zendesk.com/hc/en-us/articles/360000378611"><i class="fa fa-info-circle" aria-hidden="true"></i></a>
+                  </h2>
+                    <p class="text-info">This page shows all your papers in all conferences. You need to switch to
+                        individual conference to see additional options for each paper.</p>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny"
+                                       data-page-size="20">
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th data-type="numeric">ID</th>
+                                        <th>Title</th>
+                                        <th data-hide="phone">Author</th>
+                                        <th data-hide="phone">Conference</th>
+                                        <th data-hide="phone">Status</th>
+                                        <th class="hide" data-hide="all">Abstract</th>
+                                        <th class="hide" data-hide="all">Keywords</th>
+                                        <th class="hide" data-hide="all">Submission time</th>
+                                        <th class="hide" data-hide="all">Track</th>
+                                        <th class="hide" data-hide="all">File</th>
+                                        <th class="hide" data-hide="all">Edit submission</th>
+                                        <th class="hide" data-hide="all">Operation</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for paper in my_submissions %}
+                                        <tr>
+                                            <td></td>
+                                            <td>{{ paper.id }}</td>
+                                            <td>{{ paper.title }}</td>
+                                            <td>{{ macros.generate_paper_authors(paper.authors_list) }}</td>
+                                            <td><a class="text-info" name="conference"
+                                                   confid="{{ paper.conference.id }}">{{ paper.conference.short_name.upper() }}</a>
+                                            </td>
+                                            {% if not paper.conference.configuration.get('hide_paper_status', False) %}
+                                            <td>{{ paper.status }}</td>
+                                            {% else %}
+                                            <td></td>
+                                            {% endif %}
+                                            <td class="hide">{{ paper.abstract }}</td>
+                                            <td class="hide">{{ paper.keywords }}</td>
+                                            <td class="hide">{{ moment(timestamp=paper.submitted_time).format('LLL') }}</td>
+                                            <td class="hide">{{ paper.track.name }}</td>
+                                            <td class="hide">
+                                                {{ macros.render_files_button(paper, paper.files) }}
+                                            </td>
+                                            <td class="hide">
+                                                {% if current_user.id == paper.uploader_id %}
+                                                    <a class="btn btn-white btn-sm m-t-sm"
+                                                       href="{{ url_for('paper.edit_paper_info', paper_id=paper.id) }}"><i
+                                                            class="fa fa-edit"></i> Edit </a>
+                                                {% else %}
+                                                    <a class="btn btn-white btn-sm m-t-sm"
+                                                       href="{{ url_for('paper.get_paper_info', paper_id=paper.id) }}">
+                                                        Check submission </a>
+                                                {% endif %}
+                                            </td>
+                                            <td class="hide">
+                                                <button class="btn btn-sm btn-danger " type="button" data-toggle="modal" data-target="#withdrawModal" data-paper-id="{{ paper.id }}" {% if paper.status == 'Withdrawn' %}disabled{% endif %}>Withdraw</button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                                {% if papertitle == '' and author == '' and conference_filter_id == 1 %}
+                                    {{ macros.pagination_widget(pagination, 'submission.my_submissions') }}
+                                {% else %}
+                                    {{ macros.pagination_widget(pagination, 'submission.my_submissions', papertitle=papertitle, author=author, conference_filter_id=conference_filter_id) }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content">
+                                <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny"
+                                       data-page-size="20">
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th data-type="numeric">ID</th>
+                                        <th>Title</th>
+                                        <th data-hide="phone">Author</th>
+                                        {% if current_user.curr_conf.get_tracks.all() | length > 0 %}
+                                            <th data-hide="phone">Track</th>
+                                        {% endif %}
+                                        {% if not current_user.curr_conf.configuration.get('hide_paper_status', False) %}
+                                        <th data-hide="phone">Status</th>
+                                        {% endif %}
+                                        <th data-hide="phone"></th>
+                                        <th class="hide" data-hide="all">Abstract</th>
+                                        <th class="hide" data-hide="all">Keywords</th>
+                                        <th class="hide" data-hide="all">Submission time</th>
+                                        <th class="hide" data-hide="all">File</th>
+                                        <th class="hide" data-hide="all">Operation</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+
+                                    </tr>
+                                    {% for paper in my_submissions %}
+                                        <tr>
+                                            <td></td>
+                                            <td>{{ paper.id }}</td>
+                                            <td>{{ paper.title }}</td>
+                                            <td>{{ macros.generate_paper_authors(paper.authors_list) }}</td>
+                                            {% if current_user.curr_conf.get_tracks.all() | length > 0 %}
+                                                <td>{{ paper.track.name }}</td>
+                                            {% endif %}
+                                            {% if not current_user.curr_conf.configuration.get('hide_paper_status', False) %}
+                                            <td>{{ paper.status }}</td>
+                                            {% endif %}
+                                            <td>
+                                                <div>
+                                                    {% if paper.is_editable(current_user) %}
+                                                        <a class="btn btn-white btn-sm editbtn addmargin"
+                                                           href="{{ url_for('paper.edit_paper_info', paper_id=paper.id) }}">
+                                                            <i class="fa fa-pencil"></i> Edit </a>
+                                                    {% endif %}
+                                                    {% if paper.can_check_review() %}
+                                                        <a class="btn btn-white btn-sm addmargin"
+                                                           href="{{ url_for('paper.paper_reviews', paper_id=paper.id) }}">
+                                                            <i class="fa fa-list-ul"></i> View Reviews </a>
+                                                    {% else %}
+                                                        <a class="btn btn-white btn-sm addmargin"
+                                                           disabled data-toggle="tooltip" data-placement="top" title="This option is disabled by chairs.">
+                                                            <i class="fa fa-list-ul"></i> View Reviews </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td class="hide">{{ paper.abstract }}</td>
+                                            <td class="hide">{{ paper.keywords }}</td>
+                                            <td class="hide">{{ moment(timestamp=paper.submitted_time).format('LLL') }}</td>
+                                            <td class="hide">
+                                                {{ render_files_button(paper, paper.files) }}
+                                            </td>
+                                            <td class="hide">
+                                                <button class="btn btn-sm btn-danger " type="button" data-toggle="modal" data-target="#withdrawModal" data-paper-id="{{ paper.id }}" {% if paper.status == 'Withdrawn' %}disabled{% endif %}>Withdraw</button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+
+    {% else %}
+        <div class="middle-box text-center animated fadeInRightBig">
+            <h3 class="font-bold">You have not submitted any paper...yet :)</h3>
+            <div class="error-desc">
+                <br><a href="{{ url_for('main.dashboard') }}" class="btn btn-primary m-t">Dashboard</a>
+            </div>
+        </div>
+    {% endif %}
+    <div class="modal fade" id="withdrawModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form action="" method="post" id="paper-withdraw-form">
+                    {{ withdraw_form.hidden_tag() }}
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Submission Withdrawal</h4>
+                        <p class="note">Please confirm that you are going to withdraw <b class="paper-title">title</b> and send a message to inform
+                            chairs and co-authors.</p>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="message" class="control-label">Message:</label>
+                            <textarea class="form-control required" name="message" id="message"
+                                      placeholder="Required"></textarea>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button class="btn btn-warning" type="submit">Withdraw</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+
+    <script>
+        $(document).ready(function () {
+            $(".footable").footable();
+            $(".file-box").each(function () {
+                animationHover(this, "pulse");
+            });
+
+            $("#paper-withdraw-form").validate();
+
+            $("#withdrawModal").on("show.bs.modal", function (event) {
+                let id = $(event.relatedTarget).data("paper-id");
+                if (!Number.isInteger(id)) {
+                    event.preventDefault();
+                    swal({
+                        title: "Error",
+                        text: "Exception in the form. Please try again or contact custom service.",
+                        type: "error"
+                    });
+                } else {
+                    $(this).find(".paper-title").text("paper: " + id);
+                    $(this).find("#paper-withdraw-form").attr("action", "{{ url_for('paper.paper_withdraw', paper_id=0) }}" + id);
+                }
+            }).on("hidden.bs.modal", function (e) {
+                $(this).find("#paper-withdraw-form")[0].reset();
+            });
+        });
+    </script>
+{% endblock %}

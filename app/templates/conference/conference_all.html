@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% set active_page = "conferences" %}
+{% set active_subpage = "all-conferences" %}
+{% set page_title = "All Conferences" %}
+{% import "_macros.html" as macros %}
+
+{% block head %}
+    {{ super() }}
+<link href="{{ url_for('static', filename='inspinia/css/plugins/datapicker/datepicker3.css') }}" rel="stylesheet">
+
+<style>
+    button,
+    .addmargin {
+        margin: 0px 0px;
+    }
+
+    .user-name {
+        color: #676a6c !important;
+    }
+
+    p#country,
+    p#organization {
+        margin-bottom: 0px;
+    }
+    /*change the color of button*/
+
+    .button-color {
+        color: #333;
+    }
+    /*
+    span {
+        margin-right: 10px;
+    }
+    span.date-range {
+            display: block;
+            height: 36px !important;
+            width: 14px !important;
+        }*/
+
+    .center {
+        float: none;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .remove-col-padding {
+        padding: 2px 0px;
+    }
+
+    .date-range-control {
+        display: table;
+    }
+
+    .search-button-control {
+        border-radius: 0px;
+        height: 46px;
+        width: auto;
+        /*padding: 5px auto !important;*/
+        /*font-size: 11px !important;*/
+    }
+
+    .larger-font-size {
+        font-size: 18px;
+    }
+</style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Conferences', '#'), (page_title, url_for('conference.all_conference'))]) }}
+{% endblock %}
+
+{% block page_content %}
+<div id="wrapper">
+    <div class="gray-bg" style="min-height: 261px;">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="wrapper wrapper-content animated fadeInRight">
+                    <div class="ibox col-md-12 col-lg-12 center">
+                        {% if empty_flag %}
+                        <div class="alert alert-danger alert-dismissable">
+                            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button> We couldn't find conferences that match your search criteria. View all conferences below.
+                        </div>
+                        {% endif %}
+                        <div class="ibox-content">
+                            <div class="row form-group center">
+                                <form action="/conference/all" id="searchform" method="get">
+                                    <div class="col-lg-3 col-md-3 col-sm-10 remove-col-padding">
+                                        <input type="text" placeholder="Keywords" name="keywords" class="form-control input-lg larger-font-size" value="{{keywords}}">
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-10 remove-col-padding">
+                                        <input type="text" placeholder="Location" name="location" class="form-control input-lg larger-font-size" value="{{location}}">
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-sm-10 remove-col-padding input-daterange date-range-control">
+                                        <input type="text" placeholder="From" class="form-control input-lg larger-font-size" id="datepicker-start" name="start_date" value="{{start_date}}">
+                                        <span class="input-group-addon"><i class="fa fa-arrow-right"></i></span>
+                                        <input type="text" placeholder="To" class="form-control input-lg larger-font-size" id="datepicker-end" name="end_date" value="{{end_date}}">
+                                    </div>
+                                    <div class="col-lg-1 col-md-1 col-sm-10 remove-col-padding">
+                                        <button type="submit" class="btn btn-lg btn-primary search-button-control">
+                                                    <i class="fa fa-search" style=""></i> Search</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div>
+                                <h4>Result found: {{ result_count }}</h4>
+                            </div>
+
+                            {% for conference in conferences if conference.id != 1 %}
+                            <div class="vote-item">
+                                <div class="row">
+                                    <div class="col-md-10">
+                                        <a href="{{url_for('conference.conferences_detail', conference_id=conference.id)}}" class="vote-title" style="margin-left: 15px;">
+                                                    {{ conference.name }} ({{ conference.short_name.upper() }})
+                                                </a>
+                                        <div class="vote-info" style="margin-left: 15px;">
+                                            <i class="fa fa-calendar"></i> <span>{{ conference.start_date }} to {{ conference.end_date }}</span>
+                                            <i class="fa fa-location-arrow"></i> <span>{% if conference.address %}{{ conference.address }}, {% endif %}{% if conference.city %}{{ conference.city }}, {% endif %}{% if conference.state %}{{ conference.state }}, {% endif %}{{ conference.country }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-2 ">
+                                        <td align="center">
+                                            {% if current_user.is_joined_conference(conference) %}
+                                            <button class="btn btn-warning btn-sm" data-conf-id="{{ conference.id }}"data-style="zoom-in" disabled>Joined</button>
+                                            {% else %}
+                                                {% if not current_user.can_join_conference(conference) %}
+                                                <button class="btn btn-primary btn-sm" data-conf-id="{{ conference.id }}" data-style="zoom-in" disabled>Join</button>
+                                                {% else %}
+                                                <a type="button" id="join-{{ conference.id }}" class="btn btn-primary btn-sm join-conf"
+                                                    data-conf-id="{{ conference.id }}" data-style="zoom-in">Join</a>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <hr style="margin-top: 0px;"> {% if keywords=='' and location=='' and start_date=='' and end_date=='' %} {{ macros.pagination_widget(pagination, 'conference.all_conference') }} {% else %} {{ macros.pagination_widget(pagination, 'conference.all_conference',
+                            keywords=keywords, location=location, start_date=start_date, end_date=end_date) }} {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
+<!-- datepicker -->
+<script src="{{ url_for('static', filename='inspinia/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script>
+<!-- Jquery Validate -->
+<script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+<script>
+    $(document).ready(function() {
+        $('#datepicker-start').datepicker({
+            keyboardNavigation: false,
+            forceParse: false,
+            autoclose: true,
+            format: 'yyyy-mm-dd',
+            orientation: "top",
+            todayHighlight: true
+        });
+
+        $('#datepicker-end').datepicker({
+            keyboardNavigation: false,
+            forceParse: false,
+            autoclose: true,
+            format: 'yyyy-mm-dd',
+            orientation: "top",
+            todayHighlight: true
+        });
+
+        $('.join-conf').click(function(event) {
+            var join_btn = $(this);
+            $.ajax({
+                    type: "POST",
+                    url: "/join/" + join_btn.data("conf-id"),
+                    success: function(response) {
+                        swal({
+                            title: "Success",
+                            text: "Successfuly joined the conference.",
+                            type: "success",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        // disable button
+                        join_btn.attr('class', "btn btn-warning btn-sm join-conf");
+                        join_btn.text("Joined");
+                        join_btn.attr('disabled', 'true');
+                    }
+                })
+                .fail(function(error) {
+                    swal({
+                        title: "Oops...",
+                        text: "Failed! Please contact customer service.",
+                        type: "error",
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                });
+        });
+
+    });
+</script>
+
+{% endblock %}

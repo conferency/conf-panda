@@ -1,0 +1,7 @@
+Dear {{ user.first_name }}, 
+
+Your conference request for "{% filter upper %}{{ conference.short_name }}{% endfilter %}" has been {{conference.status|lower()}}.
+
+We are excited to work with you.
+
+Conferency

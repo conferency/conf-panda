@@ -1,0 +1,4 @@
+Hi,
+I am excited to invite you to join the {{conference.name}} as a {% if role == 'User' %}Reviewer{% else %}{{role}}{% endif %}{% if track_name %} of {{track_name}}{% endif %}.
+Invitation link: {{ url_for('auth.invitation_register', token=token, _external=True) }}   
+I look forward to hearing from you.

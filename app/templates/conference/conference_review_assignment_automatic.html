@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "review_menu" %}
+{% set active_second_subpage = "manual-assignment" %}
+{% set page_title = "Review Assignment" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.automatic_assignment', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/select2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <style>
+        .center {
+            float: none;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        .padding-bottom-20 {
+            padding-bottom: 20px;
+        }
+
+        .padding-top-7 {
+            padding-top: 7px;
+        }
+
+        .add_cursor {
+            cursor: pointer;
+        }
+
+        .ulist-padding {
+            padding-left: 0px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                        <form id="auto_assignment" class="form-horizontal" method="post">
+                            {{ form.hidden_tag() }}
+                            <div class="form-group">
+                                <div class="col-sm-2 control-label">
+                                    {{ form.num_reviewers_paper.label }}
+                                </div>
+                                <div class="col-sm-9 padding-top-7">
+                                    {{ form.num_reviewers_paper(class_='form-control required number', value='3', type='number', **{'min': '1', 'max': '10'}) }}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-2 control-label">
+                                    <label>Paper select</label>
+                                </div>
+                                <div class="col-sm-9 padding-top-7">
+                                    <p>You can select papers to be reviewed.</p>
+                                    <p class="text-danger error-message" id="paper_too_less" style="display: none">At least one paper should be selected!</p>
+                                    <!-- <div class="forum-item"> -->
+                                        <div class="row">
+                                            <div class="col-md-8" id="toggle-received-list">
+                                                <div class="forum-icon">
+                                                    <i id="toggle-received-icon" class="fa fa-plus-square-o" style="margin-top: 0"></i>
+                                                </div>
+                                                <a class="forum-item-title">Papers</a>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <span class="btn btn-primary" id="received_all">Select all</span> <span class="btn btn-primary" id="received_de_all">Deselect all</span>
+                                            </div>
+                                        </div>
+                                    <!-- </div> -->
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div id="received_list" class="hide col-sm-9 col-sm-offset-2">
+                                        {% if papers | length > 0 %}
+                                        <table data-sort="false"
+                                               class="footable table table-stripped toggle-arrow-tiny"
+                                               data-page-size="{{ received_num }}">
+                                              <thead>
+                                                  <tr>
+                                                      <th></th>
+                                                      <th data-type="numeric">ID</th>
+                                                      <th>Title</th>
+                                                      <th data-hide="phone">Author</th>
+                                                      <th></th>
+                                                      <th class="hide" data-hide="all">Abstract</th>
+                                                      <th class="hide" data-hide="all">Keywords</th>
+                                                      <th class="hide" data-hide="all">Submission Time</th>
+                                                      <th class="hide" data-hide="all">Submitted By</th>
+                                                      <th class="hide" data-hide="all">File</th>
+                                                  </tr>
+                                              </thead>
+                                                    <tbody>
+                                                    {% for paper in papers %}
+                                                        <tr>
+                                                            <td></td>
+                                                            <td>{{ paper.id }}</td>
+                                                            <td class="title_{{ paper.id }}">{{ paper.title }}</td>
+                                                            <td>{{ macros.generate_paper_authors(paper.authors_list) }}</td>
+                                                            <td>
+                                                                <div class="i-checks">
+                                                                    <label><input class="paper_select received_paper_select" type="checkbox" value="{{ paper.id }}" checked></label>
+                                                                </div>
+                                                            </td>
+                                                            <td class="hide">{{ paper.abstract }}</td>
+                                                            <td class="hide">{{ paper.keywords }}</td>
+                                                            <td class="hide">{{ moment(timestamp=paper.submitted_time).format('LLL') }}</td>
+                                                            <td class="hide">{{ paper.uploader.first_name + " " + paper.uploader.last_name }}</td>
+                                                            <td class="hide">
+
+                                                                {{ render_files_button(paper, paper.files, use_timestamp=True) }}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+
+                                        {% else %}
+                                            <h3 class="font-bold">There is no paper in this status.</h3>
+                                        {% endif %}
+                                    </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-2 control-label">
+                                    {{ form.reviewers.label }}
+                                </div>
+                                <div class="col-sm-9 padding-top-7" id="select-reviewers">
+                                    <p>You can select reviewers by clicking buttons to load them or inputing
+                                        reviewers's name.</p>
+                                    <p class="text-danger error-message" id="reviewer_too_less" style="display: none">At least one reviewer should be selected!</p>
+                                    {{ form.reviewers(class_='form-control required') }}
+                                    <!-- <select class="form-control required hide" multiple id="reviewers"
+                                            name="reviewers" style="width:100%">
+                                        {% for status in status_list %}
+                                            <option class="form-control reviewer" value="{{ status[1].id }}"
+                                                    data-status="{{ reviewer_status[loop.index0] }}" selected> {{ status[1].full_name }} &lt;{{ status[1].email }}&gt;</option>
+                                        {% endfor %}
+                                    </select> -->
+                                </div>
+                                <div class="col-sm-2 control-label">
+                                    {{ form.algorithm.label }}
+                                </div>
+                                <div class="col-sm-9 padding-top-7">
+                                    <p>You can select an algorithm for automatic assignment.</p>
+                                    {% for algorithm in form.algorithm.choices %}
+                                        <div class="i-checks">
+                                            <label><input type="radio" id="algorithm" value="{{ algorithm[0] }}" name="{{ algorithm[0] }}" {% if form.algorithm.data == 'checkbox_all' or form.algorithm.data == 'None' %}checked{% endif %}>
+                                                {{ algorithm[0] }} </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-2 col-sm-offset-2">
+                                    <span id="submit-button" class="btn btn-primary" onclick="submit_button()">Assign</span>
+                                </div>
+                            </div>
+                        </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- Autosize Textarea -->
+    <script src="{{ url_for('static', filename='conferency/js/autosize.min.js') }}"></script>
+    <!-- custom radio buttons -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+    <!-- select -->
+    <script src="{{ url_for('static', filename='conferency/js/select2.full.min.js') }}"></script>
+    <!-- footable -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+
+    <script>
+        function resizeChosen() {
+            $(".select2-container").each(function () {
+                $(this).attr('style', 'width: 100%');
+            });
+        }
+
+        function ajax_submit() {
+            papers = [];
+            $(".paper_select").each(function () {
+                if ($(this).prop("checked")) {
+                    papers.push($(this).val());
+                }
+            });
+            if (papers.length === 0) {
+                document.getElementById('paper_too_less').setAttribute('style', 'display: block');
+                return
+            }
+
+            var reviewers = $("#reviewers").val();
+
+            $('.error-message').attr('style', 'display: none');
+            var algorithm = document.getElementById('algorithm').value;
+            var assignment = {
+                'papers': papers,
+                'reviewers': reviewers,
+                'algorithm': algorithm,
+                'num_reviewers_paper': $("#num_reviewers_paper").val()
+            };
+            // console.log(assignment);
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json",
+                data: JSON.stringify(assignment),
+                url: "{{ url_for('conference.automatic_assignment', conference_id=conference.id)}}",
+                success: function (response, textStatus, _XHR) {
+                    if (_XHR.status == 207) {
+                        swal({
+                            title: "Success!",
+                            type: "warning",
+                            text: "Some papers have not been assigned with enough reviewers because of conflicts. You can retry auto assignment again or manually assign reviewers. \nPaper id: " + _XHR.responseText,
+                            showConfirmButton: true
+                        });
+                    } else {
+                        swal({
+                            title: "Success!",
+                            type: "success",
+                            showConfirmButton: false,
+                            timer: 2000
+                        }, function () {
+                            window.location.href = '{{ url_for('conference.conferences_assignment_manual', conference_id=conference.id) }}'
+                        });
+                    }
+                }
+            })
+                .fail(function(response, textStatus, _XHR) {
+                    if (response.responseText) {
+                            swal({
+                                title: "Oops...",
+                                text: "Assign failed! " + response.responseText,
+                                type: "error",
+                                showConfirmButton: true
+                            });
+                    } else {
+                            swal({
+                                title: "Oops...",
+                                text: "Assign failed! ",
+                                type: "error",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }
+                });
+        }
+
+        function submit_button() {
+            if ($("#auto_assignment").valid()) {
+                var num_reviewers_paper = $("#num_reviewers_paper").val();
+                var num_reviewers = {{ form.reviewers.choices | length }};
+                var num_papers = {{ papers | length }};
+
+                ajax_submit();
+                // if ((num_reviewers/num_papers) < 1) {
+                //     swal({
+                //         title: "Oops...",
+                //         text: "Please descrease the number of reviewer per paper.",
+                //         type: "error",
+                //         showConfirmButton: true
+                //     });
+                // } else if ((num_reviewers/num_papers) < num_reviewers_paper) {
+                //     swal({
+                //         title: "Are you sure?",
+                //         text: "Only " + Math.floor(num_reviewers/num_reviewers_paper) + " papers will be assigned with " + num_reviewers_paper + " for each.",
+                //         type: "warning",
+                //         showConfirmButton: true,
+                //         showCancelButton: true,
+                //         confirmButtonText: "Yes, assign!",
+                //         closeOnConfirm: true
+                //     }, function(isConfirm) {
+                //         if (isConfirm) {
+                //             ajax_submit();
+                //         }
+                //     });
+                // } else {
+                //     ajax_submit();
+                // }
+            }
+        }
+
+        $("#toggle-received-list").click(function () {
+            if ($("#received_list").hasClass("hide")) {
+                $("#toggle-received-icon").attr('class', "fa fa-minus-square-o")
+            }
+            else {
+                $("#toggle-received-icon").attr('class', "fa fa-plus-square-o")
+            }
+            $("#received_list").toggleClass("hide");
+        });
+
+        $("#received_all").click(function () {
+            $(".received_paper_select").iCheck('check');
+        });
+
+        $("#received_de_all").click(function () {
+            $(".received_paper_select").iCheck('uncheck');
+        });
+
+        $(document).ready(function () {
+            $(window).on('resize', resizeChosen);
+
+            $("#auto_assignment").validate();
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green'
+            });
+
+            $("#reviewers").select2({
+                placeholder: "Required. You can choose multiple email receivers.",
+                tags: false,
+                closeOnSelect: false
+            });
+
+
+            $('.footable').footable({});
+            $("ul.nav-tabs > li > a").on("shown.bs.tab", function (e) {
+                //fire initialize of footable because the footable plugin only processes tables that are visible
+                $('.footable').trigger('footable_initialize');
+            });
+
+        });
+    </script>
+{% endblock %}

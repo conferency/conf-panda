@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "review_menu" %}
+{% set active_second_subpage = "review-setting" %}
+{% set page_title = "Review Settings" %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/switchery/switchery.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/datepicker3.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-tagsinput.css') }}" rel="stylesheet">
+    <style>
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius:0px;
+            box-shadow: none;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.conference_review_setting', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="row">
+        {% if endpoint == 'chair_control' %}
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-content clearfix">
+                        <p></p>
+                        <div class="hr-line-dashed"></div>
+                        <div class="col-md-8 col-md-offset-2 update_review">
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Open review process</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Reviewers can only submit reviews when this option is on."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="review_process" name="review_process" class="switch-button" {% if conference.configuration['review_process'] %}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Enable review feedback</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Authors can rate the reviews anonymously to measure review quality."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="review_feedback" name="review_feedback" class="switch-button" {% if conference.configuration['review_feedback'] %}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" >
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Enable double-blind review</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="This enables the double-blind review where reviewers cannot see authors' identity and vice versa."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="hide_author" name="hide_author" class="switch-button" {% if conference.configuration['hide_author'] %}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Enable paper bidding</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="This enables the reviewers to bid on papers for better review assignments."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="allow_paper_bidding" name="allow_paper_bidding" class="switch-button" {% if conference.configuration['allow_paper_bidding'] %}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Enable review delegation</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="This allows program committee members to delegate reviews to sub-reviewers."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="allow_pc_chair_delegation" name="allow_pc_chair_delegation" class="switch-button" {% if conference.configuration.get('allow_pc_chair_delegation', False) %}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" >
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Allow reviewers to see others' reviews</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="By default, a reviewer can only see his/her own reviews. This allows a reviewer to see other reviewers' reviews."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="review_access" name="review_access" class="switch-button" {% if conference.configuration['review_access']%}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Show reviewers' names to other reviewers</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="This enables the reviewers of the same paper to see each other's identify."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="review_anonymous" name="review_anonymous" class="switch-button" {% if conference.configuration['review_anonymous']%}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" >
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Hide paper status to reviewers</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="If selected, reviewers cannot see paper status, such as accepted, rejected, etc."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="hide_paper_status" name="hide_paper_status" class="switch-button" {% if conference.configuration['hide_paper_status']%}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Show review results to authors</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="This option defines whether authors are able to see reviews for their papers."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="show_reviews_author" name="show_reviews_author" class="switch-button" {% if conference.configuration['show_reviews_author']%}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Show average score panel to authors</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="This option defines whether authors are able to see average score for their paper."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="show_average_score" name="show_average_score" class="switch-button" {% if conference.configuration['show_average_score'] %}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Custom paper status</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="There are four default paper status: Received, Under Review, Accepted, and Rejected. You can add additional paper status here."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="text" id="additional_status" name="additional_status" class="form-control" value="{{conference.configuration['additional_status']}}" data-role="tagsinput" placeholder="Separated by commas"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" >
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Max number of reviewers per paper</label>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="number" id="max_reviewer" class="form-control" name="max_reviewer" min="1" step="1" value="{{ conference.configuration.get('max_reviewer', '') }}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" >
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Max number of papers per reviewer</label>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="number" id="max_paper" class="form-control" name="max_paper" min="1" step="1" value="{{ conference.configuration.get('max_paper', '') }}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-2 col-md-offset-5">
+                                        <button class="btn btn-primary save">Save Changes</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label>Review acceptance deadline</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="This option defines the last to accept review submission."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                                            <input type="text" class="form-control" name="review-deadline-date" id="review-deadline-date" value="{{ conference.configuration['review-deadline-date'] }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> -->
+                            <!-- <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-8">
+                                        <label for="">Decisions this should be like tags</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Decision options for papers."></i>
+                                    </div>
+                                    <div class="col-md-3 col-md-offset-1">
+                                        <input type="text" id="descision_tags" name="descision_tags" class="form-control" data-role="tagsinput"/>
+                                    </div>
+                                </div>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+        <div class="tabs-container">
+            <ul class="nav nav-tabs">
+            {% for track_id, track_name in tracks %}
+                {% if track_id == track.id %}
+                <li id="nav-tab-{{loop.index}}" class="{% if track.id == track_id %}active{% endif %}"><a data-toggle="tab" href="#tab-{{ loop.index}}">{{ track_name }}</a></li>
+                {% else %}
+                <li id="nav-tab-{{loop.index}}" class="{% if track.id == track_id %}active{% endif %}"><a href="{{ url_for('conference.conference_track_review_setting', track_id=track_id, conference_id=conference.id) }}">{{ track_name }}</a></li>
+                {% endif %}
+            {% endfor %}
+            </ul>
+            <div class="tab-content">
+                {% if track.configuration['allow_review_config'] %}
+                    {% set disabled = '' %}
+                    {% set configuration = track.configuration %}
+                {% else %}
+                    {% set disabled = 'disabled' %}
+                    {% set configuration = conference.configuration %}
+                {% endif %}
+                <div class="tab-pane animated fadeInDown active">
+                    <div class="panel-body">
+                        <p>If you cannot edit the setting, but would like to do, please contact the chair of conference.</p>
+                        <div class="hr-line-dashed"></div>
+                        <div class="col-md-8 col-md-offset-2 update_review">
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="review_process">Open review process</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="PC members can only submit reviews when this option is open."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="review_process" name="review_process" class="switch-button" {% if configuration['review_process'] %}checked{% endif %} {{ disabled }}/>
+                                    </div>
+                                </div>
+                            </div>
+<!--                             <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="review_number">The number of reviewers per paper</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Minimal number of reviewers per paper - this option is only used by the automatic submission assignment algorithm."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="text" id="review_number" name="review_number" class="form-control" value="{{configuration['review_number']}}" {{ disabled }}/>
+                                    </div>
+                                </div>
+                            </div> -->
+                            <div class="form-group" >
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Hide authors' information for double-blind review</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="If selected, reviewers or PCs cannot see the authors' information."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="hide_author" name="hide_author" class="switch-button" {% if configuration['hide_author']%}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" >
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="show_reviews_author">Show review results to authors</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="If selected, a PC member can see reviews of other reviewers on papers assigned to him/her, otherwise he/she can only see his/her own reviews."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="show_reviews_author" name="show_reviews_author" class="switch-button" {% if configuration['show_reviews_author']%}checked{% endif %} {{ disabled }}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" >
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Hide paper status to reviewers</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="If selected, reviewers or PCs cannot see the status of paper."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="hide_paper_status" name="hide_paper_status" class="switch-button" {% if configuration['hide_paper_status']%}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="review_anonymous">Show reviewers' names to other reviewers</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="This option defines whether non-chairs can see the names of reviewers and only makes sense when non-chairs are allowed to see reviews submitted by other reviewers."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="review_anonymous" name="review_anonymous" class="switch-button" {% if configuration['review_anonymous']%}checked{% endif %} {{ disabled }}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="show_average_score">Show average score panel to authors</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="This option defines whether authors are able to see average score for their paper."></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="show_average_score" name="show_average_score" class="switch-button" {% if configuration['show_average_score']%}checked{% endif %} {{ disabled }}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Allow bidding</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="This option defines whether program committee (PC) members are allowed to bid on paper submissions to help the PC chair assign reviewers to papers"></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="checkbox" id="allow_paper_bidding" name="allow_paper_bidding" class="switch-button" {% if configuration['allow_paper_bidding']%}checked{% endif %} {{ disabled }}/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-7">
+                                        <label for="">Additional status</label>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Additional status for submitted papers"></i>
+                                    </div>
+                                    <div class="col-md-4 col-md-offset-1">
+                                        <input type="text" id="additional_status" name="additional_status" class="form-control" value="{{configuration['additional_status']}}" data-role="tagsinput"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-12">
+                                    <div class="col-md-2 col-md-offset-5">
+                                        <button class="btn btn-primary save">Save Changes</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Switchery -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/switchery/switchery.js') }}"></script>
+    <!-- datepicker -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-datepicker.js') }}"></script>
+    <!-- Tag Input -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-tagsinput.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/save.js') }}" type="text/javascript"></script>
+    <script>
+    function get_today() {
+        var d = new Date();
+        var today = [d.getFullYear(), d.getMonth() + 1, d.getDate()].join('-');
+        return today;
+    }
+
+    $(document).ready(function () {
+        var update_json = {};
+        // initialize switchery  javascript
+        var elems = Array.prototype.slice.call(document.querySelectorAll('.switch-button'));
+        elems.forEach(function(elem) {
+            var switchery = new Switchery(elem, { color: '#1AB394', size: 'large' });
+        });
+
+        $('#review-deadline-date').datepicker({
+            keyboardNavigation: false,
+            forceParse: false,
+            autoclose: true,
+            startDate: get_today(),
+            format: 'yyyy-mm-dd'
+        });
+
+        $('[data-toggle="tooltip"]').tooltip();
+
+        $(".update_review").delegate("input", "change", function(event) {
+            event.preventDefault();
+            var changed_type = $(this).attr("type");
+            var update_json = {};
+            if (changed_type === "checkbox") {
+                update_json[$(this).attr("id")] = $(this).is(":checked");
+            } else if (changed_type === "text" || changed_type === "number") {
+                update_json[$(this).attr("id")] = $(this).val();
+            }
+            $.ajax({
+                type: "PUT",
+                url: "{% if endpoint == 'chair_control' %}{{ url_for('api.update_conference_review_config', conference_id=conference.id) }}{% else %}{{ url_for('api.update_track_setting', conference_id=conference.id, track_id=track.id) }}{% endif %}",
+                contentType: "application/json",
+                data: JSON.stringify({"setting": update_json}),
+                success: function (response) {
+                    // swal({title: "Updated!", text: "Review configuration updated.", type: "success", timer: 2000,   showConfirmButton: false});
+                }
+            })
+                .fail(function(data, textStatus, error) {
+                    swal({title: "Oops...", text: "Update failed. We are very sorry. Please contact with customer service.", type: "error", timer: 2000,   showConfirmButton: false});
+            });
+        });
+
+        $(".update_review").on("change", ".switch-button, input[type='number'], input[type='text']", function (event) {
+            event.preventDefault();
+            var changed_type = $(this).attr('type');
+            // console.log(changed_type);
+            if (changed_type === "checkbox") {
+                update_json[$(this).attr('id')] = $(this).is(':checked');
+            } else if ($(this).hasClass('input-submission-type')) {
+                if ($(this).select(':selected').val() !== null) {
+                    update_json['submission_types'] = $(this).select(':selected').val().join(';');
+                } else {
+                    update_json['submission_types'] = $(this).select(':selected').val();
+                }
+            } else {
+                update_json[$(this).attr('id')] = $(this).val();
+            }
+            // console.log(update_json);
+        });
+
+        save_detect([".update_review .switch-button", ".update_review input[type='text'], .update_review input[type='number']"]);
+
+        $(".save").on('click', function(event) {
+            $.ajax({
+                    type: "PUT",
+                    url: "{% if endpoint == 'chair_control' %}{{ url_for('api.update_conference_review_config', conference_id=conference.id) }}{% else %}{{ url_for('api.update_track_setting', conference_id=conference.id, track_id=track.id) }}{% endif %}",
+                    contentType: "application/json",
+                    data: JSON.stringify({"setting": update_json}),
+                    success: function (response) {
+                        // console.log(response);
+                        swal({title: "Updated!", text: "Review configuration updated.", type: "success", timer: 2000,   showConfirmButton: false});
+                        saved = true;
+                        update_json = {};
+                    }
+                })
+                    .fail(function (data, textStatus, error) {
+                        // console.log(data);
+                        swal({
+                            title: "Oops...",
+                            text: "Update failed. We are very sorry. Please contact with customer service.",
+                            type: "error",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    });
+        });
+
+    });
+    </script>
+{% endblock %}

@@ -1,0 +1,824 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "conference_summary" %}
+{% set page_title = "Conference Summary" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.conference_summary', conference_id=current_conf.id))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-tagsinput.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/select2.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/datepicker3.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/switchery/switchery.css') }}" rel="stylesheet">
+    <style>
+        .less-bottom-margin {
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .list-group-item {
+            border: 12;
+            padding-left: 0px;
+        }
+
+        .padding-left-30 {
+            padding-left: 30px
+        }
+
+        .label {
+            font-size: 15px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <span class="label label-info pull-right">{{ conf_name.upper() }}</span>
+                <h5>Total Registrations</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins"><a href="{{ url_for('conference.registration_summary', conference_id=current_conf.id) }}">{{ total_registration }}</a></h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <span class="label label-info pull-right">{{ conf_name.upper() }}</span>
+                <h5>Total Submissions</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins"><a href="/submission">{{ total_submissions }}</a></h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <span class="label label-info pull-right">{{ conf_name.upper() }}</span>
+                <h5>Total Reviews</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins"><a href="/review">{{ total_reviews }}</a></h1>
+            </div>
+        </div>
+    </div>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+<div class="row">
+    <div class="col-lg-12">
+        <div class="tabs-container">
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#tab-1"><h3>Registrations</h3></a></li>
+                <li class=""><a data-toggle="tab" href="#tab-2"><h3>Submissions</h3></a></li>
+                <li class=""><a data-toggle="tab" href="#tab-3"><h3>Reviews</h3></a></li>
+            </ul>
+            <div class="tab-content">
+                <div id="tab-1" class="tab-pane active">
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <!-- <span class="label label-success pull-right">Monthly</span> -->
+                                        <h5>Gross Sales</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <h1 class="no-margins">$ {{ current_conf.registration.total_sold }}</h1>
+                                        <!-- <div class="stat-percent font-bold text-success">98% <i class="fa fa-bolt"></i></div> -->
+                                        <!-- <small>Total income</small> -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- <div class="col-lg-4">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Net Sales</h5>&nbsp;<i class="fa fa-question-circle" id="tips" data-toggle="tooltip" data-placement="top" title="For each ticket, we charge $1.99 service fee + 3% payment fee."></i>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <h1 class="no-margins">$ {{ current_conf.registration.net_sale }}</h1>
+                                    </div>
+                                </div>
+                            </div> -->
+                            <div class="col-lg-6">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <!-- <span class="label label-primary pull-right">Today</span> -->
+                                        <h5>Tickets Sold</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <h1 class="no-margins"><a href="{{url_for('conference.registration_recent_orders', conference_id=current_user.curr_conf_id)}}">{{ current_conf.registration.tickets | sum(attribute='number_of_sold') }}</a></h1>
+                                            <!-- <div class="stat-percent font-bold text-navy">44% <i class="fa fa-level-up"></i></div> -->
+                                            <!-- <small>New visits</small> -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Daily sales</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <div>
+                                            <canvas id="daily_sale" height="140"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Sales by ticket type</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <div>
+                                            <canvas id="doughnutChart" height="140"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Sales by ticket type details</h5>
+                                    </div>
+                                    <div class="ibox-content table-responsive">
+                                        <table class="table table-bordered less-bottom-margin">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ticket type</th>
+                                                    <th>Price</th>
+                                                    <th>Sold</th>
+                                                    <th>Status</th>
+                                                    <!-- <th>Subtotal</th> -->
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% set tickets = current_conf.registration.tickets.all() %}
+                                                {% if tickets | length %}
+                                                    {% for ticket in tickets %}
+                                                        <tr>
+                                                            <td>{{ ticket.name }}</td>
+                                                            <td>$ {{ ticket.price }}</td>
+                                                            <td>{{ ticket.number_of_sold }}</td>
+                                                            <td>{{ ticket.status }}</td>
+                                                            <!-- <td>$ {{ ticket.subtotal }}</td> -->
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <td class="text-center" colspan="5">Not found any ticket.</td>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Sales by product type details</h5>
+                                    </div>
+                                    <div class="ibox-content table-responsive">
+                                        <table class="table table-bordered less-bottom-margin">
+                                            <thead>
+                                                <tr>
+                                                    <th>Product</th>
+                                                    <th>Price</th>
+                                                    <th>Sold</th>
+                                                    <th>Status</th>
+                                                    <!-- <th>Subtotal</th> -->
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% set products = (current_conf.registration.products.all() | rejectattr('status', 'equalto', 'Deleted') | list) %}
+                                                {% if products | length %}
+                                                    {% for product in products %}
+                                                        {% set options = product.options.all() %}
+                                                            {% if (options | length) > 1 %}
+                                                                {% for option in options if not option.default %}
+                                                                    <tr>
+                                                                        <td>{{ option.product_name }} -- {{ option.option_name }}</td>
+                                                                        <td>$ {{ option.option_price }}</td>
+                                                                        <td>{{ option.number_of_sold }}</td>
+                                                                        <td>{{ option.status }}</td>
+                                                                        <!-- <td>$ </td> -->
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            {% else %}
+                                                                {% for option in options %}
+                                                                    <tr>
+                                                                        <td>{{ option.product_name }}</td>
+                                                                        <td>$ {{ option.option_price }}</td>
+                                                                        <td>{{ option.number_of_sold }}</td>
+                                                                        <td>{{ option.status }}</td>
+                                                                        <!-- <td>$ </td> -->
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            {% endif %}
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <td class="text-center" colspan="5">Not found any product.</td>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% if current_user.is_administrator() %}
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Payout</h5>
+                                    </div>
+                                    {# check if payout is empty #}
+                                    {% set payout = conference.registration.payout %}
+                                    <div class="ibox-content table-responsive">
+                                        {% if payout.account_name %}
+                                        <table class="table table-bordered less-bottom-margin">
+                                            <thead>
+                                                <tr>
+                                                    <th>Payout address</th>
+                                                    <th>Payment information</th>
+                                                    <th>Payout Information</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <address>
+                                                                Name on Account: <span id="table_account_name">{{ payout.account_name }}</span><br>
+                                                                Address line 1: <span id="table_address_1">{{ payout.street_1 }}</span><br>
+                                                                Address line 2: <span id="table_address_2">{% if payout.street_2 %}{{ payout.street_2 }}{% endif %}</span><br>
+                                                                City: <span id="table_city">{{ payout.city }}</span><br>
+                                                                State: <span id="table_state">{% if payout.state %}{{ payout.state }}{% endif %}</span><br>
+                                                                Country: <span id="table_country">{{ payout.country }}</span><br>
+                                                                Zipcode: <span id="table_zipcode">{% if payout.zipcode %}{{ payout.zipcode }}{% endif %}</span><br>
+                                                            </address>
+                                                        </td>
+                                                        <td>
+                                                            <address>
+                                                                Payment method: <span id="table_payment_method">{{ payout.payment_method }}</span><br>
+                                                                <div id="table_payment_status" class="{% if payout.payment_method == 'Check' %}hide{% endif %}">
+                                                                Bank name: <span id="table_bank_name">{{ payout.bank_name }}</span><br>
+                                                                Account type: <span id="table_account_type">{{ payout.account_type }}</span><br>
+                                                                Routing number: <span id="table_routing_number">{{ payout.routing_number }}</span><br>
+                                                                Account number: <span id="table_account_number">{{ payout.account_number }}</span><br>
+                                                                </div>
+                                                            </address>
+                                                        </td>
+                                                        <td>
+                                                            <form class="form-horizontal col-sm-10">
+                                                                <div class="form-group">
+                                                                    <label class="col-sm-2 control-label">Payout status</label>
+                                                                    <div class="col-sm-10">
+                                                                        <select class="form-control m-b" name="payout_status" id="payout_status">
+                                                                            <option value='Pending' {% if payout.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                                            <option value="Completed" {% if payout.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="col-sm-2 control-label">Amount</label>
+                                                                    <div class="col-sm-10">
+                                                                        <input class="form-control" id="payout_amount" name="payout_amount" value="{{payout.amount}}">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="col-sm-2 control-label">Last update</label>
+                                                                    <div class="col-sm-10">
+                                                                        <p id="payout_last_updated" class="form-control-static">{% if payout.update_timestamp %}{{ payout.update_timestamp.strftime("%B %d, %Y") }}{% endif %}</p>
+                                                                        <button type="button" class="btn btn-primary btn-sm" id="payout_update">Confirm</button>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+                                                            <!-- <address>
+                                                                Payout status: <select><option value='Pending'>Pending</option><option value="Completed">Completed</option></select><br>
+                                                                Amount: <input type="text"></> has been paid<br>
+                                                                Last update: {% if payout.payment_finish_timestamp %}{{ payout.payment_finish_timestamp }}{% endif %}<br>
+                                                                <button type="button" class="btn btn-primary btn-sm">Confirm</button>
+                                                            </address> -->
+                                                        </td>
+                                                    </tr>
+                                            </tbody>
+                                        </table>
+                                        {% else %}
+                                        <p class="text-center">No payout information</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Registration distribution</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <div id="world-map" style="height: 300px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-2" class="tab-pane">
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Paper Number</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <h1 class="no-margins"><a href="/submission">{{ total_submissions }}</a></h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <!-- <span class="label label-primary pull-right">Today</span> -->
+                                        <h5>Acceptance Rate</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        {% if total_submissions %}
+                                            <h1 class="no-margins">{{ (100*summary['accepted_number']/total_submissions) | round(2, 'floor') }}%</h1>
+                                        {% else %}
+                                            <h1 class="no-margins">N/A</h1>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Submssion from Different Tracks</h5>
+                                    </div>
+                                    <div class="ibox-content table-responsive">
+                                        <table class="table table-bordered less-bottom-margin">
+                                            <thead>
+                                                <tr>
+                                                    <th>Track</th>
+                                                    <th>Paper</th>
+                                                    <th>Accepted Paper</th>
+                                                    <th>Acceptance Rate</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% set tracks = current_conf.tracks.all() %}
+                                                {% if tracks | length %}
+                                                    {% for track in tracks %}
+                                                        {% set papers = track.papers.all() %}
+                                                        {% set accepted_papers = papers | selectattr('status', 'equalto', 'Accepted') | list %}
+                                                            {% if (papers | length) > 0 %}
+                                                                <tr>
+                                                                    <td>{{ track.name }}</td>
+                                                                    <td>{{ papers | length }}</td>
+                                                                    <td>{{ accepted_papers | length }}
+                                                                    {% if papers %}
+                                                                        <td>{{ (100*(accepted_papers | length)/(papers | length)) | round(2, 'floor') }}%</td>
+                                                                    {% else %}
+                                                                        <td>N/A</td>
+                                                                    {% endif %}
+                                                                </tr>
+                                                            {% endif %}
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <td class="text-center" colspan="5">Not found any tracks :(</td>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Submission from Different Organizations</h5>
+                                    </div>
+                                    <div class="ibox-content table-responsive">
+                                        <table class="table table-bordered less-bottom-margin">
+                                            <thead>
+                                                <tr>
+                                                    <th>Organization</th>
+                                                    <th>Paper</th>
+                                                    <th>Accepted Paper</th>
+                                                    <th>Acceptance Rate</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% if summary['organization_summary'] %}
+                                                    {% for paper_num, organization, papers in summary['organization_summary'] %}
+                                                        {% set accepted_papers = papers | selectattr('status', 'equalto', 'Accepted') | list %}
+                                                            <tr>
+                                                                <td>{{ organization }}</td>
+                                                                <td>{{ paper_num }}</td>
+                                                                <td>{{ accepted_papers | length }}
+                                                                {% if paper_num %}
+                                                                    <td>{{ (100*(accepted_papers | length)/(paper_num)) | round(2, 'floor') }}%</td>
+                                                                {% else %}
+                                                                    <td>N/A</td>
+                                                                {% endif %}
+                                                            </tr>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <td class="text-center" colspan="5">Not found any organizations :(</td>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Submission from Different Authors</h5>
+                                    </div>
+                                    <div class="ibox-content table-responsive">
+                                        <table class="table table-bordered less-bottom-margin">
+                                            <thead>
+                                                <tr>
+                                                    <th>Author</th>
+                                                    <th>Paper</th>
+                                                    <th>Accepted Paper</th>
+                                                    <th>Acceptance Rate</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% if summary['author_summary'] %}
+                                                    {% for paper_num, author, papers in summary['author_summary'] %}
+                                                        {% set accepted_papers = papers | selectattr('status', 'equalto', 'Accepted') | list %}
+                                                            <tr>
+                                                                <td>{{ author }}</td>
+                                                                <td>{{ paper_num }}</td>
+                                                                <td>{{ accepted_papers | length }}
+                                                                {% if paper_num %}
+                                                                    <td>{{ (100*(accepted_papers | length)/(paper_num)) | round(2, 'floor') }}%</td>
+                                                                {% else %}
+                                                                    <td>N/A</td>
+                                                                {% endif %}
+                                                            </tr>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <td class="text-center" colspan="5">Not found any authors :(</td>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-3" class="tab-pane">
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Total Review Assignment</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <h1 class="no-margins">{{ summary['sum_of_review_assignments'] }}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Paper Not Assigned</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <h1 class="no-margins">{{ summary['no_assignment_paper'] }}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Outstanding Review</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <h1 class="no-margins">{{ summary['outstanding_reviews_number'] }}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Outstanding Paper</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <h1 class="no-margins">{{ summary['outstanding_reviews_paper_number'] }}</h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Review Status of Reviewers</h5>
+                                    </div>
+                                    <div class="ibox-content table-responsive">
+                                        <table class="table table-bordered less-bottom-margin">
+                                            <thead>
+                                                <tr>
+                                                    <th>Reviewer</th>
+                                                    <th>Assigned Reviews</th>
+                                                    <th>Finished Reviews</th>
+                                                    <th>Average Confidence Score</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% if summary['reviewer_summary'] | length %}
+                                                    {% for review_status, reviewer in summary['reviewer_summary'] %}
+                                                            <tr>
+                                                                <td>{{ reviewer }}</td>
+                                                                <td>{{ review_status[0] }}</td>
+                                                                <td>{{ review_status[1] }}</td>
+                                                                <td>{{ review_status[2] }}</td>
+                                                            </tr>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <td class="text-center" colspan="5">Not found reviewers :(</td>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/jvectormap/jquery-jvectormap-2.0.2.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/jvectormap/jquery-jvectormap-world-mill-en.js') }}"></script>
+
+    <script>
+        $(document).ready(function(){
+            $('#tips').tooltip();
+            {% if current_user.is_administrator() %}
+            $('#payout_update').click(function(event) {
+                event.preventDefault();
+                $.ajax({
+                    type : "PUT",
+                    url: "{{url_for('api.update_payout_pay', conference_id=conference.id)}}",
+                    contentType: "application/json",
+                    data: JSON.stringify({payout_status: $('#payout_status').val(), payout_amount: $('#payout_amount').val()}),
+                    success: function(response) {
+                        $('#payout_last_updated').text(response.last_updated);
+                        swal({title: "Success!", type: "success", text: "Your information has been saved.", timer: 2000, showConfirmButton: false});
+                    }
+                });
+            });
+            {% endif %}
+        });
+
+    </script>
+    <!-- ChartJS-->
+    <script src={{ url_for('static', filename='conferency/inspinia/js/chartjs/Chart.min.js') }}></script>
+
+    <script>
+
+    $.getJSON('/api/conferences/{{current_conf.id}}/ticketsale', function(data){
+
+        // generate js date objects for chart
+        var dates = [];
+        for (var i=0; i<data.linechart.dates.length; i++) {
+            dates.push(new Date(data.linechart.dates[i]));
+        }
+
+        if (dates.length == 0){
+            $('#daily_sale').parent().html('<h2>No sales yet.</h2>');
+        } else {
+            var salesData = {
+                labels: dates,
+                datasets: [
+                    {
+                        label: "Daily Ticket Sales",
+                        fill: false,
+                        lineTension: 0,
+                        backgroundColor: "#fff",
+                        borderColor: "rgba(26,179,148,0.7)",
+                        borderCapStyle: 'butt',
+                        borderDash: [],
+                        borderDashOffset: 0.0,
+                        borderJoinStyle: 'miter',
+                        pointBorderColor: "rgba(26,179,148,1.0)",
+                        pointBackgroundColor: "#fff",
+                        pointBorderWidth: 1,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: "rgba(26,179,148,1.0)",
+                        pointHoverBorderColor: "rgba(220,220,220,1)",
+                        pointHoverBorderWidth: 2,
+                        pointRadius: 3,
+                        pointHitRadius: 10,
+                        data: data.linechart.sales,
+                    }
+                ]
+            };
+
+            // console.log(salesData.labels);
+            var ctx = document.getElementById("daily_sale").getContext("2d");
+            var myLineChart = new Chart(ctx, {
+                type: 'line',
+                data: salesData,
+                options: {
+                    showLines: true,
+                    responsive: true,
+                    legend: {display:false},
+                    tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    // console.log(data);
+                                    // var value = data.datasets[0].data[tooltipItem.index];
+                                    // var label = data.labels[tooltipItem.index];
+                                    return "Daily Ticket Sales: $ " + tooltipItem.yLabel;
+                                },
+                            }
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: "time",
+                            time: {
+                                displayFormat:'MM/DD',
+                                tooltipFormat: 'MM/DD/YY',
+                            },
+                            // ticks: {
+                            //     maxRotation: 90
+                            // }
+                        }],
+                        yAxes: [{
+                            ticks:{
+                                userCallback:   function(value, index, values) {
+                                                // $ sign and thousand seperators
+                                                    return  '$'+value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                                },
+                                beginAtZero: true
+                            },
+                        }],
+                    },
+                }
+            });
+
+        }
+
+        var saleTypeData = {
+            labels: data.pie.types,
+            datasets: [
+                {
+                    data: data.pie.nums,
+                    // data:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                    // backgroundColor: colors,
+                    // hoverBackgroundColor: colors
+                    backgroundColor: [
+                        "#FF6384",
+                        "#36A2EB",
+                        "#FFCE56",
+                        "#577590",
+                        "#EE964B",
+                        "#F95738",
+                        "#EBEBD3",
+                        "#A7C6DA",
+                        "#FFB86F",
+                        "#576CA8",
+                        "#1B998B",
+                        "#6369D1",
+                        "#E56399",
+                        "#330036",
+                        "#0DBEB2",
+                        "#561D25",
+                        "#3E7CB1",
+                        "#F35F00",
+                        "#A20021",
+                        "#083D77",
+                    ],
+                    hoverBackgroundColor: [
+                        "#FF6384",
+                        "#36A2EB",
+                        "#FFCE56",
+                        "#577590",
+                        "#EE964B",
+                        "#F95738",
+                        "#EBEBD3",
+                        "#A7C6DA",
+                        "#FFB86F",
+                        "#576CA8",
+                        "#1B998B",
+                        "#6369D1",
+                        "#E56399",
+                        "#330036",
+                        "#0DBEB2",
+                        "#561D25",
+                        "#3E7CB1",
+                        "#F35F00",
+                        "#A20021",
+                        "#083D77",
+                    ]
+                }]
+        };
+        var total=0;
+        $.each(data.pie.nums,function() {
+            total += this;
+        });
+
+        console.log(saleTypeData);
+        if (total==0){
+            //empty states
+            $('#doughnutChart').parent().html('<h2>No sales yet.</h2>');
+        }
+        else{
+            var ctx = document.getElementById("doughnutChart").getContext("2d");
+            var myDoughnutChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: saleTypeData
+            });
+        }
+
+    });
+
+    // var mapData = {
+    //             "US": 498,
+    //             "SA": 200,
+    //             "CA": 1300,
+    //             "DE": 220,
+    //             "FR": 540,
+    //             "AU": 760,
+    //             'CN': 130,
+    //             "BR": 550,
+    //             "IN": 200,
+    //             "GB": 120,
+    //             "RU": 2000
+    //         };
+    var mapData = {{ summary["registration_distribution"] | tojson | safe }};
+
+    $('#world-map').vectorMap({
+                map: 'world_mill_en',
+                backgroundColor: "transparent",
+                regionStyle: {
+                    initial: {
+                        fill: '#e4e4e4',
+                        "fill-opacity": 1,
+                        stroke: 'none',
+                        "stroke-width": 0,
+                        "stroke-opacity": 0
+                    }
+                },
+                series: {
+                    regions: [{
+                        values: mapData,
+                        scale: ["#1ab394", "#22d6b1"],
+                        normalizeFunction: 'polynomial'
+                    }]
+                },
+                onRegionTipShow: function(e, el, code){
+                  el.html(el.html() + ": " + mapData[code]);
+                }
+            });
+
+
+    </script>
+
+{% endblock %}

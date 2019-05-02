@@ -1,0 +1,5 @@
+Dear {{ user.first_name }}, 
+Thank you for selecting Conferency.com as the platform for your conference. 
+Your conference request for "{{ conference.name }}" has been {{conference.status|lower()}}.
+We are excited to work with you.
+Conferency

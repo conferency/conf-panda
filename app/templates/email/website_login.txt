@@ -1,0 +1,11 @@
+Dear {{ user.first_name }},
+You have requested the login instruction to our hosted WordPress in the dashboard. Here is the information.
+
+Dashboard URL: {{ dashboard_url }}
+Username: {{ username }}
+Password: {{ password }}
+
+You can login to the WordPress site by using the sign-in information above.
+
+ Sincerely,
+ Conferency

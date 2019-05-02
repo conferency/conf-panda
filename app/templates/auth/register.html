@@ -1,0 +1,92 @@
+{% extends "auth/base_auth.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Conferency | Sign Up{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='conferency/css/login.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+{% block main_form %}
+    <div class="form">
+        <ul class="tab-group">
+            <li class="tab active"><a href="">Register</a></li>
+            <li class="tab "><a href="{{ url_for('auth.login') }}{% if conference is defined %}?conf={{conference.id}}{% endif %}">Log In</a></li>
+        </ul>
+
+        <div class="tab-content">
+            <p>Create your account {% if conference %} to join <b>{{ conference.name }}</b>.{% endif %}</p>
+            <form class="m-t" role="form" method="post">
+                {{ form.hidden_tag() }}
+                {{ macros.render_field(form.email, "Email", type='email') }}
+                {{ macros.render_field(form.firstname, "First Name") }}
+                {{ macros.render_field(form.lastname, "Last Name") }}
+                {{ macros.render_field(form.password, "Password at least 8 characters") }}
+                {{ macros.render_field(form.password2, "Confirm Password") }}
+                {{ macros.render_field(form.organization, "Organization") }}
+                {{ macros.render_field(form.location, "City") }}
+                {{ macros.render_field(form.state, "State/Province") }}
+                <div class="form-group ">
+                    <select class="form-control" id="country" name="country" placeholder="">
+                        {{ macros.generate_country_options() }}
+                    </select>
+                </div>
+                {{ form.submit(class="btn btn-primary block full-width m-b") }}
+                <p class="text-muted text-center">Already have an account?</p>
+                <a id="login_button_signup_page" class="btn btn-sm btn-white btn-block" href="/auth/login{% if conference is defined %}?conf={{conference.id}}{% endif %}">Login</a>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Autocomplete -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/register.js') }}"></script>
+
+    <script>
+        function setUpAutocomplete(selector, data) {
+            $(selector).devbridgeAutocomplete({
+                lookup: data,
+                lookupLimit: 10,
+            });
+        }
+
+        // function country_option(selector, data) {
+        //     $.each(data, function(index, value) {
+        //         if (value.value !== 'United States') {
+        //             $(selector).append("<option value='" + value.value + "'>" + value.value + "</option>");
+        //         } else {
+        //             $(selector).append("<option value='" + value.value + "' selected>" + value.value + "</option>");
+        //         }
+        //     })
+        // }
+
+        $(document).ready(function(){
+
+            $.getJSON("{{ url_for('static', filename='json/affiliations.json')}}", function(data) {
+                setUpAutocomplete('#organization', data);
+            });
+
+            $.getJSON("{{ url_for('static', filename='json/states.json')}}", function(data) {
+                setUpAutocomplete('#state', data);
+            });
+            //     .fail(function(data, textStatus, error) {
+            //         console.log(data);
+            //         console.error("error: "+ error);
+            // })
+
+            // $.getJSON("{{ url_for('static', filename='json/countries.json')}}", function(data) {
+            //     countries = data;
+            //     country_option($('select[id="country"]'), data);
+            // });
+
+
+
+        }); //end of ready
+    </script>
+
+{% endblock %}

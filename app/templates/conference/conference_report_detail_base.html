@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "reports" %}
+{% set page_title = "Conference Reports" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (report_name, url_for('conference.reports', conference_id=conference.id, reoprt=report))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/footable/footable.bootstrap.min.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block page_content %}
+    <div class="animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>{% if report == 'author' %}Authors{% elif report == 'reviewer' %}Reviewers{% elif report == 'paper' %}Papers{% endif %}</h5>
+                    </div>
+                    <div class="ibox-content total_submissions">
+                        <h1 class="no-margins" id="h1-email-num"></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>Organizations</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <h1 class="no-margins" id="h1-org-num"></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>Countries</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <h1 class="no-margins" id="h1-country-num"></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <div class="ibox-tools">
+                            <a href="{{ url_for('conference.download_report', conference_id=conference.id, report=report) }}"
+                               class="btn btn-primary btn-xs">Download CSV</a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        {% block contents_before_table %}
+                        {% endblock %}
+                        <table class="footable table table-stripped toggle-arrow-tiny"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='conferency/js/footable.updated.min.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+            $.get("{{ url_for('api.get_report_statistics', conference_id=conference.id, report_type=report) }}", function (data) {
+                $("#h1-email-num").text(data.email_num);
+                $("#h1-org-num").text(data.org_num);
+                $("#h1-country-num").text(data.country_num);
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "/email/email_base.html" %}
+
+{% block page_content %}
+<tbody>
+    <tr>
+        <td style="font-family: Helvetica, arial, sans-serif; font-size: 14px; color: #95a5a6; text-align:center;line-height: 30px;" st-content="fulltext-paragraph">
+            <p>A new preview code request has been received with the following email address:</p>
+            <p>{{ email }}</p>
+        </td>
+    </tr>
+    <!-- End of content -->
+</tbody>
+
+{% endblock %}

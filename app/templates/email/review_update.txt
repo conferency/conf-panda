@@ -1,0 +1,1 @@
+{% if review_flag == 'new' %}You have submitted a new review on "{{paper.title}}".{% else %}You have updated the review on "{{paper.title}}".{% endif %}

@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% set active_page = "conferences" %}
+{% set active_subpage = "admin-requests" %}
+{% set page_title = "Conference Details" %}
+
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Admin', '#'), (page_title, url_for('conf_admin.conferences_detail', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <style media="screen">
+
+    </style>
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Conference Details</h5>
+            </div>
+            <div class="ibox-content">
+                <h2 class="font-bold m-b-xs">
+                    {{ conference.name }} - {{ conference.short_name | upper }}
+                </h2>
+                <p><i class="fa fa-calendar"></i> {{ conference.start_date }} to {{ conference.end_date }}</p>
+                <p><i class="fa fa-map-marker"></i> {% if conference.address %}{{ conference.address }}, {% endif %}{{ conference.city }}, {% if conference.state %}{{ conference.state }}, {% endif %}{{ conference.country }}</p>
+                <hr>
+                <h3>Conference details</h3>
+                {% if conference.website %}
+                <p><b>Website</b>: <a href="http://{{ conference.website }}" target="_blank">{{ conference.website }}</a>
+                </p>
+                {% endif %}
+                <p><b>Contact Email</b>: {{ conference.contact_email }} </p>
+                <p><b>Contact Phone Number</b>: {{ conference.contact_phone }} </p>
+                <p><b>City</b>: {{ conference.city }} </p>
+                <p><b>State/Province</b>: {{ conference.state }} </p>
+                <p><b>Country</b>: {{ conference.country }} </p>
+                <p><b>Venue</b>: {{ conference.address }}</p>
+                <p><b>Time zone</b>: {{ conference.timezone }} </p>
+                <p><b>Subjects</b>: {{ conference.subjects }} </p>
+                <p><b>Tags</b>: {{ conference.tags }} </p>
+                {% if conference.info %}
+                    <p>{{ conference.info }} </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Submission</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins">{{ conference_stat['submission']['all'] }}</h1>
+                <small>Total submissions</small>
+                <p class="m-b-none">Withdrawn: {{ conference_stat['submission']['Withdrawn'] }}</p>
+                <p class="m-b-none">Deleted: {{ conference_stat['submission']['Deleted'] }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Review</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins">{{ conference_stat['review']['all'] }}</h1>
+                <small>Total reviews</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Member</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins">{{ conference_stat['member']['all'] }}</h1>
+                <small>Total members</small>
+                <p class="m-b-none">Chairs: {{ conference_stat['member']['chair'] }}</p>
+                <p class="m-b-none">Pcs: {{ conference_stat['member']['pc'] }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Registration</h5>
+            </div>
+            <div class="ibox-content">
+                <h1 class="no-margins">{{ conference_stat['registration']['all'] }}</h1>
+                <small>Total registrations</small>
+                {% for ticket in conference_stat['registration']['ticket'] %}
+                <p class="m-b-none">{{ ticket }}: {{ conference_stat['registration']['ticket_stat'][loop.index0] }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Conference Payment</h5>
+            </div>
+            <div class="ibox-content">
+                <div class="project-list">
+                    <table class="table table-hover">
+                        <tbody>
+                            {% for transaction in transactions %}
+                            <tr>
+                                <td class="project-status">
+                                    <span class="label {% if transaction.status == 'Completed' %}label-primary{% else %}label-default{% endif %}">{{ transaction.status }}</span>
+                                </td>
+                                <td class="project-title">
+                                    {% for addon in transaction.addons.all() %}<h4>{{ addon.name }} - $ {{ addon.price }}</h4>{% endfor %}
+                                    <small>{{ moment(transaction.charge_timestamp).format('MMMM Do YYYY, h:mm:ss a') }}</small>
+                                </td>
+                                <td class="project-completion">
+                                    <h3 class="total">$ {{ transaction.amount }} USD </h3>
+                                    {% if transaction.promo_code_id %}
+                                    <p>Promo code: {{ transaction.promo_code.promo_code }} <code>{{ transaction.promo_code.value }}{% if transaction.promo_code.type == 'percentage' %}%{% endif %} OFF</code></p>
+                                    {% endif %}
+                                </td>
+                                <td class="project-actions">
+                                    <button class="btn btn-primary btn-sm resend_btn" data-transaction="{{ transaction.id }}"> Resend receipt </button>
+                                    <button class="btn btn-danger btn-sm refund_btn" data-transaction="{{ transaction.id }}" {% if transaction.status == 'Refunded' %}disabled{% endif %}> Refund </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $(".resend_btn").click(function(event) {
+                event.preventDefault();
+                var resend_trans_id = $(this).data("transaction");
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url_for('api.resend_conference_transaction_email') }}",
+                    contentType: "application/json",
+                    data: JSON.stringify({"transaction_id": resend_trans_id}),
+                    success: function () {
+                        swal({
+                            title: "Receipt got sent out!",
+                            type: "success",
+                            timer: 2000
+                        });
+                    }
+                })
+                    .fail(function (data, textStatus, error) {
+                        swal({
+                            title: "Oops...",
+                            text: "Update failed. We are very sorry. Please contact the customer service.",
+                            type: "error",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    });
+            });
+            $(".refund_btn").click(function(event) {
+                event.preventDefault();
+                var refund_btn = $(this);
+                var refund_trans_id = refund_btn.data("transaction");
+                var text = refund_btn.parent().parent().find(".total").text();
+                swal({
+                    title: "Are you sure?",
+                    text: "Refund: " + text,
+                    type: "info",
+                    allowOutsideClick: true,
+                    showCancelButton: true,
+                    confirmButtonColor: "#1c84c6",
+                    confirmButtonText: "Yes, issue the refund.",
+                    closeOnConfirm: false
+                }, function (isConfirm) {
+                    if (isConfirm) {
+                        $.ajax({
+                            type: "POST",
+                            url: "{{ url_for('api.refund_conference_transaction') }}",
+                            contentType: "application/json",
+                            data: JSON.stringify({"transaction_id": refund_trans_id}),
+                            success: function () {
+                                refund_btn.prop("disabled",true);
+                                refund_btn.parent().parent().find("label-primary").toggleClass("label-primary label-default");
+                                swal({
+                                    title: "Issued!",
+                                    text: "Refund has been processed",
+                                    type: "success",
+                                    timer: 2000
+                                });
+                            }
+                        })
+                            .fail(function (data, textStatus, error) {
+                                swal({
+                                    title: "Oops...",
+                                    text: "Update failed. We are very sorry. Please contact the customer service.",
+                                    type: "error",
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            });
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

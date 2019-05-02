@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+{% set active_page = "conferences" %}
+{% set active_subpage = "admin-conference-pricing" %}
+{% set page_title = "Conference Pricing" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Admin', '#'), (page_title, "#"), (page_title, url_for('conf_admin.conference_pricing'))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <!-- datepicker -->
+    <link href="{{ url_for('static', filename='conferency/css/datepicker3.css') }}" rel="stylesheet">
+    <style media="screen">
+        @media (min-width: 1050px) {
+            .para-button-align {
+                display: inline-block; margin-bottom:0px;
+            }
+            .button-para-align {
+                position:relative;top: -25px;
+            }
+        }
+
+        @media (max-width: 1050px) {
+            .para-button-align {
+                display: block;
+            }
+            .button-para-align {
+                display: inline-block;
+            }
+            .div-button-align {
+                display: table;
+                padding-right: 15px;
+                padding-left: 15px;
+            }
+        }
+
+        .promo-code {
+            font-size: 14px;
+            /*color: #676a6c;*/
+            font-weight: 600;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="tabs-container">
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#tab-1"> <h3>Type</h3> </a></li>
+                <li class=""><a data-toggle="tab" href="#tab-2"> <h3>Promo Code</h3> </a></li>
+            </ul>
+            <div class="tab-content">
+                <div id="tab-1" class="tab-pane active">
+                    <div class="panel-body">
+                        <div class="hr-line-dashed"></div>
+                        <div class="ibox">
+                            {% for addon in addons %}
+                            <div class="m-b-md clearfix">
+                                <div class="col-md-8">
+                                    <h3>{{ addon.name }}</h3>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" value="{{ addon.price }}" min="0">
+                                        <span class="input-group-btn">
+                                            <button type="button" class="btn btn-primary update-addon-price" data-addon-id="{{ addon.id }}">Update</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-2" class="tab-pane">
+                    <div class="panel-body">
+                        <p class="para-button-align">Monetary or percentage discounts</p>
+                        <div class="div-button-align">
+                            <button type="button" class="btn btn-primary pull-right button-para-align" data-toggle="modal" data-target="#exampleModal" data-action="new_promo_code">Add Promo Code</button>
+                        </div>
+                        <div class="hr-line-dashed"></div>
+                        <div class="ibox">
+                            <div class="project-list">
+                                <table class="table table-hover">
+                                    <tbody class="promo-codes-list">
+                                        {% for promo_code in promo_codes %}
+                                            <tr id="promo_{{loop.index}}">
+                                                <input type="hidden" class="promo-type" value="{{ promo_code.type }}">
+                                                <td class="project-status">
+                                                    <span class="label {% if promo_code.status == 'Active' %}label-primary{% else %}label-default{% endif %}">{{ promo_code.status }}</span>
+                                                </td>
+                                                <td class="project-title">
+                                                    <div class="promo-code">{{ promo_code.promo_code }}</div>
+                                                    <br/>
+                                                    <small data-promo-code-value="{{ promo_code.value }}">{% if promo_code.type == 'fixed_amount' %}${{ promo_code.value }}{% else %}{{ promo_code.value }}%{% endif %} off</small>
+                                                </td>
+                                                <td class="project-completion">
+                                                    {% if promo_code.quantity != -1 %}
+                                                        <small data-promo-code-usage="{{ promo_code.usage }}" data-promo-code-quantity="{{ promo_code.quantity }}">{{ promo_code.usage }} / {{ promo_code.quantity }}</small>
+                                                    {% else %}
+                                                        <small data-promo-code-usage="{{ promo_code.usage }}" data-promo-code-quantity="{{ promo_code.quantity }}">{{ promo_code.usage }} / Unlimited</small>
+                                                    {% endif %}
+                                                    <div class="progress progress-mini">
+                                                        <div style="width: {% if promo_code.quantity != -1 %}{{100*promo_code.usage/promo_code.quantity}}{% else %}0{% endif %}%;" class="progress-bar"></div>
+                                                    </div>
+                                                </td>
+                                                <td class="project-people">
+                                                    <div data-promo-code-start-date="{{ promo_code.start_date|string }}" data-promo-code-end-date="{{ promo_code.end_date|string }}">
+                                                        {{ promo_code.start_date|string }} ~ {{ promo_code.end_date|string }}
+                                                    </div>
+                                                </td>
+                                                <td class="project-actions">
+                                                    <button class="btn btn-white btn-sm promo-status" data-promo-code-id="{{ promo_code.id }}" data-action="{% if promo_code.status == 'Active' %}disable{% else %}enable{% endif %}">{% if promo_code.status == 'Active' %}Disable{% else %}Enable{% endif %}</button>
+                                                    <button class="btn btn-white btn-sm promo-edit" data-promo-code-id="{{ promo_code.id }}" data-toggle="modal" data-target="#exampleModal" data-action="promo_code_edit"><i class="fa fa-pencil"></i> Edit </button>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h2 class="modal-title" id="exampleModalLabel" style="padding-left:15px">Add Promo Code</h2>
+            </div>
+            <div class="modal-body">
+                <form id="modal-form">
+                    <input type="hidden" id="promo_code_id" value="">
+                    <div class="form-group">
+                        <label for="promo-code" class="control-label">Promo Code</label>
+                        <input type="text" class="form-control required" id="promo-code" placeholder="e.g 50DISCOUNT"/>
+                        <p class="text-primary">Attendees will enter this code at registration.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="promo-type" class="control-label">Conditions</label>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <select class="form-control" id="promo-type" name="promo-type">
+                                    <option value="fixed_amount">$ USD</option>
+                                    <option value="percentage">% Discount</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <span for="promo-value" class="col-sm-3 span-align-padding text-center">take</span>
+                                <div class="col-sm-6">
+                                    <input type="number" name="promo-value" id="promo-value" placeholder="" class="form-control positive_number" min="0">
+                                </div>
+                                <span class="col-sm-3 span-align-padding text-center">off</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="usage-limit" class="control-label">Usage Limits</label>
+                        <p class="margin-button-5">Total quantity available</p>
+                        <label class="radio-inline">
+                            <input type="radio" name="usage_limit_type" id="usage_limit_type_no_limit" value="-1" checked=""> Unlimited
+                        </label>
+                        <label class="radio-inline margin-top-6">
+                            <input type="radio" name="usage_limit_type" id="usage_limit_type_with_limit" value="">
+                            <input name="quantity" onchange="usage_limit(this)" min="1" step="1" type="number" pattern="\d*"/>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Date Range</label>
+                        <div class="input-daterange input-group" id="modal-date-daterange" style="width: 100%;">
+                            <input type="text" class="form-control required" id="promo-start" name="promo-start"/>
+                            <span class="input-group-addon">to</span>
+                            <input type="text" class="form-control required" id="promo-end" name="promo-end"/>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="save-new-promo-code">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- datepicker -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-datepicker.js') }}"></script>
+
+    <script type="text/javascript">
+        function init_datepicker(selector, today) {
+            selector.datepicker({
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                format: "yyyy-mm-dd",
+                // beforeShowDay: function (date) {
+                //     if (date < today) {
+                //         return false;
+                //     } else {
+                //         return true;
+                //     }
+                // }
+            }).on('hide', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        function usage_limit(element) {
+            var with_limit = document.getElementById("usage_limit_type_with_limit");
+            with_limit.checked = true;
+            with_limit.value = element.value;
+            if (!element.value) {
+                with_limit.value = 0;
+            } else {
+                with_limit.value = element.value;
+            }
+            // console.log(with_limit.value);
+        }
+
+        function update_promo_code_info(promo_code, element) {
+            // update type
+            element.find('promo-type').attr('value', promo_code.type);
+            // update status
+            element.find('.project-status > span').html(promo_code.status);
+            element.find('.project-status > span').toggleClass('label-primary label-default');
+            // update promo-status button
+            if (promo_code.status === 'Inactive') {
+                element.find('.project-actions > .promo-status').attr('data-action', 'enable');
+                element.find('.project-actions > .promo-status').html('Enable');
+                element.find('.project-status > span').removeClass('label-primary');
+                element.find('.project-status > span').addClass('label-default');
+            } else {
+                element.find('.project-actions > .promo-status').attr('data-action', 'disable');
+                element.find('.project-actions > .promo-status').html('Disable');
+                element.find('.project-status > span').removeClass('label-default');
+                element.find('.project-status > span').addClass('label-primary');
+            }
+            // update promo code
+            element.find('.promo-code').html(promo_code.promo_code);
+            if (promo_code.type === 'fixed_amount') {
+                element.find('.project-title > small').html('$' + floatToString(promo_code.value) + ' off');
+            } else {
+                element.find('.project-title > small').html(floatToString(promo_code.value) + '% off');
+            }
+            // update value
+            element.find('.project-title > small').attr('data-promo-code-value', promo_code.value);
+            // update quantity
+            element.find('.project-completion > small').attr('data-promo-code-usage', promo_code.usage);
+            element.find('.project-completion > small').attr('data-promo-code-quantity', promo_code.quantity);
+            if (promo_code.quantity !== -1) {
+                element.find('.project-completion > small').html(promo_code.usage + ' / ' + promo_code.quantity);
+                element.find('.progress-bar').css('width', 100*promo_code.usage/promo_code.quantity + '%');
+            } else {
+                element.find('.project-completion > small').html(promo_code.usage + ' / ' + 'Unlimited');
+                element.find('.progress-bar').css('width', '0.0%');
+            }
+            // update date range
+            element.find('.project-people > div').html(promo_code.start_date + " ~ " + promo_code.end_date);
+            element.find('.project-people > div').attr('data-promo-code-start-date', promo_code.start_date);
+            element.find('.project-people > div').attr('data-promo-code-end-date', promo_code.end_date);
+        }
+
+        function render_new_promo_code(promo_code_info) {
+            // console.log(promo_code_info);
+            var list_td = document.getElementsByClassName("promo-codes-list")[0];
+            var count=1;
+            while(document.getElementById("promo_"+count)!=null)count++;
+            // new tr
+            var new_promo_tr = list_td.insertRow(list_td.rows.length);
+            new_promo_tr.setAttribute("id", "promo_"+count);
+            // new input for type
+            var promo_type = document.createElement("input");
+            promo_type.setAttribute("type", "hidden");
+            promo_type.setAttribute("class", "promo-type");
+            promo_type.setAttribute("value", promo_code_info.type);
+            // promo status
+            var promo_status_container = document.createElement("td");
+            promo_status_container.setAttribute("class", "project-status");
+            var promo_status = document.createElement("span");
+            promo_status.setAttribute("class", "label label-primary");
+            promo_status.innerHTML = "Active";
+            promo_status_container.appendChild(promo_status);
+            // promo code and description
+            var promo_code_container = document.createElement("td");
+            promo_code_container.setAttribute("class", "project-title");
+            var promo_code = document.createElement("div");
+            promo_code.setAttribute("class", "promo-code");
+            promo_code.innerHTML = promo_code_info.promo_code;
+            var promo_code_br = document.createElement("br");
+            var promo_code_desc = document.createElement("small");
+            promo_code_desc.setAttribute("data-promo-code-value", promo_code_info.value);
+            if (promo_code_info.type === "fixed_amount") {
+                promo_code_desc.innerHTML = "$" + promo_code_info.value + " off";
+            } else {
+                promo_code_desc.innerHTML = promo_code_info.value + "% off";
+            }
+            promo_code_container.appendChild(promo_code);
+            promo_code_container.appendChild(promo_code_br);
+            promo_code_container.appendChild(promo_code_desc);
+            // promo quantity
+            var promo_quantity_container = document.createElement("td");
+            promo_quantity_container.setAttribute("class", "project-completion");
+            var promo_quantity = document.createElement("small");
+            promo_quantity.setAttribute("data-promo-code-usage", "0");
+            promo_quantity.setAttribute("data-promo-code-quantity", promo_code_info.quantity);
+            if (promo_code_info.quantity !== -1) {
+                promo_quantity.innerHTML = "0 / " + promo_code_info.quantity;
+            } else {
+                promo_quantity.innerHTML = "0 / Unlimited";
+            }
+            var promo_quantity_bar_container = document.createElement("div");
+            promo_quantity_bar_container.setAttribute("class", "progress progress-mini");
+            var promo_quantity_bar = document.createElement("div");
+            promo_quantity_bar.setAttribute("class", "progress-bar");
+            promo_quantity_bar.setAttribute("style", "width: 0.0%;");
+            promo_quantity_bar_container.appendChild(promo_quantity_bar);
+            promo_quantity_container.appendChild(promo_quantity);
+            promo_quantity_container.appendChild(promo_quantity_bar_container);
+            // promo date range
+            var promo_date_range_container = document.createElement("td");
+            promo_date_range_container.setAttribute("class", "project-people");
+            var promo_date_range = document.createElement("div");
+            promo_date_range.setAttribute("data-promo-code-start-date", promo_code_info.start_date);
+            promo_date_range.setAttribute("data-promo-code-end-date", promo_code_info.end_date);
+            promo_date_range.innerHTML = promo_code_info.start_date + ' ~ ' + promo_code_info.end_date;
+            promo_date_range_container.appendChild(promo_date_range);
+            // promo actions
+            var promo_date_action_container = document.createElement("td");
+            promo_date_action_container.setAttribute("class", "project-actions");
+            var disable_button = document.createElement("button");
+            disable_button.setAttribute("class", "btn btn-white btn-sm promo-status");
+            disable_button.setAttribute("data-promo-code-id", promo_code_info.id);
+            disable_button.setAttribute("data-action", "disable");
+            disable_button.innerHTML = "Disable";
+            disable_button.setAttribute("style", "position: relative; left: -4px;");
+            var edit_button = document.createElement("button");
+            edit_button.setAttribute("class", "btn btn-white btn-sm promo-edit");
+            edit_button.setAttribute("data-promo-code-id", promo_code_info.id);
+            edit_button.setAttribute("data-toggle", "modal");
+            edit_button.setAttribute("data-target", "#exampleModal");
+            edit_button.setAttribute("data-action", "promo_code_edit");
+            var edit_icon = document.createElement("i");
+            edit_icon.setAttribute("class", "fa fa-pencil");
+            edit_button.appendChild(edit_icon);
+            edit_button.innerHTML = '<i class="fa fa-pencil"></i>' + ' Edit ';
+            promo_date_action_container.appendChild(disable_button);
+            promo_date_action_container.appendChild(edit_button);
+            // add all
+            new_promo_tr.appendChild(promo_type);
+            new_promo_tr.appendChild(promo_status_container);
+            new_promo_tr.appendChild(promo_code_container);
+            new_promo_tr.appendChild(promo_quantity_container);
+            new_promo_tr.appendChild(promo_date_range_container);
+            new_promo_tr.appendChild(promo_date_action_container);
+        }
+
+        function get_today() {
+            var d = new Date();
+            var today = [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
+            return today;
+        }
+
+        function floatToString(num) {
+        	if (num.toString().indexOf('.') === -1) {
+        		return num.toFixed(1);
+        	} else {
+        		return num;
+        	}
+		}
+
+        $(document).ready(function() {
+            jQuery.validator.addMethod("positive_number", function(value, el, param) {
+                return value >= 0;
+            }, "The input value must be positive");
+
+            jQuery.validator.classRuleSettings.positive_number = { positive_number: true, required: true };
+
+            $('#exampleModal').on('show.bs.modal', function(event) {
+                var action = $(event.relatedTarget).attr('data-action');
+                // datepicker can also fire this function. this can avoid that
+                if (typeof action === "undefined") {
+                    return;
+                }
+                var modal = $(this);
+                var ajax_method = "";
+                // clean the form
+                modal.find('#modal-form')[0].reset();
+                if (action === "new_promo_code") {
+                    ajax_method = "POST";
+                    // set initial date
+                    // modal.find("#promo-start").attr('value', get_today());
+                    $("#promo-value").attr("disabled", false);
+                    $("#promo-type").attr("disabled", false);
+                    modal.find("#promo-start").datepicker('update', get_today());
+                    modal.find("#promo-end").datepicker('update', "");
+                    // modal.find(".input-daterange").datepicker('updateDates');
+                } else if (action === "promo_code_edit") {
+                    ajax_method = "PUT";
+                    var promo_code_tr = $(event.relatedTarget).parent().parent();
+                    // update input in the modal
+                    modal.find("#promo_code_id").val($(event.relatedTarget).attr('data-promo-code-id'));
+                    modal.find("#promo-code").val(promo_code_tr.find('.promo-code').html());
+                    // console.log(promo_code_tr.find('.promo-type').val());
+                    modal.find("#promo-type").val(promo_code_tr.find('.promo-type').val());
+                    $("#promo-type").attr("disabled", true);
+                    modal.find("#promo-value").val(promo_code_tr.find('.project-title > small').attr('data-promo-code-value'));
+                    $("#promo-value").attr("disabled", true);
+                    if (promo_code_tr.find('.project-completion > small').attr('data-promo-code-quantity') === '-1') {
+                        modal.find("#usage_limit_type_no_limit").prop("checked", true);
+                    } else {
+                        modal.find("#usage_limit_type_with_limit").prop("checked", true);
+                        modal.find("input[name=quantity]").val(promo_code_tr.find('.project-completion > small').attr('data-promo-code-quantity'));
+                    }
+                    // update date range
+                    modal.find("#promo-start").attr('value', promo_code_tr.find('.project-people > div').attr('data-promo-code-start-date'));
+                    modal.find("#promo-end").attr('value', promo_code_tr.find('.project-people > div').attr('data-promo-code-end-date'));
+                    // update function cause the disapperance of date which is before today
+                    modal.find("#promo-start").datepicker('update', promo_code_tr.find('.project-people > div').attr('data-promo-code-start-date'));
+                    modal.find("#promo-end").datepicker('update', promo_code_tr.find('.project-people > div').attr('data-promo-code-end-date'));
+                    // modal.find(".input-daterange").datepicker('updateDates');
+                }
+                modal.find(".input-daterange").datepicker('updateDates');
+
+                // ajax put or post
+                $("#save-new-promo-code").click(function(save_event) {
+                    save_event.preventDefault();
+                    if ($("#modal-form").valid()) {
+                        // get promo code info
+                        var promo_code_json = {
+                            "promo_code": document.getElementById("promo-code").value,
+                            "promo_type": document.getElementById("promo-type").value,
+                            "promo_value": document.getElementById("promo-value").value,
+                            "promo_limit": $("input[name=usage_limit_type]:checked").val(),
+                            "promo_start": $("#promo-start").val(),
+                            "promo_end": $("#promo-end").val()
+                        };
+                        var json_pack = {};
+                        var url = "";
+                        if (action === "new_promo_code") {
+                            json_pack = promo_code_json;
+                            url = "{{ url_for('api.add_conf_promo_code') }}";
+                        } else if (action === "promo_code_edit"){
+                            json_pack = {
+                                "action": "edit",
+                                "promo_code": promo_code_json,
+                                "promo_code_id": modal.find("#promo_code_id").attr('value')
+                            };
+                            url = "{{ url_for('api.update_conf_promo_code') }}";
+                        }
+
+                        $.ajax({
+                            type: ajax_method,
+                            url: url,
+                            contentType: "application/json",
+                            data: JSON.stringify(json_pack),
+                            success: function (response) {
+                                swal({title: "Success!", type: "success", text: "Your promo code has been saved.", timer: 2000, showConfirmButton: false});
+                                if (action === "new_promo_code") {
+                                    render_new_promo_code(response);
+                                }  else if (action === "promo_code_edit"){
+                                    update_promo_code_info(response, promo_code_tr);
+                                }
+                            }
+                        })
+                            .fail(function(data, textStatus, error) {
+                                swal({title: data.responseText, type: "error", text: "Something is wrong, try again later or contact with customer service", confirmButtonText: "Got it!"});
+                            });
+                        modal.modal('hide');
+                    }
+                });
+            });
+
+            $('#exampleModal').on('hide.bs.modal', function (event) {
+                // IMPORTANT!!!! unbind the click. If don't unbind click will fire multiple times
+                $(this).find('#modal-form')[0].reset();
+                if (event.namespace === "bs.modal") {
+                    $("#save-new-promo-code").unbind();
+                }
+            });
+
+
+
+            $('.project-list').delegate('.promo-status', 'click', function(event) {
+                event.preventDefault();
+                var button = $(this);
+                button.attr('disabled', true);
+                $.ajax({
+                    type: "PUT",
+                    url: "{{ url_for('api.update_conf_promo_code') }}",
+                    contentType: "application/json",
+                    data: JSON.stringify({"action": button.attr('data-action'), "promo_code_id": button.attr('data-promo-code-id')}),
+                        success: function (response) {
+                            // swal({title: "Success!", type: "success", text: "Your promo code has been saved.", timer: 2000, showConfirmButton: false});
+                            update_promo_code_info(response, button.parent().parent());
+                            button.attr('disabled', false);
+                        }
+                    })
+                        .fail(function(data, textStatus, error) {
+                            swal({title: "Oops...", type: "error", text: "Something is wrong, try again later or contact with customer service", confirmButtonText: "Got it!"});
+                            button.attr('disabled', false);
+                        });
+            });
+
+            init_datepicker($('.input-daterange'), get_today());
+
+            $(".update-addon-price").click(function(event) {
+                event.preventDefault();
+                var button = $(this);
+                $.ajax({
+                    type: "PUT",
+                    url: "{{ url_for('api.update_conf_addon') }}",
+                    contentType: "application/json",
+                    data: JSON.stringify({"price": button.parent().prev().val(), "addon_id": button.attr('data-addon-id')}),
+                        success: function (response) {
+
+                        }
+                    })
+                        .fail(function(data, textStatus, error) {
+                            swal({title: "Oops...", type: "error", text: "Something is wrong, try again later or contact with customer service", confirmButtonText: "Got it!"});
+                        });
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends 'conference/embed/embed_base.html' %}
+
+{% block head %}
+	{{ super() }}
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/fullcalendar/fullcalendar.min.css') }}"
+	  rel="stylesheet">
+	<link href="{{ url_for('static', filename='conferency/inspinia/css/fullcalendar/fullcalendar.print.min.css') }}"
+	  rel='stylesheet' media='print'>
+	<link href="{{ url_for('static', filename='conferency/inspinia/css/fullcalendar/scheduler.min.css') }}" rel='stylesheet'>
+
+    <style media="screen">
+	.fc-license-message {
+		display: none
+	}
+
+	.tooltiptopicevent {
+		height: auto;
+		background: #fff;
+		position: absolute;
+		z-index: 10001;
+		padding: 10px 10px 10px 10px;
+		line-height: 200%;
+		border-color: #e7eaec;
+		border-width: 1px;
+		border-style: solid;
+		border-radius: 3px;
+	}
+
+	.fc-state-active {
+		background-color: #1ab394;
+		border-color: #1ab394;
+		color: #ffffff;
+	}
+
+	.fc-state-default {
+		background-color: #ffffff;
+		background-image: none;
+		background-repeat: repeat-x;
+		box-shadow: none;
+		color: #333333;
+		text-shadow: none;
+	}
+
+	.fc-event, .fc-agenda .fc-event-time, .fc-event a {
+		padding: 4px 6px;
+		background-color: #1ab394;
+		border-color: #1ab394;
+	}
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="row" style="margin: 0px 5px;">
+        {% if conference.conference_schedule.publish %}
+		<div id="calendar"></div>
+		{% else %}
+		<h2 class="section-heading text-center">Oops!</h2>
+		<p>
+			Schedule is not ready yet.
+		</p>
+		{% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+	{{ super() }}
+    {{ moment.include_moment(local_js=url_for('static', filename="conferency/js/moment-with-locales.min.js")) }}
+	<!-- fullcalendar -->
+	<script src="{{ url_for('static', filename='conferency/inspinia/js/fullcalendar/fullcalendar.min.js') }}"></script>
+	<script src="{{ url_for('static', filename='conferency/inspinia/js/fullcalendar/scheduler.min.js') }}"></script>
+	<!-- iCal -->
+	<script src="{{ url_for('static', filename='conferency/js/ics.deps.min.js') }}"></script>
+	<script src="{{ url_for('static', filename='conferency/js/session_tooltip.js') }}"></script>
+	<script type="text/javascript">
+		function process_events(data) {
+			var events = [];
+			for (var i = 0; i < data.length; i++) {
+				var cal_event = {
+					id: data[i].id,
+					title: data[i].title,
+					start: data[i].start_time,
+					end: data[i].end_time,
+					start_time: data[i].start_time,
+					end_time: data[i].end_time,
+					venue: data[i].venue,
+					resourceId: data[i].venue,
+					description: data[i].description,
+					type: data[i].type
+				};
+				if (cal_event.type !== "regular") {
+					cal_event["speakers"] = data[i].speakers;
+					cal_event["moderators"] = data[i].moderators;
+					if (cal_event.type === "paper") {
+						cal_event["papers"] = data[i].papers;
+					}
+				}
+				events.push(cal_event);
+			}
+			return events;
+		}
+
+		$(document).ready(function () {
+			var fullcalendar_init = false;
+			var venues = [
+				{% for venue in venues %}
+				{id: '{{ venue }}', title: '{{ venue }}' },
+				{% endfor %}
+			];
+
+			$("#calendar").fullCalendar({
+			    defaultView: 'timelineDay',
+				resourceAreaWidth: 230,
+				aspectRatio: 1.5,
+				editable: false,
+				customButtons: {
+					downloadIcal: {
+						text: 'Download iCal',
+						click: function() {
+							cal = ics();
+							$("#calendar").fullCalendar("clientEvents").forEach(function(element) {
+								cal.addEvent(element.title, element.description, element.venue, element.start, element.end);
+							});
+							cal.download("{{ conference.short_name }}_ical");
+						}
+					}
+				},
+				header: {
+					left: 'promptResource today prev,next',
+					center: 'title',
+					right: 'timelineDay,timelineThreeDays,agendaWeek,month, listWeek, downloadIcal'
+				},
+				resourceLabelText: 'Venues',
+				events: function (start, end, timezone, callback) {
+                    $.ajax({
+                        type: "GET",
+                        url: "{{ url_for('api.get_conference_schedule', short_name=conference.short_name) }}",
+                        contentType: "application/json",
+                        success: function (response) {
+                            callback(process_events(response.results));
+                            // go to conference day
+                            if (response.results.length > 0) {
+                                if (!fullcalendar_init) {
+                                    $("#calendar").fullCalendar("gotoDate", response.results[0].start_time);
+                                    fullcalendar_init = true;
+                                }
+                            }
+                        }
+                    });
+                },
+			    resources: venues,
+				eventMouseover: function (event, jsEvent, view) {
+                    $("body").append(generate_tooltip(event));
+                    $(this).mouseover(function (e) {
+                        $(this).css('z-index', 10000);
+                        $('.tooltiptopicevent').fadeIn('500').fadeTo('10', 1.9);
+                    }).mousemove(function (e) {
+                        $('.tooltiptopicevent').width($(window).width()/5);
+                        var toolWidth = $('.tooltiptopicevent').width();
+                        var toolHeight = $('.tooltiptopicevent').height();
+                        var windowWidth = $(window).width();
+                        var windowHeight = $(window).height();
+                        if (e.pageX + 25 + toolWidth < windowWidth) {
+                            $('.tooltiptopicevent').css('left', e.pageX + 20);
+                        } else {
+                            $('.tooltiptopicevent').css('left', e.pageX - 30 - toolWidth);
+                        }
+
+                        var scroolTop = $(document).scrollTop();
+                        if (e.pageY + 15 + toolHeight < windowHeight + scroolTop) { // Bottom overflow?
+                            $('.tooltiptopicevent').css('top', e.pageY + 10);
+                        } else if (e.pageY - $(document).scrollTop()  < toolHeight) { // Top overflow?
+                            $('.tooltiptopicevent').css('top', scroolTop + 10);
+                        } else {
+                            $('.tooltiptopicevent').css('top', e.pageY - 20 - toolHeight);
+                        }
+                    });
+                },
+                eventMouseout: function (event, jsEvent, view) {
+                    $(this).css('z-index', 8);
+                    $('.tooltiptopicevent').remove();
+                },
+			});
+		});
+	</script>
+{% endblock %}

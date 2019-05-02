@@ -1,0 +1,3 @@
+A paper has been submitted to {{conference}}: "{{ title }}" by {{ authors }}.
+
+{{ url_for('submission.all_submissions', id=current_user.curr_conf_id, _external=True) }}

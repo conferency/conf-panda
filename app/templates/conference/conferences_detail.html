@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% set active_page = "conferences" %}
+{% import "_macros.html" as macros %}
+{% set page_title = conference.short_name.upper() %}
+{% block head %}
+    {{ super() }}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .center {
+            float: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+
+{% endblock %}
+
+{% block page_heading %}
+{{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Conferences', '#'), (page_title, url_for('.conferences_detail', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="ibox product-detail col-md-9 col-lg-9 center">
+        <div class="ibox-content">
+            <div class="row">
+                <div class="col-md-10 col-lg-10 center">
+                    <h2 class="font-bold m-b-xs">
+                        {{ conference.name }}
+                    </h2>
+                    <div class="m-t-md">
+                        {#<h2 class="product-main-price">{{ conference.short_name.upper() }}</h2>#}
+                    </div>
+                    <p><i class="fa fa-calendar"></i> {{ conference.start_date }} to {{ conference.end_date }}</p>
+                    <p><i class="fa fa-map-marker"></i> {% if conference.address %}{{ conference.address }}, {% endif %}{{ conference.city }}, {% if conference.state %}{{ conference.state }}, {% endif %}{{ conference.country }}</p>
+                    <hr>
+                    <h3>Conference details</h3>
+                    {% if conference.website %}
+                    <p><b>Website</b>: <a href="http://{{ conference.website }}" target="_blank">{{ conference.website }}</a>
+                    </p>
+                    {% endif %}
+                    {% if conference.info %}
+                        <p>{{ conference.info }} </p>
+                    {% endif %}
+                    <p><b>Subjects</b>: {{ conference.subjects }} </p>
+                    <p><b>Tags</b>: {{ conference.tags }} </p>
+
+                    <hr>
+                    <div id="googleMap" class="google-map">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <!-- slick carousel-->
+    <script src="/static/inspinia/js/plugins/slick/slick.min.js"></script>
+    <!-- google maps -->
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.22&sensor=false&key=AIzaSyBKfo46QNuoVq7S8UQH3365BfKQFxb1YeU&libraries=places"></script>
+    <script>
+        var address = "{% if conference.address %}{{ conference.address }}, {% endif %}{{ conference.city }}, {% if conference.state %}{{ conference.state }}, {% endif %}{{ conference.country }}";
+        $(document).ready(function(){
+            // init lat lng
+            var latlng = new google.maps.LatLng(51.6837226, -75.7496572);
+
+            var mapOptions = {
+                    zoom: 16,
+                    center: latlng,
+            };
+            var mapElement = document.getElementById('googleMap');
+            // Create a map centered in newark DE.
+            var map = new google.maps.Map(mapElement, mapOptions);
+            // Create info window for maker
+            infowindow = new google.maps.InfoWindow();
+
+            // Search for address.
+            var request = {
+                location: map.getCenter(),
+                radius: '500',
+                query: address
+            };
+
+            // google place service
+            var service = new google.maps.places.PlacesService(map);
+            service.textSearch(request, callback);
+
+            function callback(results, status) {
+                if (status == google.maps.places.PlacesServiceStatus.OK) {
+                    var marker = new google.maps.Marker({
+                      map: map,
+                      place: {
+                        placeId: results[0].place_id,
+                        location: results[0].geometry.location
+                      }
+                    });
+                    map.setCenter(results[0].geometry.location);
+                    // when the user click the maker, the address would be shown.
+                    google.maps.event.addListener(marker, 'click', function() {
+                        var infoContent = "<b>"+ results[0].name + "</b><br>" + results[0].formatted_address;
+                        infowindow.setContent(infoContent);
+                        infowindow.open(map, this);
+                        console.log(results[0]);
+                    });
+                } else {
+                    alert("google map error: " + status);
+                }
+            }
+        });
+    </script>
+{% endblock %}

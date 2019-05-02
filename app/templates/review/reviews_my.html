@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% set active_page = "reviews" %}
+{% set active_subpage = "my-reviews" %}
+{% set page_title = "My Reviews" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Reviews', '#'), (page_title, url_for('review.my_reviews'))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <style>
+        /* PROJECTS */
+
+        .project-title {
+            font-size: 14px;
+            color: #676a6c;
+            font-weight: 600;
+        }
+
+        .project-people {
+            color: #337ab7;
+        }
+
+        .project-actions {}
+
+        button, a.addmargin {
+            margin: 0px 0px;
+        }
+
+        span.label {
+            position: relative;
+            top: 7px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+    {% if my_reviews_papers | count != 0 %}
+    <div class="wrapper animated fadeInRight">
+        {% if current_user.curr_conf_id == 1 %}
+        <div class="ibox-content m-b-sm border-bottom">
+          <h2 class="text-warning">
+              Switch to an individual conference to see more options <a href="https://conferency.zendesk.com/hc/en-us/articles/360000378611"><i class="fa fa-info-circle" aria-hidden="true"></i></a>
+          </h2>
+            <p class="text-info">This page shows all your reviews in all conferences. You need to switch to
+                individual conference to see additional options for each paper.</p>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-content">
+                       <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny" data-page-size="20">
+                           <thead>
+                               <tr>
+                                    <th></th>
+                                    <th data-type="numeric">ID</th>
+                                    <th>Title</th>
+                                    <th data-hide="phone">Author</th>
+                                    <th data-hide="phone">Conference</th>
+                                    <!-- <th data-hide="phone"> </th> -->
+                                    <th class="hide" data-hide="all">Abstract</th>
+                                    <th class="hide" data-hide="all">Keywords</th>
+                                    <th class="hide" data-hide="all">Submission time</th>
+                                    <th class="hide" data-hide="all">Track</th>
+                                    <th class="hide" data-hide="all">File</th>
+                                    <th class="hide" data-hide="all">Submit review</th>
+                               </tr>
+                           </thead>
+                           <tbody>
+                                {% for paper in my_reviews_papers %}
+                                   <tr>
+                                        <td></td>
+                                        <td>{{ paper.id }}</td>
+                                        <td>{{ paper.title }}</td>
+                                        {% if paper.if_show_author() %}
+                                        <td>{{ macros.generate_paper_authors(paper.authors_list) }}</td>
+                                        {% else %}
+                                        <td>Hidden for Review</td>
+                                        {% endif %}
+                                        <td><a class="text-info" name="conference" confid="{{ paper.conference.id }}">{{ paper.conference.short_name.upper() }}</a></td>
+                                        <td class="hide">{{ paper.abstract }}</td>
+                                        <td class="hide">{{ paper.keywords }}</td>
+                                        <td class="hide">{{ moment(timestamp=paper.submitted_time).format('LLL') }}</td>
+                                        {% if not paper.track.default %}
+                                        <td class="hide">{{ paper.track.name }}</td>
+                                        {% else %}
+                                        <td class="hide"> </td>
+                                        {% endif %}
+                                        <td class="hide">
+                                            {{ render_files_button(paper, paper.files) }}
+                                        </td>
+                                        <td class="hide">
+                                            <a class="btn btn-white btn-sm m-t-sm" {% if not paper.is_reviewable() %}disabled{% endif %} href="{{url_for('review.edit_review', paper_id=paper.id)}}">{% if paper.if_has_review(current_user) %}Check your review{% else %}Click to submit{% endif %}</a>
+                                        </td>
+                                   </tr>
+                               {% endfor %}
+                           </tbody>
+                        </table>
+                        {% if papertitle == '' and author == '' and conference_filter_id == 1 %}
+                            {{ macros.pagination_widget(pagination, 'review.my_reviews') }}
+                        {% else %}
+                            {{ macros.pagination_widget(pagination, 'review.my_reviews', papertitle=papertitle, author=author, conference_filter_id=conference_filter_id) }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>Review List</h5>
+                    </div>
+                    <div class="ibox-content">
+                       <table data-sort="false" class="footable table table-stripped toggle-arrow-tiny" data-page-size="20">
+                           <thead>
+                               <tr>
+                                    <th></th>
+                                    <th data-type="numeric">ID</th>
+                                    <th>Title</th>
+                                    <th data-hide="phone">Author</th>
+                                    {% if show_track %}
+                                    <th data-hide="phone">Track</th>
+                                    {% endif %}
+                                    <th data-hide="phone"></th>
+                                    <th class="hide" data-hide="all">Abstract</th>
+                                    <th class="hide" data-hide="all">Keywords</th>
+                                    <th class="hide" data-hide="all">Submission time</th>
+                                    <th class="hide" data-hide="all">File</th>
+                               </tr>
+                           </thead>
+                           <tbody>
+                                {% for paper in my_reviews_papers %}
+                                   <tr>
+                                        <td></td>
+                                        <td>{{ paper.id }}</td>
+                                        <td>{{ paper.title }}</td>
+                                        {% if paper.if_show_author() %}
+                                        <td>{{ macros.generate_paper_authors(paper.authors_list) }}</td>
+                                        {% else %}
+                                        <td>Hidden for Review</td>
+                                        {% endif %}
+                                        {% if show_track %}
+                                        <td>{{ paper.track.name }}</td>
+                                        {% endif %}
+                                        <td>
+                                            <div class="">
+                                                {# only pc can delegate review to another reviewer #}
+                                                {% set has_delegation = False -%}
+                                                {% if paper.can_be_delegated(current_user) %}
+                                                    {% set delegation = paper.get_delegation(current_user) %}
+                                                    {% if delegation %}
+                                                        {% set button_text = 'Review Request' %}
+                                                        {% set has_delegation = True %}
+                                                    {% else %}
+                                                        {% set button_text = 'Delegate to Sub-reviewer' %}
+                                                    {% endif %}
+                                                    <a class="btn btn-white btn-sm m-b-xs" href="{{ url_for('review.review_request', paper_id=paper.id) }}"><i class="fa fa-users"></i> {{button_text}} </a>
+                                                {% endif %}
+                                                {% if has_delegation and (delegation.status == 'Pending' or delegation.status == 'Accepted') %}
+                                                <a class="btn btn-white btn-sm editbtn m-b-xs delegation-prompt" href="#" data-status="{{delegation.status}}"> <i class="fa fa-pencil"></i> Check Review </a>
+                                                {% elif has_delegation and (delegation.status == 'Submitted' or delegation.status == 'Approved') %}
+                                                <a class="btn btn-white btn-sm editbtn m-b-xs" href="{{ url_for('review.edit_review', paper_id=paper.id) }}"> <i class="fa fa-pencil"></i> Check Review </a>
+                                                {% endif %}
+                                                {% if not has_delegation %}
+                                                    {% if paper.if_has_review(current_user) %}
+                                                        <a class="btn btn-white btn-sm editbtn m-b-xs" href="{{ url_for('review.edit_review', paper_id=paper.id) }}"> <i class="fa fa-pencil"></i> &nbsp;Update Review </a>
+                                                    {% else %}
+                                                        <a class="btn btn-white btn-sm editbtn m-b-xs" href="{{ url_for('review.edit_review', paper_id=paper.id) }}"> <i class="fa fa-plus"></i> &nbsp;Add Review </a>
+                                                    {% endif %}
+                                                {% endif %}
+                                                {% if paper.conference.configuration.get('review_access', False) %}
+                                                <a class="btn btn-white btn-sm m-b-xs" href="{{ url_for('paper.paper_reviews', paper_id=paper.id) }}"> <i class="fa fa-list-ul"></i> View Reviews </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="hide">{{ paper.abstract }}</td>
+                                        <td class="hide">{{ paper.keywords }}</td>
+                                        <td class="hide">{{ moment(timestamp=paper.submitted_time).format('LLL') }}</td>
+                                        <td class="hide">
+                                            {{ render_files_button(paper, paper.files) }}
+                                        </td>
+                                   </tr>
+                               {% endfor %}
+                            </tbody>
+                        </table>
+                        {% if papertitle == '' and author == '' and conference_filter_id == 1 %}
+                            {{ macros.pagination_widget(pagination, 'review.my_reviews') }}
+                        {% else %}
+                            {{ macros.pagination_widget(pagination, 'review.my_reviews', papertitle=papertitle, author=author, conference_filter_id=conference_filter_id) }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    {% else %}
+        <div class="middle-box text-center animated fadeInRightBig">
+            <h3 class="font-bold">No review assignments for you...yet :)</h3>
+            <div class="error-desc">
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary m-t">Dashboard</a>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('.footable').footable();
+            $(".delegation-prompt").click(function (event) {
+                event.preventDefault();
+                if ($(this).data("status") == 'Accepted') {
+                    var text = 'Sub-reviewer has not submitted the review yet.';
+                } else {
+                    var text = 'Sub-reviewer has not accepted the review request yet.';
+                }
+                swal({title: "Oops...", type: "warning", text: text, confirmButtonText: "Got it!"});
+            });
+        }); // end of ready
+    </script>
+{% endblock %}

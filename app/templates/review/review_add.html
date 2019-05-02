@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+{% set active_page = "reviews" %}
+{% set active_subpage = "my-reviews" %}
+{% set page_title = "Add Review" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Review', '#'), (page_title, url_for('review.edit_review', paper_id=paper.id))]) }}
+{% endblock %}
+
+{% block head %}
+{{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/summernote/summernote.css') }}" rel="stylesheet">
+    <style>
+        /* the pdf-viewer will disappear when the size of the screen is less than 768px */
+        @media screen and (max-width: 768px) {
+            div#left-component {
+                display: none;
+            }
+        }
+        /* the view pdf button will appear when the size of the screen is less than 769px */
+        @media screen and (min-width: 769px) {
+            div#pdfbutton {
+                display: none;
+            }
+        }
+        textarea {
+            background-color: #FFFFFF;
+            background-image: none;
+            border: 1px solid #e5e6e7;
+            border-radius: 1px;
+            color: inherit;
+            display: block;
+            padding: 6px 12px;
+            transition: border-color 0.15s ease-in-out 0s, box-shadow 0.15s ease-in-out 0s;
+            width: 90%;
+            font-size: 14px;
+            resize: vertical;
+            height: 150px;
+        }
+        p {
+            margin: 10px 0 10px;
+        }
+        button {
+            margin: 6px 6px 6px 6px;
+        }
+        .add-margin {
+            margin: 0px 15px;
+        }
+        /*label break*/
+        label {
+            word-break: break-word;
+        }
+        .project-title {
+            font-size: 19px;
+            color: #676a6c;
+            font-weight: 600;
+            margin: 15px;
+        }
+        dt, dd {
+            font-size: 15px;
+        }
+        .for-padding {
+            padding: 0px 15px;
+        }
+        .addmargin {
+            margin: 0px 3px;
+        }
+        /* the div.nextline will appear when the size of the screen is less than 769px */
+        @media screen and (min-width: 769px) {
+            div.nextline {
+                display: none;
+            }
+        }
+        div.nextline {
+            width: 0px;
+            height: 3px;
+        }
+        .note-frame{
+            border: 1px solid #e5e6e7
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+<div class="animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content full-height clearfix">
+                {% if success_flag %}
+                <div class="alert alert-success alert-dismissable">
+                    <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                    You have successfully updated your review! You may now return to <a href="{{ url_for("review.my_reviews") }}">My Reviews.</a>
+                </div>
+                {% endif %}
+                {% if delegation_flag %}
+                <div class="widget navy-bg text-center">
+                    <h4>As delegator, you can edit the review submitted by delegatee.</h4>
+                </div>
+                {% endif %}
+                    <div class="col-md-10 col-md-offset-1">
+                        {% if configuration.get('review_process', False) %}
+                            {% set disabled = False %}
+                        {% else %}
+                            {% set disabled = True %}
+                            <div class="row">
+                                <div class="text-center project-title">
+                                    <div class="widget yellow-bg p-lg text-center">
+                                        <div class="m-b-md">
+                                            <i class="fa fa-warning fa-4x"></i>
+                                            <h3 class="font-bold">
+                                                Review session is closed
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="text-center project-title">
+                            	{{ paper.title }}
+                            </div>
+                            {% if not configuration.get('hide_author', False) %}
+                            <div class="col-lg-6">
+    	                        <dl class="dl-horizontal">
+    	                            <dt>ID: </dt>
+    	                            <dd> {{ paper.id }}</dd>
+                                    <dt>Submitted by:</dt>
+    	                            <dd> {{ paper.uploader.first_name }} {{ paper.uploader.last_name }}</dd>
+    	                        </dl>
+                            </div>
+                            {% endif %}
+	                        <div class="col-lg-6">
+	                            <dl class="dl-horizontal">
+	                                <dt>Status:</dt>
+	                                <dd>
+										{% if paper.status == "Under Review" %}
+                                            <span class="label label-warning">{{ paper.status }}</span>
+                                        {% elif paper.status == "Rejected" %}
+                                            <span class="label label-danger">{{ paper.status }}</span>
+                                        {% elif paper.status == "Accepted" %}
+                                            <span class="label label-primary">{{ paper.status }}</span>
+                                        {% else %}
+                                            <span class="label label-default">{{ paper.status }}</span>
+                                        {% endif %}
+	                                </dd>
+	                                <dt>Last Updated:</dt>
+                                    <dd> {{ moment(paper.last_updated).format('MMMM Do YYYY, h:mm:ss a') }}</dd>
+									<!-- <dt>Update times:</dt>
+									<dd> </dd> -->
+	                            </dl>
+	                        </div>
+                        </div>
+                        {% if not configuration.get('hide_author', False) %}
+                        <div class="row">
+                        	<dl class="dl-horizontal for-padding">
+                            	<dt>Author(s):</dt>
+                            	{% for author in paper.authors_list %}
+                            		<dd>{{ author.first_name }} {{ author.last_name }} - {{ author.organization }}</dd>
+                            	{% endfor %}
+                        	</dl>
+                        </div>
+                        {% endif %}
+                        <div class="row">
+                        	<dl class="dl-horizontal for-padding">
+                                <dt>Abstract:</dt>
+                                <dd>
+									{{ paper.abstract }}
+                                </dd>
+                                <dt>Keywords:</dt>
+                                <dd>
+                                	{{ paper.keywords }}
+                                <dd>
+                                <dt>Conference:</dt>
+                                <dd>
+                                    {{ paper.conference.name }}
+                                <dd>
+                                <!--  <dt>Reviewer:</dt>
+                                <dd>
+                                    {# review.reviewer.full_name #}
+                                <dd> -->
+                                {% if not paper.track.default %}
+                                    <dt>Track:</dt>
+                                    <dd>
+                                        {{paper.track.name}}
+                                    </dd>
+                                {% endif %}
+                                {% if paper.comment %}
+                                    <dt>Comment:</dt>
+                                    <dd>
+                                        {{ paper.comment }}
+                                    <dd>
+                                {% endif %}
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="col-md-10 col-md-offset-1 text-center m-b-md">
+                        {% for file in paper.files %}
+                            {% if file.status != 'Deleted' %}
+                                {% if file.filename.endswith('.pdf') %}
+                                <a data-paperfile="{{ file.filename }}" data-paperid="{{ paper.id }}"
+                                   data-docid="{{ file.id }}"
+                                   class="btn btn-primary m-sm pdfbtn">
+                                    <i class="fa fa-folder"></i> PDF</a>
+                                {% else %}
+                                <a href="/paper/download/{{ paper.id }}/{{ file.id }}"
+                                   class="btn btn-primary m-sm">
+                                    <i class="fa fa-file-word-o"></i> Doc</a>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-10 col-md-offset-1 text-center m-b-md">
+                        <a id="download_review_form" class="btn btn-primary" href="{{ url_for('review.download_form', paper_id=paper.id) }}"> <i class="fa fa-download"></i> Download Review Form</a>
+                    </div>
+                    <div class="col-md-10 col-md-offset-1 m-t-md">
+                        <form id="reviewform" method="post" class="">
+                            {{ form.hidden_tag() }}
+                            <div class="row form-group">
+                                {{ form.evaluation.label(class_='col-sm-5 control-label') }}
+                                <div class="col-sm-7">
+                                    {% for subfield in form.evaluation | reverse %}
+                                    <div class="radio i-checks">
+                                        {{ subfield(class_='required', **{'disabled': disabled}) }}
+                                        {{ subfield.label }}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="hr-line-dashed"></div>
+                            <div class="row form-group">
+                                {{ form.confidence.label(class_='col-sm-5 control-label') }}
+                                <div class="col-sm-7">
+                                    {% for subfield in form.confidence | reverse %}
+                                    <div class="radio i-checks">
+                                        {{ subfield(class_='required', **{'disabled': disabled}) }}
+                                        {{ subfield.label }}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group">
+                                {{ form.review_body.label(class_='control-label') }}
+                                {{ form.review_body(class_='form-control required hide', **{'rows':'5'}) }}
+                            </div>
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group">
+                                {{ form.confidential_remarks.label(class_='control-label') }}
+                                {{ form.confidential_remarks(class_='form-control', **{'rows':'5', 'disabled': disabled}) }}
+                            </div>
+                            <div class="hr-line-dashed"></div>
+                            <!-- custom review questions -->
+                            {{ macros.render_questions(current_user.curr_conf.review_questions, review_answer, disabled)}}
+                            <div class="form-group">
+                                <div class="col-sm-12 text-center">
+                                    {{ form.submit(class_='btn btn-primary', **{'disabled': disabled}) }}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {# if paper.if_has_review(current_user) %}
+            <div class="ibox">
+                <div class="ibox-content full-height clearfix">
+                    <div class="col-md-10 col-md-offset-1">
+                        <div id="comments" style="margin-top: 8px">
+                            <h3>Comments</h3>
+                            {% for comment in comments %}
+                            <div class="single-comment media">
+                                <br>
+                                <a class="forum-avatar" url="{{ url_for("main.user", id=current_user.id) }}">
+                                    <img data-name="{{ current_user.first_name[0]+ current_user.last_name[0] }}" data-height="60"  data-width="60" data-font-size="20" data-font-weight="700" data-char-count="2" radius="2" class="{% if not current_user.avatar %}profile-avatar {% endif %}img-circle" width="48" height="48"/>
+                                    <div class="author-info">
+                                        <h5>{{ current_user.first_name }} {{ current_user.last_name }}<br></h5>
+                                    </div>
+                                </a>
+                                <div class="media-body">
+                                    <div style="color: #999">{{ moment(current_time).fromNow(refresh=True) }}</div>
+                                    <br>
+                                    {{ comment.text }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <textarea class="form-control" rows="1" style="resize: none; margin-top: 8px" id="comment"></textarea>
+                        <span class="btn btn-primary add-comment hidden" id="add-comment" style="margin-top:8px">Add comment</span>
+                    </div>
+                </div>
+            </div>
+            {% endif #}
+        </div>
+    </div>
+</div>
+<input type="hidden" id="current_user_id" name="current_user_id" value="{{ current_user.id }}">
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- custom radio buttons -->
+<script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+<!-- Jquery Validate -->
+<script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+<!-- summernote -->
+<script src="{{ url_for('static', filename='conferency/inspinia/js/summernote/summernote.js') }}"></script>
+<!-- summernote cleaner-->
+<script src="{{ url_for('static', filename='conferency/js/summernote-cleaner.js') }}"></script>
+<script>
+    function show_pdf(ele) {
+        if ($(".pdfjs").hasClass("hide")) {
+            ele.innerHTML = "Hide the paper";
+        } else {
+            ele.innerHTML = "Show the paper";
+        }
+        $(".pdfjs").toggleClass("hide");
+    }
+
+    $("#comment").focus(function (event){
+        $(this).attr("rows", "6");
+        $("#add-comment").removeClass("hidden");
+    });
+
+    $("#comment").blur(function (event){
+        if ($(this).val() === ""){
+            $(this).attr("rows", "1");
+            $("#add-comment").addClass("hidden");
+        }
+    });
+
+    $("#add-comment").click(function (event){
+        if ($("#comment").val() === ""){
+            return;
+        }
+        var review_id = "{{ paper.reviews.filter_by(reviewer_id=current_user.id).first().id }}";
+        var text = $("#comment").val().replace(/&/g, "&amp;").replace(/\"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\r\n/g, '<br/>').replace(/\n/g, '<br/>').replace(/\s/g, ' ');
+        $.ajax({
+            type: "POST",
+            url: "{{ url_for('api.add_comment') }}",
+            contentType: "application/json",
+            data: JSON.stringify({
+                review_id: review_id,
+                text: text
+            }),
+            success: function (response){
+                var comments_div = $("#comments");
+                $("#comment").val("");
+                $("#comment").blur();
+                comments_div.append("<div class=\"single-comment media\"></div>");
+                var single_comment_div = $(comments_div.children()[comments_div.children().length - 1]);
+                single_comment_div.append('<br><a class="forum-avatar" url="{{ url_for("main.user", id=current_user.id) }}"><img data-name="{{ current_user.first_name[0]+ current_user.last_name[0] }}" data-height="60"  data-width="60" data-font-size="20" data-font-weight="700" data-char-count="2" radius="2" class="{% if not current_user.avatar %}profile-avatar {% endif %}img-circle" width="48" height="48"/><div class="author-info"><h5>{{ current_user.first_name }} {{ current_user.last_name }}<br></h5></div></a>');
+                single_comment_div.append('<div class="media-body"><div style="color: #999">a few seconds ago</div><br>' + text + '</div>');
+                $('.profile-avatar').initial();
+                swal({
+                    title: "Success!",
+                    type: "success",
+                    text: "Your comment has been posted.",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        }).fail(function (response) {
+            swal({
+                title: "Oops...",
+                type: "error",
+                text: "Something is wrong, try again later or contact with customer service",
+                timer: 2000,
+                showConfirmButton: false
+            })
+        })
+    });
+
+    $(document).ready(function () {
+        $('#review_body').summernote({
+            height: 300,
+            toolbar: [
+                    ['font', ['fontname', 'fontsize']],
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['height', ['height']],
+                    ['misc', ['codeview', 'undo', 'redo', 'help']],
+                ]
+        });
+        {% if not configuration.get('review_process', False) %}
+        $('#review_body').summernote("disable");
+        {% endif %}
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+        $('#reviewform').validate({
+            errorPlacement: function (error, element)
+            {
+                error.addClass('col-lg-12');
+                element.parents('.form-group').children('label').before(error);
+            }
+        });
+        // // On document load we also want to load up the paper
+        // // that is in the default selection choice.
+        // updatePaperViews('#pdfjs-viewer', $paperSelect.val());
+        // $("#downloadpdf").attr("href", "/paper/download/" + $paperSelect.val())
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+Dear {{ user.first_name }},
+
+Welcome to Conferency!
+
+This is a notification email to your registration.
+
+Please use {{ user.email }} to log in.
+
+
+Sincerely,
+
+Your friends at Conferency

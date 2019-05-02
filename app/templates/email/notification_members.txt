@@ -1,0 +1,3 @@
+{{ content | safe }}
+
+Email us: {{conference.contact_email}}

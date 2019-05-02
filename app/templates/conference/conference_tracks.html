@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+{% set active_page = 'conferenceManagement' %}
+{% set active_subpage = 'tracks' %}
+{% set page_title = 'Tracks' %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.tracks',conference_id=current_user.curr_conf_id))]) }}
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+    <style>
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius:0px;
+            box-shadow: none;
+        }
+        .center {
+            float: none;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        .margin-buttom-10 {
+            position: relative;
+            top: -5px;
+        }
+
+        .actions .popover-title {
+            background-color: transparent;
+            border-color: transparent;
+            /*float: right;*/
+        }
+
+        .actions .popover-content .well {
+            background-color: transparent;
+            border-color: transparent;
+            margin-bottom: 0;
+            padding-left: 0;
+            padding-right: 0;
+            box-shadow: none;
+        }
+
+        .popover {
+            cursor: default;
+            width: 276px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+<div class="animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <p>You can reorganize tracks by draging it to lower right of a track.</p>
+                    <p>You cannot remove a track with members or submissions.</p>
+                    <a href="{{url_for('conference.track_send_invitations', conference_id=current_user.curr_conf_id)}}" class="btn btn-w-m btn-primary">Invite Track Chair/PC</a>
+                    <a href="{{url_for('conference.track_members', conference_id=current_user.curr_conf_id)}}" class="btn btn-w-m btn-primary">View Track Members</a>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-md-offset-3 col-md-6">
+                        <div class="dd actions" id="nestable2">
+                            <ol class="dd-list" id="track_list">
+                                {% for track in tracks_lv1 %}
+                                    <li class="dd-item" data-id="{{ track.id }}">
+                                        <div class="dd-handle">
+                                            <span class="pull-right dd-nodrag margin-buttom-10">
+                                                <button class="btn btn-default btn-circle popover-win" type="button" data-placement="top" data-track-id="{{ track.id }}" data-allow_submission_config="{% if track.configuration['allow_submission_config'] %}checked{% endif %}" data-allow_review_config="{% if track.configuration['allow_review_config'] %}checked{% endif %}">
+                                                    <i class="fa fa-gears"></i>
+                                                </button>
+                                                <button class="btn btn-warning btn-circle edit_track" type="button">
+                                                    <i class="fa fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-danger btn-circle delete_track" type="button" {% if not track.is_deletable() %}disabled{% endif %}>
+                                                    <i class="fa fa-trash-o"></i>
+                                                </button>
+                                            </span>
+                                            <span class="label label-info"> Track </span>
+                                            <span class="track_name">{{ track.name }}</span>
+                                        </div>
+                                        {# get subtracks #}
+                                        {% set subtracks = track.subtracks | selectattr("status", "equalto", True) | list %}
+                                        {% if subtracks %}
+                                        <ol class="dd-list">
+                                        {% for subtrack in subtracks %}
+                                            <li class="dd-item" data-id="{{ subtrack.id }}">
+                                                <div class="dd-handle">
+                                                    <span class="pull-right dd-nodrag margin-buttom-10">
+                                                        <button class="btn btn-default btn-circle popover-win" type="button" data-placement="top" data-track-id="{{ subtrack.id }}" data-allow_submission_config="{% if subtrack.configuration['allow_submission_config'] %}checked{% endif %}" data-allow_review_config="{% if subtrack.configuration['allow_review_config'] %}checked{% endif %}">
+                                                            <i class="fa fa-gears"></i>
+                                                        </button>
+                                                        <button class="btn btn-warning btn-circle edit_track" type="button">
+                                                            <i class="fa fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-danger btn-circle delete_track" type="button" {% if not subtrack.is_deletable() %}disabled{% endif %}>
+                                                            <i class="fa fa-trash-o"></i>
+                                                        </button>
+                                                    </span>
+                                                    <span class="label label-info"> Subtrack </span>
+                                                    <span class="track_name">{{ subtrack.name }}</span>
+                                                </div>
+                                            </li>
+                                        {% endfor %}
+                                        </ol>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ol>
+                        </div>
+                        <div class="hr-line-dashed"></div>
+                        <form id="new_track_form">
+                            <div class="input-group">
+                                <input type="text" class="form-control required" id="new_track">
+                                <span class="input-group-btn"> <button type="button" class="btn btn-primary" id="add_new_track">Add track</button> </span>
+                            </div>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- footable -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <!-- Nestable List -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.nestable.js') }}"></script>
+    <script>
+
+        var number_of_tracks = 0;
+
+        /*** functions used for updating tracks ***/
+        function add_track(track_id, track_name) {
+            $('#track_list').append('<li class="dd-item" data-id="' + track_id + '">\
+                <div class="dd-handle">\
+                <span class="pull-right dd-nodrag margin-buttom-10">\
+                    <button class="btn btn-default btn-circle popover-win" type="button" data-placement="top" data-track-id="' + track_id + '" data-allow_submission_config="" data-allow_review_config="">\
+                        <i class="fa fa-gears"></i>\
+                    </button>\
+                    <button class="btn btn-warning btn-circle edit_track" type="button">\
+                        <i class="fa fa-edit"></i>\
+                    </button>\
+                    <button class="btn btn-danger btn-circle delete_track" type="button">\
+                        <i class="fa fa-trash-o"></i>\
+                    </button>\
+                </span>\
+                <span class="label label-info"> Track </span>\
+                <span class="track_name"> ' + track_name + ' </span>');
+        }
+
+
+        /**
+         * edit track name
+         * @param {el object} edit button
+         */
+        function edit_track(el) {
+            // replace icon
+            el.innerHTML = '<i class="fa fa-check"></i>';
+            el.className = "btn btn-info btn-circle track_edit_confirm";
+            // replace span with input
+            var new_input = document.createElement("input");
+            new_input.className = "dd-nodrag";
+            new_input.setAttribute("type", "text");
+            new_input.value = el.parentNode.parentNode.lastElementChild.innerHTML;
+            el.parentNode.parentNode.replaceChild(new_input, el.parentNode.parentNode.lastElementChild);
+        }
+
+        function edit_track_confirm(el, value) {
+            // replace icon
+            el.innerHTML = '<i class="fa fa-edit"></i>';
+            el.className = "btn btn-warning btn-circle edit_track";
+            // replace input with span
+            var new_span = document.createElement("span");
+            new_span.className = "track_name";
+            new_span.innerHTML = value;
+            el.parentNode.parentNode.replaceChild(new_span, el.parentNode.parentNode.lastElementChild);
+        }
+
+        $(document).ready(function () {
+            $('#nestable2').nestable({
+                group: 1,
+                maxDepth: 2,
+                callback: function(l, el) {
+                    // update track relation
+                    var subtrack = el.offsetParent().is("#track_list")?false:true;
+                    $.ajax({
+                        type: "PUT",
+                        url: "{{ url_for('api.update_track_relation', conference_id=conference.id) }}",
+                        contentType: "application/json",
+                        data: JSON.stringify({track_id: el.data("id"), parent_track_id: (subtrack?el.offsetParent().offsetParent().data("id"):null)}),
+                        success: function (response) {
+
+                                }
+                    })
+                        .fail(function(data, textStatus, error) {
+                            swal({title: "OOps!", text: "Something is wrong please contact with our help desk", type: "error", timer: 4000, showConfirmButton: false});
+                    });
+                    // console.log("subtrack: " + el.data("id") + " parent track: " + el.offsetParent().offsetParent().data("id"));
+                    el.find(".label-info").html(subtrack?"Subtrack":"Track");
+                }
+            });
+
+            var popover_setting = {
+                html: true,
+        	    title : '<button type="button" class="close" onclick="$(&quot;.popover-win&quot;).popover(&quot;hide&quot;);">&times;</button>',
+        	    trigger: 'manual',
+        	    content: function () {
+        	        return '<div class="">\
+					<small>Allow track chair to control submission and review procedure of track.</small>\
+					<div class="well setings-item">\
+                        <span>Submission</span>\
+                        <div class="switch">\
+                            <div class="onoffswitch">\
+                                <input type="checkbox" class="onoffswitch-checkbox switch-checkbox" id="submission_' + $(this).data("track-id") + '" data-setting="allow_submission_config"' + this.getAttribute("data-allow_submission_config") + '>\
+                                <label class="onoffswitch-label" for="submission_' + $(this).data("track-id") + '">\
+                                    <span class="onoffswitch-inner"></span>\
+                                    <span class="onoffswitch-switch"></span>\
+                                </label>\
+                            </div>\
+                        </div>\
+					</div>\
+                    <div class="well setings-item">\
+                        <span>Review</span>\
+                        <div class="switch">\
+                            <div class="onoffswitch">\
+                                <input type="checkbox" class="onoffswitch-checkbox switch-checkbox" id="review_' + $(this).data("track-id") + '" data-setting="allow_review_config"' + this.getAttribute("data-allow_review_config") + '>\
+                                <label class="onoffswitch-label" for="review_' + $(this).data("track-id") + '">\
+                                    <span class="onoffswitch-inner"></span>\
+                                    <span class="onoffswitch-switch"></span>\
+                                </label>\
+                            </div>\
+                        </div>\
+					</div>\
+				</div>';
+        	    }
+            };
+            // edit track setting
+            $(".popover-win").popover(popover_setting).click(function(event) {
+                event.preventDefault();
+        	    $(this).popover('toggle');
+        		$('.popover-win').not(this).popover('hide');
+        	    event.stopPropagation();
+        	});
+
+            $(".ibox-content").on('DOMNodeInserted', function(event) {
+                $(event.target).find('.popover-win').popover(popover_setting).click(function(event) {
+                    event.preventDefault();
+            	    $(this).popover('toggle');
+            		$('.popover-win').not(this).popover('hide');
+            	    event.stopPropagation();
+                });
+            });
+
+            $('body').on('click', function (e) {
+        	    $('.popover-win').each(function () {
+        	        if (!$(this).is(e.target) && $(this).has(e.target).length === 0 && $('.popover').has(e.target).length === 0) {
+        	            $(this).popover('hide');
+        	        }
+        	    });
+        	});
+
+
+
+            // monitor track config click
+            $(".dd").delegate(".switch-checkbox", "click", function (event) {
+                var track_id = $(this).attr("id").split("_")[1];
+                var update_track_setting = {};
+                update_track_setting[$(this).data("setting")] = $(this).is(":checked");
+                // var update_track_setting = {
+                //     'track_id': track_id,
+                //     'setting': setting
+                // };
+                $.ajax({
+                    type: "PUT",
+                    url: "/api/conferences/" + "{{conference.id }}" + "/track/" + track_id + "/track_setting",
+                    contentType: "application/json",
+                    data: JSON.stringify({"setting": update_track_setting}),
+                    success: function (response) {
+
+                            }
+                })
+                    .fail(function(data, textStatus, error) {
+                        swal({title: "OOps!", text: "Something is wrong please contact with our help desk", type: "error", timer: 4000,   showConfirmButton: false});
+                    });
+
+                // update data in button
+                var config_button = this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.firstElementChild.firstElementChild;
+                if ($(this).is(":checked")) {
+                    config_button.setAttribute("data-" + $(this).data("setting"), "checked");
+                } else {
+                    config_button.setAttribute("data-" + $(this).data("setting"), "");
+                }
+                // console.log($(this).data("setting"));
+            });
+
+
+            $("#new_track_form").validate({
+                errorPlacement: function(error, element) {
+                    error.appendTo(element.parent().parent());
+                }
+            });
+
+            // add track
+            $("#add_new_track").click(function() {
+                if ($("#new_track_form").valid()) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url_for('api.add_tracks', id=conference.id) }}",
+                        contentType: "application/json",
+                        data: JSON.stringify({track_name: $("#new_track").val()}),
+                        success: function (response) {
+                                    add_track(response.id, $("#new_track").val());
+                                    $("#new_track").val("");
+                                }
+                    })
+                        .fail(function(data, textStatus, error) {
+                            swal({title: "OOps!", text: "Something is wrong please contact with our help desk", type: "error", timer: 4000,   showConfirmButton: false});
+                        });
+
+                }
+            });
+
+            // remove track
+            $("#track_list").delegate(".delete_track", "click", function (event) {
+                var track_el = this.parentNode.parentNode.parentNode;
+                var text = "";
+                // check if subtrack is undeletable
+                var break_flag = false;
+                $(track_el).find(".dd-item").each(function( index ) {
+                    if ($(this).find(".delete_track").is(":disabled")) {
+                        swal({title: "OOps!", text: $(this).find(".track_name").html() + " cannot be removed.\
+                         Please drag it out of its parent track.", type: "error", showConfirmButton: true});
+                         break_flag = true;
+                         return false;
+                    } else {
+                        text += ", <b>" + $(this).find(".track_name").html() + "</b>";
+                    }
+                });
+                // swal will not be excuted if subtrack cannot be deleted
+                if (break_flag) {
+                    return false;
+                }
+                // add first track
+                text = "<b>" + $(track_el).find(".track_name")[0].innerHTML + "</b>" + text;
+
+                swal({
+                    title: "Are you sure?",
+                    text: "Delete track(s): " + text,
+                    type: "warning",
+                    allowOutsideClick: true,
+                    showCancelButton: true,
+                    confirmButtonColor: "#1c84c6",
+                    confirmButtonText: "Yes, get it done!",
+                    closeOnConfirm: true,
+                    html: true
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            $.ajax({
+                                type: "DELETE",
+                                url: "{{ url_for('api.delete_tracks') }}",
+                                contentType: "application/json",
+                                data: JSON.stringify({track_id: track_el.getAttribute("data-id")}),
+                                success: function (response) {
+                                            track_el.parentNode.removeChild(track_el);
+                                            swal({title: "Deleted!", text: "", type: "success", timer: 2000, showConfirmButton: false});
+                                        }
+                            })
+                                .fail(function(data, textStatus, error) {
+                                    swal({title: "OOps!", text: "Something is wrong please contact with our help desk", type: "error", timer: 4000, showConfirmButton: false});
+                            });
+                        }
+                    }
+                );
+            });
+
+            // edit track
+            $("#track_list").delegate(".edit_track", "click", function (event) {
+                // console.log(event.currentTarget);
+                event.preventDefault();
+                edit_track(this);
+            });
+
+            $("#track_list").delegate(".track_edit_confirm", "click", function (event) {
+                event.preventDefault();
+                var new_track_name = this.parentNode.parentNode.lastElementChild.value;
+                var track_id = this.parentNode.parentNode.parentNode.getAttribute("data-id");
+                if (new_track_name === "") {
+                    swal({title: "OOps!", text: "New track name cannot be empty", type: "error", timer: 4000, showConfirmButton: false});
+                } else {
+                    $.ajax({
+                        type: "PUT",
+                        url: "{{ url_for('api.update_track_name', conference_id=conference.id) }}",
+                        contentType: "application/json",
+                        data: JSON.stringify({track_id: track_id, new_track_name: new_track_name}),
+                        success: function (response) {
+                                    edit_track_confirm(event.currentTarget, new_track_name);
+                                }
+                    })
+                        .fail(function(data, textStatus, error) {
+                            swal({title: "OOps!", text: "Something is wrong please contact with our help desk", type: "error", timer: 4000, showConfirmButton: false});
+                    });
+                }
+            });
+        });
+
+    </script>
+{% endblock %}

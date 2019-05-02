@@ -1,0 +1,136 @@
+{% extends "/site/home_base.html" %}
+
+{% block title %}Cookie Use - {% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='conferency/css/conf_site.css') }}" rel="stylesheet">
+
+{% endblock %}
+
+{% block page_content %}
+
+    <!-- HEADER
+    ================================= -->
+    <header id="header" class="header-section section section-dark navbar navbar-fixed-top">
+
+        <div class="container-fluid">
+
+            <div class="navbar-header navbar-left">
+
+                <!-- RESPONSIVE MENU BUTTON -->
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigation">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                <!-- HEADER LOGO -->
+                <div class="navbar-logo">
+                    <a href="https://www.conferency.com">
+                        <div class="logo-image floating"></div>
+                    </a>
+                </div>
+
+            </div>
+
+            <nav id="navigation" class="navigation navbar-collapse collapse navbar-right">
+
+                <!-- NAVIGATION LINKS -->
+                <ul id="header-nav" class="nav navbar-nav">
+                    <li><a id="home_link_main_page" href="/">Home</a></li>
+
+                    <!--
+                    <li><a href="http://conferency.zendesk.com">Support</a></li>
+                    -->
+                    <!-- HEADER ACTION BUTTON -->
+                    <li class="header-action-button"><a id="login_button_main_home" href="/auth/login"
+                                                        class="btn btn-primary">Login</a></li>
+                    <li class="header-action-button"><a id="signup_button_main_home" href="/auth/register"
+                                                        class="btn btn-primary">Signup</a></li>
+
+                </ul>
+
+            </nav>
+
+        </div>
+
+    </header>
+
+        <!-- Page Header -->
+    <!-- Set your background image for this header on the line below. -->
+    <header class="intro-header body-site" style="background-image: url('{{ url_for('static', filename='img/landing_page/calendar.jpg') }}')">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 col-lg-offset-1 col-md-10 col-md-offset-1">
+                    <div class="site-heading">
+                        <h1 class="hero-font-color">Cookie Use Policy</h1>
+                        <hr class="small">
+                        <span class="subheading">This policy explains how we use cookies and the choices you have.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Post Content -->
+    <article>
+        <div class="container body-site">
+            <div class="row">
+                <div class="col-lg-9 col-md-9 policy">
+                    <h2 class="article-section">Cookies & Other Storage Technologies</h2>
+
+                    <p>We use cookies if you have a Conferency account, use the Conferency Services, including our website (whether or not you are registered or logged in). This policy explains how we use cookies and the choices you have.</p>
+
+                    <blockquote>Cookies are small pieces of text used to store information on web browsers. Cookies are used to store and receive identifiers and other information on computers, phones, and other devices. Other technologies, including data we store on your web browser or device, identifiers associated with your device, and other software, are used for similar purposes. In this policy, we refer to all of these technologies as “cookies.” </blockquote>
+
+                    <h2 class="article-section">Why do we use cookies?</h2>
+
+                    <p>Cookies help us provide, protect and improve the Conferency Services, such as by personalizing content, tailoring and measuring ads, and providing a safer experience. While the cookies that we use may change from time to time as we improve and update the Conferency Services, they generally fall into the below categories of use:</p>
+
+                    <h4>Authentication</h4>
+
+                    <p>We use cookies to verify your account and determine when you’re logged in so we can make it easier for you to access the Conferency Services and show you the appropriate experience and features. We use cookies to keep you logged in as you navigate between Conferency pages. Cookies also help us remember your browser so you do not have to keep logging into Conferency.</p>
+
+                    <h4>Security, site and product integrity</h4>
+
+                    <p>We use cookies to help us keep your account, data and the Conferency Services safe and secure. Cookies can help us identify and impose additional security measures when someone may be attempting to access a Conferency account without authorization, for instance, by rapidly guessing different passwords. We also use cookies to store information that allows us to recover your account in the event you’ve forgotten your password or to require additional authentication if you tell us your account has been hacked.</p>
+
+                    <h4>Site features and services</h4>
+
+                    <p>We use cookies to enable the functionality that helps us provide the Conferency Services. We also use cookies to help provide you with content relevant to your locale.</p>
+
+                    <h2 class="article-section">Where do we use cookies?</h2>
+
+                    <p>We may place cookies on your computer or device, and receive information stored in cookies, when you use or visit the Conferency Services.</p>
+                </div>
+                <div class="col-lg-3 col-md-3">
+                    <div class="side-nav">
+                        <ul class="nav nav-pills nav-stacked">
+                            <li class="policy-item"><a href="{{ url_for('main.policies', policy_name='data') }}">Data Policy</a></li>
+                            <li class="policy-item policy-item-on"><a href="{{ url_for('main.policies', policy_name='cookies') }}">Cookie Use</a></li>
+                            <li class="policy-item"><a href="{{ url_for('main.policies', policy_name='payment') }}">Payment Terms</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </article>
+
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='conferency/js/jQuery.pin.min.js') }}"></script>
+
+    <script>
+    $(".side-nav").pin({
+      containerSelector: ".container",
+      minWidth: 990
+})
+    </script>
+
+
+{% endblock %}

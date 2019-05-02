@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "notify" %}
+{% set page_title = "Notification" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.send_track_notification', conference_id=current_user.curr_conf_id))]) }}
+{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='inspinia/css/plugins/footable/footable.core.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='inspinia/css/plugins/summernote/summernote.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='conferency/css/select2.min.css') }}" rel="stylesheet">
+<style>
+    .bootstrap-tagsinput {
+        width: 100%;
+        border: 1px solid #e5e6e7;
+        border-radius:0px;
+        box-shadow: none;
+    }
+    .center {
+        float: none;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .padding-bottom-20 {
+        padding-bottom: 20px;
+    }
+
+    .padding-top-7 {
+        padding-top: 7px;
+    }
+
+    .add_cursor {
+        cursor: pointer;
+    }
+
+    .ulist-padding {
+        padding-left: 0px;
+    }
+</style>
+{% endblock %}
+
+{% block page_content %}
+    <div class="animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <p>Send notifications to authors and program committee members in tracks.</p>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row">
+                            <!-- <div class="col-md-10 col-md-offset-1"> -->
+                                <form id="notification" class="form-horizontal" method="post" action="{{ url_for('conference.send_track_notification', conference_id=current_user.curr_conf_id) }}">
+                                    {{ form.hidden_tag() }}
+                                    <div class="mail-box">
+                                        <div class="mail-body">
+                                            <div class="form-group">
+                                                <div class="col-md-2 control-label">
+                                                    {{ form.track_list.label }}
+                                                </div>
+                                                <div class="col-sm-10">
+                                                    {{ form.track_list(class_='form-control required') }}
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-md-2 control-label">
+                                                    {{ form.email_subject.label }}
+                                                </div>
+                                                <div class="col-sm-10" style="table-layout: fixed !important">
+                                                    {{ form.email_subject(class_='form-control required', placeholder="Required") }}
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-md-2 control-label">
+                                                </div>
+                                                <div class="col-sm-10" style="table-layout: fixed !important">
+                                                    <!-- <div class="i-checks"> <label> <input type="radio" value="checkbox_all" name="radiobox"> Select All </label></div> -->
+                                                    <div class="i-checks"> <label> <input type="radio" value="all_pc" name="receiver_type"> Select All PC </label> </div>
+                                                    <div class="i-checks"> <label> <input type="radio" value="all_author" name="receiver_type"> Select All Authors </label> </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-md-2 control-label">
+                                                    {{ form.email_receivers.label }}
+                                                </div>
+                                                <div class="col-sm-10">
+                                                    <select class="form-control valid select2-hidden-accessible" multiple id="email_receivers" name="email_receivers" style="width:100%">
+                                                        {% for option in form.email_receivers.choices %}
+                                                        <option class="form-control" value="{{option[0]}}" data-track-id="{{track_id_list[loop.index0]}}" data-role="{{role_list[loop.index0]}}">{{option[1]}}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-md-2 control-label">
+                                                    <label>Note</label>
+                                                </div>
+                                                <div class="col-sm-10 padding-top-7">
+                                                    <p>Edit the text of your email to the authors. You can use the following template variables in the subject and the body of the email.</p>
+                                                    <ul class="ulist-padding" style="list-style-type:none">
+                                                        <li><code class="add_cursor">*NAME*</code>: receiver's full name</li>
+                                                        <li><code class="add_cursor">*FIRST_NAME*</code>: receiver's first name</li>
+                                                        <li><code class="add_cursor">*LAST_NAME*</code>: receiver's last name</li>
+                                                        <li><code class="add_cursor">*CONFERENCE_WEBSITE*</code>: URL of the conference</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mail-text h-200">
+                                            {{ form.email_content(class_='summernote') }}
+                                            <div class="clearfix"></div>
+                                        </div>
+
+                                        <div class="mail-body text-right tooltip-demo">
+                                            <div id="errorMsg" class="pull-left"></div>
+                                            <button type="button" id="preview" class="btn btn-primary" data-toggle="modal" data-target="#emailPreview">Preview</button>
+                                            {{ form.submit(class_='btn btn-primary') }}
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </form>
+                            <!-- </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal inmodal fade" id="emailPreview" tabindex="-1" role="dialog"  aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mail-box-header">
+                        <div class="mail-tools tooltip-demo m-t-md">
+                            <h3>
+                                <span id="subject_title" class="font-noraml"></span>
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="mail-box">
+                        <div id="content" class="mail-body">
+                            <!-- mail content -->
+                        </div>
+                        <div id="reviews1" class="mail-attachment">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <form role="form" id="testEmailForm" class="form-inline">
+                        <div class="form-group pull-left">
+                            <input type="email" placeholder="Enter a testing email address" id="testEmail" class="form-control required email" style="width:400px">
+                        </div>
+                    </form>
+                    <button class="btn btn-primary" type="submit" id="sendTestEmail">Send a testing email</button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- Autosize Textarea -->
+    <script src="{{ url_for('static', filename='conferency/js/autosize.min.js') }}"></script>
+    <!-- custom radio buttons -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+    <!-- footable -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/footable/footable.all.min.js') }}"></script>
+    <!-- select -->
+    <script src="{{ url_for('static', filename='conferency/js/select2.full.min.js') }}"></script>
+    <!-- summernote -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/summernote/summernote.min.js') }}"></script>
+    <script>
+        function update_receivers(track_id, receiver_type) {
+            $("#email_receivers > option[data-role!=" + receiver_type + "], #email_receivers > option[data-track-id!=" + track_id + "]").removeAttr("selected");
+            $("#email_receivers > option[data-role=" + receiver_type + "][data-track-id=" + track_id + "]").prop("selected","selected");
+            $("#email_receivers").trigger("change");
+        }
+
+        function render_email_content(content) {
+            return convert_variables(content);
+        }
+
+        function convert_variables(content) {
+            content = content.replace(/\*NAME\*/g, "Full name placeholder");
+            content = content.replace(/\*FIRST_NAME\*/g, "First name placeholder");
+            content = content.replace(/\*LAST_NAME\*/g, "Last name placeholder");
+            content = content.replace(/\*CONFERENCE_WEBSITE\*/g, "{{ current_user.curr_conf.website }}");
+            return content;
+        }
+
+        $(document).ready(function () {
+            // also validate hidden elements
+            $('#notification').validate({
+                errorPlacement: function(error, element) {
+                    error.appendTo($("#errorMsg"));
+                }
+            }).settings.ignore = [];
+            jQuery.validator.messages.required = "Subject is reuqired";
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+            var receiver_type = "";
+            $('.i-checks').on('ifChecked', function(event){
+                receiver_type = event.target.value;
+                var option = $(this).find('input').attr('value');
+                if (option === 'all_pc') {
+                    update_receivers($("#track_list").val(), 1);
+                    // $("#email_receivers > option[data-role=1][data-track-id=" + $("#track_list").val() + "]").prop("selected","selected");
+                    // $("#email_receivers > option[data-role=0]").removeAttr("selected");
+                } else if(option == 'all_author') {
+                    update_receivers($("#track_list").val(), 0);
+                    // $("#email_receivers > option[data-role=0][data-track-id=" + $("#track_list").val() + "]").prop("selected","selected");
+                    // $("#email_receivers > option[data-role=1]").removeAttr("selected");
+                }
+            });
+
+            $("#track_list").change(function() {
+                if (receiver_type === "all_pc") {
+                    update_receivers(this.value, 1);
+                } else if (receiver_type === "all_author") {
+                    update_receivers(this.value, 0);
+                }
+                // this.value
+                // console.log($('.i-checks').val());
+            });
+
+            $('#email_content').summernote({
+                height: 300,
+                placeholder: 'Required',
+                toolbar: [
+                    ['font', ['fontname', 'fontsize']],
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['height', ['height']],
+                    ['misc', ['codeview', 'undo', 'redo', 'help']]
+                ]
+            });
+
+            $("#email_receivers").select2({
+                placeholder: "You can choose multiple email receivers",
+                tags: false,
+                closeOnSelect:false
+            });
+
+            $('.add_cursor').click(function (event) {
+                if ($('#notification .note-editable>p').length > 0){
+                    $('#notification .note-editable>p:last').find('br').remove();
+                    $('#notification .note-editable>p:last').append($(this).text());
+                }
+                else if ($('#notification .note-editable>div').length > 0){
+                    $('#notification .note-editable>div:last').find('br').remove();
+                    $('#notification .note-editable>div:last').append($(this).text());
+                }
+                else $('#notification .note-editable').append($(this).text());
+                // $('.summernote').summernote('insertText', $(this).text());
+            });
+
+            // email preview
+            $('#emailPreview').on('show.bs.modal', function (e) {
+                if ($('#notification').valid()) {
+                    // console.log($('#email_content'));
+                    $('#subject_title').text('Subject: ' + $('#email_subject').val());
+                    $('#content').empty().append(render_email_content($('#email_content').code()));
+                } else {
+                    e.stopPropegation();
+                }
+            });
+
+            $('#sendTestEmail').click(function (event) {
+                event.preventDefault();
+                // console.log($("#notification").valid());
+                $('#testEmailForm').validate();
+
+                if ($("#testEmailForm").valid()) {
+                    var email = {
+                        'address': $('#testEmail').val(),
+                        'subject': $('#email_subject').val(),
+                        'content': $('#email_content').code(),
+                    };
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/sendemail3",
+                        contentType: "application/json",
+                        data: JSON.stringify(email),
+                        success: function (response) {
+                            swal({title: "Notification Sent!", text: "Email has been sent.", type: "success", timer: 2000,   showConfirmButton: false});
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock %}

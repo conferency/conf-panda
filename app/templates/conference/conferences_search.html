@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+{% import "_macros.html" as macros %}
+{% set active_page = "conferences" %}
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Conference | Conferences list</title>
+    <link rel="shortcut icon" href="/static/img/favicons/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/static/img/favicons/favicon.ico" type="image/x-icon">
+    <link href="/static/inspinia/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/inspinia/font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <link href="/static/inspinia/css/animate.css" rel="stylesheet">
+    <link href="/static/inspinia/css/style.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/datepicker/datepicker3.css') }}" rel="stylesheet">
+    <style>
+        span {
+            margin-right: 10px;
+        }
+        /*span.date-range {
+            display: block;
+            height: 36px !important;
+            width: 14px !important;
+        }*/
+        .center {
+            float: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .remove-col-padding {
+            padding: 2px 0px;
+        }
+        .date-range-control {
+            display: table;
+        }
+        .search-button-control {
+          border-radius: 0px;
+          height:46px;
+          width: auto;
+          /*padding: 5px auto !important;*/
+          /*font-size: 11px !important;*/
+        }
+        .larger-font-size {
+            font-size: 18px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+        <div class="gray-bg" style="min-height: 261px;">
+            <div class="row border-bottom">
+                <nav class="navbar navbar-static-top" role="navigation">
+                    <div class="navbar-header" style="margin-left: 20px">
+                        <a class="navbar-logo navbar-brand anchor-link" href="/">
+                                    <img src="/static/img/conferency-green.png" srcset="/static/img/conferency-green.png 12x" alt="Conferency" style="max-width: 150px;">
+                                </a>
+                       <!--  <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#"><i class="fa fa-bars"></i> </a>
+                        <form role="search" class="navbar-form-custom" action="search_results.html">
+                            <div class="form-group">
+                                <input type="text" placeholder="Search for something..." class="form-control" name="top-search" id="top-search">
+                            </div>
+                        </form> -->
+                    </div>
+                    <ul class="nav navbar-top-links navbar-right">
+        <!--                 <li>
+                            <span class="m-r-sm text-muted welcome-message">Welcome to INSPINIA+ Admin Theme.</span>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                                <i class="fa fa-envelope"></i>  <span class="label label-warning">16</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-messages">
+                                <li>
+                                    <div class="dropdown-messages-box">
+                                        <a href="profile.html" class="pull-left">
+                                            <img alt="image" class="img-circle" src="img/a7.jpg">
+                                        </a>
+                                        <div class="media-body">
+                                            <small class="pull-right">46h ago</small>
+                                            <strong>Mike Loreipsum</strong> started following <strong>Monica Smith</strong>. <br>
+                                            <small class="text-muted">3 days ago at 7:58 pm - 10.06.2014</small>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <div class="dropdown-messages-box">
+                                        <a href="profile.html" class="pull-left">
+                                            <img alt="image" class="img-circle" src="img/a4.jpg">
+                                        </a>
+                                        <div class="media-body ">
+                                            <small class="pull-right text-navy">5h ago</small>
+                                            <strong>Chris Johnatan Overtunk</strong> started following <strong>Monica Smith</strong>. <br>
+                                            <small class="text-muted">Yesterday 1:21 pm - 11.06.2014</small>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <div class="dropdown-messages-box">
+                                        <a href="profile.html" class="pull-left">
+                                            <img alt="image" class="img-circle" src="img/profile.jpg">
+                                        </a>
+                                        <div class="media-body ">
+                                            <small class="pull-right">23h ago</small>
+                                            <strong>Monica Smith</strong> love <strong>Kim Smith</strong>. <br>
+                                            <small class="text-muted">2 days ago at 2:30 am - 11.06.2014</small>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <div class="text-center link-block">
+                                        <a href="mailbox.html">
+                                            <i class="fa fa-envelope"></i> <strong>Read All Messages</strong>
+                                        </a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                                <i class="fa fa-bell"></i>  <span class="label label-primary">8</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-alerts">
+                                <li>
+                                    <a href="mailbox.html">
+                                        <div>
+                                            <i class="fa fa-envelope fa-fw"></i> You have 16 messages
+                                            <span class="pull-right text-muted small">4 minutes ago</span>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <a href="profile.html">
+                                        <div>
+                                            <i class="fa fa-twitter fa-fw"></i> 3 New Followers
+                                            <span class="pull-right text-muted small">12 minutes ago</span>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <a href="grid_options.html">
+                                        <div>
+                                            <i class="fa fa-upload fa-fw"></i> Server Rebooted
+                                            <span class="pull-right text-muted small">4 minutes ago</span>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li class="divider"></li>
+                                <li>
+                                    <div class="text-center link-block">
+                                        <a href="notifications.html">
+                                            <strong>See All Alerts</strong>
+                                            <i class="fa fa-angle-right"></i>
+                                        </a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+
+
+                        <li>
+                            <a href="login.html">
+                                <i class="fa fa-sign-out"></i> Log out
+                            </a>
+                        </li> -->
+                    </ul>
+                </nav>
+            </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="wrapper wrapper-content animated fadeInRight">
+                            <div class="ibox col-md-10 col-lg-10 center">
+                                {% if empty_flag %}
+                                    <div class="alert alert-danger alert-dismissable">
+                                        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                                        We couldn't find conferences that match your search criteria. View all conferences below.
+                                    </div>
+                                {% endif %}
+                                <div class="ibox-content">
+                                    <div class="row form-group center">
+                                            <form action="/conference/search" id="searchform" method="get">
+                                                <div class="col-lg-3 col-md-3 col-sm-10 remove-col-padding">
+                                                    <!-- <div class="input-group"> -->
+                                                        <input type="text" placeholder="Keywords" name="keywords" class="form-control input-lg larger-font-size" value="{{keywords}}">
+                                                        <!-- <div class="input-group-btn">
+                                                            <button class="btn btn-lg btn-primary" type="submit">
+                                                                Search
+                                                            </button>
+                                                        </div> -->
+                                                    <!-- </div> -->
+                                                </div>
+                                                <div class="col-lg-3 col-md-3 col-sm-10 remove-col-padding">
+                                                    <!-- <div class="input-group"> -->
+                                                        <input type="text" placeholder="Location" name="location" class="form-control input-lg larger-font-size" value="{{location}}">
+                                                    <!-- </div> -->
+                                                </div>
+                                                <div class="col-lg-4 col-md-4 col-sm-10 remove-col-padding input-daterange date-range-control" >
+                                                    <input type="text" placeholder="From" class="form-control input-lg larger-font-size" id="datepicker-start" name="start_date" value="{{start_date}}">
+                                                    <span class="input-group-addon"><i class="fa fa-arrow-right"></i></span>
+                                                    <input type="text" placeholder="To" class="form-control input-lg larger-font-size" id="datepicker-end" name="end_date" value="{{end_date}}">
+                                                </div>
+                                                <div class="col-lg-1 col-md-1 col-sm-10 remove-col-padding">
+                                                    <button type="submit" class="btn btn-lg btn-primary search-button-control">
+                                                        <i class="fa fa-search" style=""></i> Search</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div>
+                                            <h4>Result found: {{ result_count }}</h4>
+                                        </div>
+
+                                {% for conference in conferences %}
+                                    <div class="vote-item">
+                                        <div class="row">
+                                            <div class="col-md-10">
+                                                <!-- <div class="vote-actions">
+                                                    <a href="#">
+                                                        <i class="fa fa-chevron-up"> </i>
+                                                    </a>
+                                                    <div>32</div>
+                                                    <a href="#">
+                                                        <i class="fa fa-chevron-down"> </i>
+                                                    </a>
+                                                </div> -->
+                                                <a href="{{url_for('conference.conferences_detail', conference_id=conference.id)}}" class="vote-title" style="margin-left: 15px;">
+                                                    {{ conference.name }} - {{ conference.short_name.upper() }}
+                                                </a>
+                                                <div class="vote-info" style="margin-left: 15px;">
+                                                    <i class="fa fa-calendar"></i> <span>{{ conference.start_date }} to {{ conference.end_date }}</span>
+                                                    <i class="fa fa-location-arrow"></i> <span>{% if conference.address %}{{ conference.address }}, {% endif %}{% if conference.city %}{{ conference.city }}, {% endif %}{% if conference.state %}{{ conference.state }}, {% endif %}{{ conference.country }}</span>
+                                                    <!-- <i class="fa fa-link"></i> <a href="http://{{ conference.website }}" target="_blank">{{ conference.website }}</a> -->
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 ">
+                                                <!-- <div class="vote-icon">
+                                                    <i class="fa fa-css3"> </i>
+                                                </div> -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                                <hr style="margin-top: 0px;">
+                                {% if keywords=='' and location=='' and start_date=='' and end_date=='' %}
+                                    {{ macros.pagination_widget(pagination, 'conference.conferences_search') }}
+                                {% else %}
+                                    {{ macros.pagination_widget(pagination, 'conference.conferences_search', keywords=keywords, location=location, start_date=start_date, end_date=end_date) }}
+                                {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="footer">
+                                <div class="text-center">
+                                    <strong>Copyright</strong> - Conferency © 2015
+                                </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        </div>
+
+    <!-- Mainly scripts -->
+    <script src="/static/inspinia/js/jquery-2.1.1.js"></script>
+    <script src="/static/inspinia/js/bootstrap.min.js"></script>
+    <script src="/static/inspinia/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/static/inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+    <!-- Custom and plugin javascript -->
+    <script src="/static/inspinia/js/inspinia.js"></script>
+    <script src="/static/inspinia/js/plugins/pace/pace.min.js"></script>
+    <!-- datepicker -->
+    <!-- <script src="{{ url_for('static', filename='inspinia/js/plugins/datepicker/bootstrap-datepicker.js') }}"></script> -->
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+
+    <script>
+
+
+        $(document).ready(function () {
+            // $("#searchform").validate();
+            // $.validator.messages.required = 'Select a date';
+            // var d = new Date();
+            // var today = [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
+            // var end_date = [d.getFullYear(), d.getMonth()+1, d.getDate()].join('-');
+            // $("input[name='start']").val(today);
+            // $("input[name='end']").val(today);
+
+            $('#datepicker-start').datepicker({
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                format: 'yyyy-mm-dd',
+                orientation: "bottom",
+                todayHighlight: true
+            });
+
+            $('#datepicker-end').datepicker({
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                format: 'yyyy-mm-dd',
+                orientation: "bottom",
+                todayHighlight: true
+            });
+
+            // var str = $('#searchform').serialize();
+            // var form_selector = $('#searchform');
+            // form_selector.submit(function(event) {
+            //     $.ajax({
+            //         type: form_selector.attr('method'),
+            //         url: form_selector.attr('action'),
+            //         data: form_selector.serialize(),
+            //         success: function (data) {
+            //             console.log('success');
+            //         }
+            //     });
+            //     event.preventDefault();
+            // });
+            // $('body').scrollspy({
+            //     target: '.navbar-fixed-top',
+            //     offset: 80
+            // });
+
+            // // Page scrolling feature
+            // $('a.page-scroll').bind('click', function(event) {
+            //     var link = $(this);
+            //     $('html, body').stop().animate({
+            //         scrollTop: $(link.attr('href')).offset().top - 50
+            //     }, 500);
+            //     event.preventDefault();
+            // });
+        });
+
+        // var cbpAnimatedHeader = (function() {
+        //     var docElem = document.documentElement,
+        //             header = document.querySelector( '.navbar-default' ),
+        //             didScroll = false,
+        //             changeHeaderOn = 200;
+        //     function init() {
+        //         window.addEventListener( 'scroll', function( event ) {
+        //             if( !didScroll ) {
+        //                 didScroll = true;
+        //                 setTimeout( scrollPage, 250 );
+        //             }
+        //         }, false );
+        //     }
+        //     function scrollPage() {
+        //         var sy = scrollY();
+        //         if ( sy >= changeHeaderOn ) {
+        //             $(header).addClass('navbar-scroll')
+        //         }
+        //         else {
+        //             $(header).removeClass('navbar-scroll')
+        //         }
+        //         didScroll = false;
+        //     }
+        //     function scrollY() {
+        //         return window.pageYOffset || docElem.scrollTop;
+        //     }
+        //     init();
+
+        // })();
+
+        // Activate WOW.js plugin for animation on scrol
+        // new WOW().init();
+
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,12 @@
+{% extends "/email/email_base.html" %}
+
+{% block page_content %}
+<tbody>
+    <tr>
+        <td style="font-family: Helvetica, arial, sans-serif; font-size: 14px; color: #95a5a6; text-align:center;line-height: 30px;" st-content="fulltext-paragraph">
+            <p>A new guest {{ user.first_name }} has joined the conference {{ url_for('main.conf_index', conf_name=conference.short_name, _external=True) }}.</p>
+        </td>
+    </tr>
+    <!-- End of content -->
+</tbody>
+{% endblock %}

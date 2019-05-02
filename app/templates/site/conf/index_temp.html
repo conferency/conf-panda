@@ -1,0 +1,285 @@
+{% extends "/site/home_base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block page_content %}
+			<!-- HEADER
+			================================= -->
+			<header id="header" class="header-section section section-dark navbar navbar-fixed-top">
+
+				<div class="container-fluid">
+
+					<div class="navbar-header navbar-left">
+
+						<!-- RESPONSIVE MENU BUTTON -->
+						<!-- <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigation">
+							<span class="sr-only">Toggle navigation</span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						</button> -->
+
+						<!-- HEADER LOGO -->
+						<!-- <div class="navbar-logo">
+							<a href="{{ url_for('main.index') }}"><div class="logo-image floating"></div></a>
+						</div> -->
+
+					</div>
+
+					<nav id="navigation" class="navigation navbar-collapse collapse navbar-right">
+
+						<!-- NAVIGATION LINKS -->
+						<ul id="header-nav" class="nav navbar-nav">
+
+							<li><a href="#hero">Home</a></li>
+							<!-- DROPDOWN MENU -->
+							<li class="dropdown dropdown-hover">
+								<a href="#" class="dropdown-toggle external" data-toggle="dropdown" role="button" aria-expanded="false">Committee<span class="caret"></span></a>
+								<ul class="dropdown-menu" role="menu">
+									<li><a href="#organization" class="anchor-link external">Organizing Committee</a></li>
+									<li><a href="#advisory" class="anchor-link external">Advisory Committee</a></li>
+								</ul>
+							</li>
+							<li><a href="#submission">Submission</a></li>
+							<li><a href="#venue">Venue</a></li>
+							<li><a href="#sponsors">Sponsors</a></li>
+							<li><a href="{{url_for('main.conf_registration', conf_name=conference.short_name)}}">Registration</a></li>
+							<!-- HEADER ACTION BUTTON-->
+							{# if not current_user.is_authenticated #}
+							<li class="header-action-button"><a href="/auth/login?conf={{conference.id}}" class="btn btn-primary">Login</a></li>
+							<li class="header-action-button"><a href="/auth/register?conf={{conference.id}}" class="btn btn-primary">Signup</a></li>
+							{# endif #}
+
+
+						</ul>
+
+					</nav>
+
+				</div>
+
+			</header>
+
+			<!-- HERO
+			================================= -->
+			<section id="hero" class="hero-section hero-layout-simple hero-fullscreen section section-dark">
+
+				<div class="section-background">
+
+					<!-- IMAGE BACKGROUND -->
+					<div class="section-background-image parallax" data-stellar-ratio="0.4">
+						<img id="header-bg" src="{{url_for('static', filename='img/landing_page/bg-computer.jpg')}}" alt="" style="opacity: 0.3;">
+					</div>
+
+				</div>
+
+				<div class="container">
+
+					<div class="hero-content">
+						<div class="hero-content-inner">
+
+							<div class="text-center row">
+								<div class="col-md-10 col-md-offset-1">
+
+										<h1 class="hero-title-conf">{{conference.site.title}}</h1>
+										<p class="hero-tagline"><i class="fa fa-calendar"></i> December 10, 2016</p>
+										<p class="hero-tagline"><i class="fa fa-map-marker"></i><a href="" target="_blank"> Dublin, Ireland</a></p>
+
+									<p class="hero-buttons text-center">
+										<a href="#about" class="btn btn-lg btn-default anchor-link">Learn More</a>
+										<a href="#submission" id="register-button" name="register-button" class="btn btn-lg btn-primary anchor-link">Submit Papers!</a>
+									</p>
+
+								</div>
+							</div>
+
+						</div>
+					</div>
+
+				</div>
+
+				<!-- HERO START LINK -->
+				<!-- <a href="#registration" class="hero-start-link anchor-link"><span class="fa fa-angle-double-down"></span></a> -->
+
+			</section>
+
+			{% set sections = conference.site.pages.all()[0].content %}
+			{% for i in range(sections.items()|length) %}
+			<section id="about" class="headline-section {% if i%2 == 0 %}section-gray{% endif %} section">
+				<div class="container">
+					{% for element in sections[i|string]%}
+                        {% if element['element']['type'] == 'heading' %}
+                        <h2 class="section-heading text-center">{{element['element']['desc']}}</h2>
+                        {% elif element['element']['type'] == 'para' %}
+                        <div class="row">
+    						<div class="col-md-10 col-md-offset-1">
+    							<p class="section-brief text-center">
+                                    {{element['element']['desc']}}
+    							</p>
+    						</div>
+    					</div>
+                        {% endif %}
+					{% endfor %}
+				</div>
+
+			</section>
+			{% endfor %}
+            {#
+			<!-- Organization and Important Dates
+			================================= -->
+			<section id="organization" class="two-cols-description-section section">
+
+				<div class="container-fluid two-cols-description-row">
+
+					<!-- TWO COLS DESCRIPTION TEXT -->
+					<div class="two-cols-description-text" data-animation="fadeInLeft">
+
+						<div class="two-cols-description-text-inner">
+
+							<h2 class="section-heading text-left">Organization</h2>
+
+							<h4 class="faq-item-heading">Conference Chairs: </h4>
+
+							<ul class="nice-list">
+								<li><a href="mailto:jleonzhao@gmail.com">J. Leon Zhao</a>, City University of Hong Kong, China
+								</li>
+								<li><a href="mailto:hjwang@udel.edu">Harry Jiannan Wang</a>, University of Delaware, USA and Chinese University of Hong Kong (Shenzhen), China </li>
+							</ul>
+							<h4 class="faq-item-heading">Program Chairs: </h4>
+
+							<ul class="nice-list">
+								<li><a href="mailto:fsk1234@gmail.com">Shaokun Fan</a>, Oregon State University, USA</li>
+								<li><a href="mailto:sarnikar@acm.org">Surendra Sanikar</a>, California State University, East Bay, USA</li>
+							</ul>
+							<h2 class="section-heading text-left">Important Dates</h2>
+							<ul class="nice-list">
+								<li>Submission Deadline: Oct 1, 2016</li>
+								<li>Notification of Acceptance: Nov 1, 2016</li>
+								<li>Final Version Due: Nov 20, 2016</li>
+							</ul>
+
+						</div>
+
+					</div>
+
+					<!-- TWO COLS DESCRIPTION IMAGE					-->
+					<div class="two-cols-description-image" data-animation="fadeInRight">
+						<img src="{{url_for('static', filename='img/sigbps/dublin.jpg')}}" alt="dublin">
+					</div>
+				</div>
+
+			</section>
+
+			<!-- Advisory Committee
+			================================= -->
+			<section id="advisory" class="faq-section section-gray section">
+
+				<div class="container">
+
+					<h2 class="section-heading text-center">Advisory Committee</h2>
+
+					<div class="faq-row row">
+
+						<div class="col-md-6">
+							<div class="faq-item">
+								<ul class="nice-list">
+									<li>W.M.P. van der Aalst, Eindhoven University of Technology, The Netherlands</li>
+									<li>Guoqing Chen, Tsinghua University, China</li>
+									<li>Hsinchun Chen, University of Arizona, USA</li>
+									<li>Paulo Goes, University of Arizona, USA</li>
+									<li>Michael Goul, Arizona State University, USA</li>
+									<li>Lihua Huang, Fudan University, China</li>
+									<li>Karl R. Lang, City University of New York, USA</li>
+									<li>T.P. Liang, National Sun Yat-sen University, Kaohsiung, Taiwan</li>
+								</ul>
+							</div>
+						</div>
+
+						<div class="col-md-6">
+							<div class="faq-item">
+								<ul class="nice-list">
+									<li>Akhil Kumar, Penn State University, USA</li>
+									<li>Benn Konsynski, Emory University, USA</li>
+									<li>Michael zur Muehlen, Stevens Institute of Technology, USA</li>
+									<li>Jeffrey V. Nickerson, Stevens Institute of Technology, USA</li>
+									<li>Jay F. Nunamaker, University of Arizona, USA</li>
+									<li>Michael Shaw, University of Illinois at Urbana-Champaign, USA</li>
+									<li>Edward A. Stohr, Stevens Institute of Technology, USA</li>
+									<li>Daniel Zeng, University of Arizona, USA</li>
+								</ul>
+							</div>
+						</div>
+
+
+					</div>
+
+				</div>
+
+			</section>
+			<!-- Paper Submission
+			================================= -->
+			<section id="submission" class="pricing-section section">
+
+				<div class="container">
+
+					<h2 class="section-heading text-center">Paper Submission</h2>
+
+					<div class="row text-center">
+						<div class="col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
+							<p>Given the nature and purposes of this workshop, we invite papers of no more than five pages that are well articulated and formatted in single line spacing, Times New Roman, 12 pt, 1 inch margins. We particularly seek position papers but also welcome conceptual papers with a strong theoretical flavor, as well as completed research papers or research-in-progress papers.
+</p>
+						</div>
+					</div>
+					<h3 class="closing-shout"></h3>
+					<div class="closing-buttons" data-animation="tada"><a href="{{url_for('auth.login', conf=conference.id, next=url_for('submission.add_submission'))}}" class="btn btn-lg btn-primary">Submit Papers!</a></div>
+				</div>
+
+			</section>
+
+			<!-- Venue
+			================================= -->
+			<section id="venue" class="two-cols-description-section section-gray section">
+
+				<div class="container-fluid two-cols-description-row">
+
+					<div class="two-cols-description-image" data-animation="fadeInLeft">
+						<img src="{{url_for('static', filename='img/sigbps/venue.jpg')}}" alt="dublin">
+					</div>
+					<div class="two-cols-description-text" data-animation="fadeInRight">
+
+						<div class="two-cols-description-text-inner">
+
+							<h2 class="section-heading text-left">Workshop Venue</h2>
+							<ul class="nice-list">
+								<li>BPS 2016 is a pre-ICIS workshop and will be held at Dublin, Ireland.
+								</li>
+								<li>For accomodation information, please refer to <a href="http://icis2016.aisnet.org/venue/" target="_blank">http://icis2016.aisnet.org/venue/</a></li>
+							</ul>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</section>
+
+
+			<!-- Sponsors
+			================================= -->
+			<section id="sponsors" class="testimonial-slider-section section-white section">
+
+				<div class="container">
+
+					<h2 class="section-heading text-center">Sponsors</h2>
+
+					<div class="sponsors-row" data-animation="bounceIn">
+						<img src="{{url_for('static', filename='img/sigbps/cityu_logo.png')}}" alt="cityu">
+						<img src="{{url_for('static', filename='img/sigbps/ud_logo.jpg')}}" alt="ud">
+						<img src="{{url_for('static', filename='img/sigbps/osu_logo.png')}}" alt="osu">
+					</div>
+
+				</div>
+
+			</section>
+            #}
+
+{% endblock %}

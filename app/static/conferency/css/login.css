@@ -1,0 +1,85 @@
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-y: scroll;
+}
+
+
+a {
+  text-decoration: none;
+  color: #1ab188;
+  -webkit-transition: .5s ease;
+  transition: .5s ease;
+}
+a:hover {
+  color: #179b77;
+}
+
+.form {
+  padding: 30px;
+  max-width: 500px;
+  margin: 40px auto;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px 4px rgba(19, 35, 47, 0.3);
+}
+
+.tab-group {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 40px 0;
+}
+.tab-group:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.tab-group li a {
+  display: block;
+  text-decoration: none;
+  padding: 15px;
+  background: rgba(160, 179, 176, 0.25);
+  color: #a0b3b0;
+  font-size: 20px;
+  float: left;
+  width: 50%;
+  text-align: center;
+  cursor: pointer;
+  -webkit-transition: .5s ease;
+  transition: .5s ease;
+}
+.tab-group li a:hover {
+  background: #179b77;
+  color: #ffffff;
+}
+.tab-group .active a {
+  background: #1ab188;
+  color: #ffffff;
+}
+
+h1 {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 300;
+  margin: 0 0 40px;
+}
+
+.top-row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.top-row > div {
+  float: left;
+  width: 48%;
+  margin-right: 4%;
+}
+.top-row > div:last-child {
+  margin: 0;
+}
+
+.loginscreen.middle-box{
+  width: 100%;
+  max-width: 400px;
+}

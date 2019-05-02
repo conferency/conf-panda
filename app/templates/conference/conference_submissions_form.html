@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "submission_menu" %}
+{% set active_second_subpage = "submission-form" %}
+{% set page_title = "Submission Form" %}
+
+{% block head %}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/switchery/switchery.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <!-- <link href="{{ url_for('static', filename='conferency/css/datepicker3.css') }}" rel="stylesheet"> -->
+    <style>
+        .input-group .input-submission-type {
+            position: absolute;
+        }
+
+        .panel-heading h5 {
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 0 7px;
+            padding: 0;
+            text-overflow: ellipsis;
+            float: left;
+        }
+
+        .padding-bottom-5 {
+            padding-bottom: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.conference_submission_setting', conference_id=conference.id))]) }}
+{% endblock %}
+
+{% block page_content %}
+{% if conference.type == 'Free' %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox-content m-b-sm">
+            <h3 class="text-center">You need to <a class="btn btn-danger" href="{{ url_for('conference.payment', conference_id=conference.id) }}" style="font-size: 16px; font-weight: 600;">upgrade your plan</a> to customize the form.</h3>
+        </div>
+    </div>
+</div>
+{% endif %}
+<div class="row {% if conference.type == 'Free' %}blur-div{% endif %}">
+    <div class="col-md-12">
+        <div class="tabs-container">
+            {% if tab == 'form' %}
+                {% set tab_form = ('active', '#tab-1') %}
+                {% set tab_question = ('', url_for('conference.conference_submission_form_questions', conference_id=conference.id)) %}
+            {% else %}
+                {% set tab_form = ('', url_for('conference.conference_submission_form', conference_id=conference.id)) %}
+                {% set tab_question = ('active', '#tab-2') %}
+            {% endif %}
+            <ul class="nav nav-tabs">
+                <li class="{{ tab_form[0] }}">
+                    <a href="{{ tab_form[1] }}"><h3>Submission Form</h3></a>
+                </li>
+                <li class="{{ tab_question[0] }}">
+                    <a href="{{ tab_question[1] }}"><h3>Custom Questions</h3></a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div id="tab-1" class="tab-pane {{ tab_form[0] }}">
+                    <div class="panel-body">
+                        <p>Choose the questions you want to include in the submission form.</p>
+                        <div class="hr-line-dashed"></div>
+                        <div class="questions col-md-8 col-md-offset-2">
+                            <div class="form-group" >
+                                <div class="input-group col-md-11">
+                                    <div class="col-md-8"></div>
+                                    <div class="col-md-2">
+                                        <label for="">Include</label>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="">Require</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-11">
+                                    <div class="col-md-8">
+                                        <label for="">Title</label>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-11">
+                                    <div class="col-md-8">
+                                        <label for="">Abstract</label>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-11">
+                                    <div class="col-md-8">
+                                        <label for="">keywords</label>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-11">
+                                    <div class="col-md-8">
+                                        <label for="">Comment</label>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="checkbox" checked name="disabled" class="switch-button"/>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="checkbox" name="disabled" class="switch-button"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- use for to render the questions -->
+                            {% for id, question in conference.submission_questions.items() if question['deleted'] != True %}
+                            <div class="form-group">
+                                <div class="input-group col-md-11 form-question" data-question-index="{{ id }}" data-question-type="{{question['ques_type']}}" data-question-options="{% if question['ques_type'] < 2 %}{{ question['options'] }}{% else %}[]{% endif %}" private="true">
+                                    <div class="col-md-8">
+                                        <label for="{{  id }}">{{ question['desc'] }}</label>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="checkbox" id="{{  id }}_include" class="switch-button include" {% if question['include'] %}checked{% endif %}/>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="checkbox" id="{{  id }}_require" class="switch-button require" {% if question['require'] %}checked{% endif %}/>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <div class="form-group">
+                                <div class="input-group col-md-11 col-sm-12 left-padding-15">
+                                    <a class="btn btn-primary" href="{{ url_for('conference.conference_submission_form_questions', conference_id=conference.id) }}">Add Custom Questions</a>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group col-md-11 col-sm-12 left-padding-15">
+                                    <label for="abstract">Message shown at the top of the form</label>
+                                    <textarea class="form-control" id="instruction" name="instruction" placeholder="Optional" style="overflow: hidden; word-wrap: break-word; resize: horizontal; height: 100px; width: 95%" aria-required="true">{{ conference.registration.configuration_setting['instruction'] }}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <button id="save-button" class="btn btn-primary center-block save-button" style="">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-2" class="tab-pane {{ tab_question[0] }}">
+                    <div class="panel-body">
+                        <p>Add or Update custom questions in the submission form.</p>
+                        <div class="hr-line-dashed"></div>
+                        <div class="col-md-10 col-md-offset-1">
+                            <!-- <div class="col-md-12 row"> -->
+                                <form id="questions-edit">
+                                    <div class="ibox">
+                                        <div id="ques_list" class="questions col-xs-12 col-md-8">
+                                            {{ macros.render_customized_questions(conference.submission_questions) }}
+                                            <div class="form-group">
+                                                <p class="text-center">Click the buttons on the right to create questions</p>
+                                                <button id="questions-submit" class="btn btn-primary center-block save-button">Save Questions</button>
+                                            </div>
+                                        </div>
+                                        <div class="question-types col-xs-6 col-xs-offset-3 col-md-3 col-md-offset-1">
+                                            <ul class="nav nav-stacked">
+                                              <li>
+                                                <button class="btn btn-warning btn-block edit-button" onclick="return add_question(0)">Single Choice</button>
+                                              </li>
+                                              <li>
+                                                <button class="btn btn-info btn-block edit-button" onclick="return add_question(1)">Multiple Choice</button>
+                                              </li>
+                                              <li>
+                                              <button class="btn btn-primary btn-block edit-button" onclick="return add_question(2)">Single-line Textbox</button>
+                                              </li>
+                                              <li>
+                                                <button class="btn btn-success btn-block edit-button" onclick="return add_question(3)">Essay Textbox</button>
+                                              </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </form>
+                            <!-- </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}" type="text/javascript"></script>
+    <!-- Switchery -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/switchery/switchery.js') }}" type="text/javascript"></script>
+    <!-- iChecks -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}" type="text/javascript"></script>
+    <!-- custom question -->
+    <script src="{{ url_for('static', filename='conferency/js/custom_question.js') }}" type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='conferency/js/save.js') }}" type="text/javascript"></script>
+    <script type="text/javascript">
+
+      $(document).ready(function () {
+        $('.i-checks').iCheck({
+          checkboxClass: 'icheckbox_square-green',
+          radioClass: 'iradio_square-green'
+        });
+
+        // init_datepicker($('.datepicker'));
+
+        // initialize switchery  javascript
+        var elems = Array.prototype.slice.call(document.querySelectorAll('.switch-button'));
+        elems.forEach(function (elem) {
+          if (elem.getAttribute("name") === "disabled") {
+            var switchery = new Switchery(elem, {color: '#1AB394', size: 'large', disabled: true});
+          } else {
+            var switchery = new Switchery(elem, {color: '#1AB394', size: 'large'});
+          }
+        });
+
+        $("[name='disabled']").mouseover(function () {
+          $(this).tooltip({title: "It can not be changed"});
+          $(this).tooltip("show");
+        });
+
+        $('[data-toggle="tooltip"]').tooltip();
+
+        $('#save-button').click(function () {
+          var questions = [];
+          $('.form-question').each(function () {
+            // console.log($(this).find('.include')[0].checked);
+            // if ($(this).find('.include')[0].checked || $(this).find('.require')[0].checked) {
+            var question = {
+              'id': $(this).data('question-index'),
+              'desc': desc = $(this).find('label').text(),
+              'include': $(this).find('.include')[0].checked,
+              'require': $(this).find('.require')[0].checked,
+              'ques_type': $(this).data('question-type'),
+              'options': option_convert($(this).data('question-options'))
+            };
+            // console.log(question);
+            questions.push(question);
+            // }
+          });
+
+          var submission_config = {
+            'questions': questions
+          };
+
+          $.ajax({
+              type: "PUT",
+              url: "{{ url_for('api.update_conference_submission_config', conference_id=conference.id) }}",
+              contentType: "application/json",
+              data: JSON.stringify(submission_config),
+              success: function (response) {
+                  swal({title: "Success!", type: "success", timer: 2000, showConfirmButton: false});
+                  // console.log(response);
+              }
+          })
+              .always(function() {
+                  saved = true;
+              });
+        });
+
+        save_detect([".form-question .switch-button", "#instruction", "#questions-edit input, #questions-edit textarea", ".edit-button"]);
+
+        $('#questions-submit').click(function (event) {
+          event.preventDefault();
+          if ($("#questions-edit").valid()) {
+            var last_question = -1;
+            var custom_questions = [];
+            // get new ques_id
+            while (document.getElementById("ques_" + (last_question + 1) + ".div") != null) last_question++;
+            if (last_question > -1) {
+              var last_question_elem = document.getElementById("ques_" + last_question + ".div");
+              while (last_question >= 0) {
+                if (document.getElementById("new_" + last_question + ".delete")) {
+                  document.getElementById("new_" + last_question + ".delete").removeAttribute('id');
+                }
+                var review_question = {
+                  'ques_type': document.getElementById("ques_" + last_question + ".type").value,
+                  'require': JSON.parse(document.getElementById("ques_" + last_question + ".type").getAttribute("data-reuqire")),
+                  'include': JSON.parse(document.getElementById("ques_" + last_question + ".type").getAttribute("data-include")),
+                  'desc': document.getElementById("ques_" + last_question + ".description").value,
+                  'uuid': $('[data-question-id=' + last_question + ']').attr("name"),
+                  'numid': last_question
+                };
+                // get question info
+                if (review_question["ques_type"] < 2) {
+                  var option_count = 0;
+                  var options = [];
+                  var current_option = document.getElementById("ques_" + last_question + ".option_" + option_count);
+                  // handle select without options
+                  while (current_option != null) {
+                    options.push(current_option.value);
+                    option_count++;
+                    for (var i = 0; i < option_count - 1; i++) {
+                      if (options[i] === current_option.value) {
+                        var same_a = document.getElementById("ques_" + last_question + ".option_" + i);
+                        var same_b = document.getElementById("ques_" + last_question + ".option_" + (option_count - 1));
+                        same_a.className += " error";
+                        same_b.className += " error";
+                        if (!document.getElementById("ques_" + last_question + ".same_error")) {
+                          var error_label = document.createElement("label");
+                          error_label.setAttribute('id', "ques_" + last_question + ".same_error");
+                          error_label.setAttribute('class', "error");
+                          var error_words = document.createTextNode("There are two same options");
+                          error_label.appendChild(error_words);
+                          same_b.parentNode.appendChild(error_label);
+                        }
+                        return;
+                      }
+                    }
+                    current_option = document.getElementById("ques_" + last_question + ".option_" + option_count);
+                  }
+                  review_question["options"] = options;
+                  if (document.getElementById("ques_" + last_question + ".same_error")) {
+                    document.getElementById("ques_" + last_question + ".same_error").remove();
+                  }
+                }
+                custom_questions.push(review_question);
+                last_question--;
+                last_question_elem = document.getElementById("ques_" + last_question + ".div");
+              }
+            } else {
+              // no customized question
+              custom_questions.push({});
+            }
+            // console.log(custom_questions);
+            $.ajax({
+              type: "PUT",
+              url: "{{ url_for('api.update_submission_question', conference_id=conference.id) }}",
+              contentType: "application/json",
+              data: JSON.stringify(custom_questions),
+              success: function (response) {
+                $.each(response, function (key, value) {
+                  $('[data-question-id="' + key + '"]').attr("name", value);
+                });
+                swal({
+                  title: "Updated!",
+                  text: "Custom questions has been updated.",
+                  type: "success",
+                  timer: 2000,
+                  showConfirmButton: false
+                });
+              }
+            })
+              .fail(function (data, textStatus, error) {
+                // console.log(data);
+                swal({
+                  title: "Oops...",
+                  text: "Update failed. We are very sorry. Please contact the customer service.",
+                  type: "error",
+                  timer: 2000,
+                  showConfirmButton: false
+                });
+              })
+              .always(function() {
+                  saved = true;
+              });
+          }
+        });
+
+      });
+    </script>
+{% endblock %}

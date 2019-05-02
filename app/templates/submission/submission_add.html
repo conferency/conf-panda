@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+{% if endpoint == 'self_submission' %}
+    {% set active_page = "submissions" %}
+    {% set active_subpage = "add-submissions" %}
+{% else %}
+    {% set active_page = "conferenceManagement" %}
+    {% set active_subpage = "submission_menu" %}
+    {% set active_second_subpage = "submission-add" %}
+{% endif %}
+{% set page_title = "Add Submission" %}
+
+{% set conf_configuration = current_user.curr_conf.configuration %}
+{% set conf = current_user.curr_conf %}
+
+{% block head %}
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/iCheck/custom.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css') }}"
+          rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-tagsinput.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/inspinia/css/dropzone/dropzone.css') }}" rel="stylesheet">
+    {{ super() }}
+    <style>
+        .bootstrap-tagsinput {
+            width: 100%;
+            border: 1px solid #e5e6e7;
+            border-radius: 0px;
+            box-shadow: none;
+        }
+
+        .bootstrap-tagsinput input {
+            width: 100% !important;
+        }
+
+        .checkbox {
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        .radio label::before {
+            content: none !important;
+        }
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {% if endpoint == 'self_submission' %}
+        {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Submissions', '#'), (page_title, url_for('submission.add_submission'))]) }}
+    {% else %}
+        {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, url_for('conference.conference_submission_add', conference_id=conference.id))]) }}
+    {% endif %}
+{% endblock %}
+
+{% block page_content %}
+    {% if not submission_closed %}
+        <div id="mainContent" class="wrapper wrapper-content animated fadeInRight">
+            <div class="row">
+                <div class="col-lg-12">
+                    <form action="{% if endpoint == 'self_submission' %}{{ url_for('submission.add_submission') }}{% else %}{{ url_for('conference.conference_submission_add', conference_id=conference.id) }}{% endif %}"
+                          id="add-submission" method="post" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                <h5>Conference</h5>
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <h3>{{ conf.name }}</h3>
+                                        <div class="form-group {% if hide_tracks %}hide{% endif %}">
+                                            {{ form.track_id.label }}
+                                            <small>(This cannot be updated after submission)</small>
+                                            {{ form.track_id(class_='form-control') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                <h5>Paper Details</h5>
+                            </div>
+                            <div class="ibox-content" style="display: block;">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            {{ form.title.label }}
+                                            {{ form.title(class_='form-control required', placeholder="Paper Title") }}
+                                        </div>
+                                        <div class="form-group">
+                                            {{ form.abstract.label }}
+                                            {{ form.abstract(class_='form-control required', placeholder="Paper Abstract") }}
+                                        </div>
+                                        <div class="form-group">
+                                            {{ form.keywords.label }}
+                                            {{ form.keywords(class_='form-control required', placeholder="At least three keywords separated by commas or semi-colons", **{'data-role':'tagsinput'}) }}
+                                        </div>
+                                        {% if form.submission_type %}
+                                            <div class="form-group">
+                                                {{ form.submission_type.label }}
+                                                {{ form.submission_type(class_='form-control') }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="author1" class="authorHolder">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>Author #1</h5>
+                                    <button buttonindex="1" style="position: relative; top: -3px; right: -10px"
+                                            type="button" class="btn btn-primary btn-xs autofill">
+                                        add yourself as an author
+                                    </button>
+                                    <div class="ibox-tools">
+                                        <div class="pull-left checkbox checkbox-success checkbox-inline">
+                                            <input id="author_sendnotification_1" type="checkbox" name="author_sendnotification_1"
+                                                   {% if endpoint == 'self_submission' %}checked{% endif %}>
+                                            <label for="author_sendnotification_1">
+                                                Send notification to this author
+                                            </label>
+                                        </div>
+                                        <a class="collapse-link">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="ibox-content" style="display: block;">
+                                    <div class="row">
+                                        <div class="col-sm-6 b-r">
+                                            <div class="form-group">
+                                                <div class="form-group">
+                                                    <label>First Name *</label>
+                                                    <input type="text" name="author_firstname_1"
+                                                           placeholder="Enter First Name"
+                                                           class="form-control required name-box autofill">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Last Name *</label>
+                                                    <input type="text" name="author_lastname_1"
+                                                           placeholder="Enter Last Name"
+                                                           class="form-control required name-box autofill">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Email *</label>
+                                                    <input type="email" name="author_email_1" placeholder="Enter Email"
+                                                           class="form-control required email autofill">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Organization *</label>
+                                                <input type="text" name="author_organization_1" autocomplete="off"
+                                                       placeholder="Please input the formal name of the affiliation without department, college, etc."
+                                                       class="form-control organization required">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="country">Country *</label>
+                                                <select class="form-control required valid" name="author_country_1">
+                                                    {{ macros.generate_country_options() }}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Website</label>
+                                                <input type="text" name="author_website_1"
+                                                       placeholder="Enter Website URL"
+                                                       class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="addAuthor" style="margin-bottom:20px;"
+                                class="btn btn-sm btn-primary pull-left m-t-n-xs"><strong>Add Additional Author</strong>
+                        </button>
+                        {% if conf.submission_questions %}
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>Additional Information</h5>
+                                </div>
+                                <div class="ibox-content" style="display: block;">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            {{ macros.render_questions(conf.submission_questions) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                {% set pdf = conf_configuration.get('submission-pdf-allowed', True) %}
+                                {% set word = conf_configuration.get('submission-word-allowed', False) %}
+                                {% set multipleAllowed = conf_configuration.get('multiple_submission', False) %}
+                                {% if pdf and word %}
+                                    {% set fileTypePrompt = "PDF or Word" %}
+                                {% elif word %}
+                                    {% set fileTypePrompt = "Word" %}
+                                {% elif pdf %}
+                                    {% set fileTypePrompt = "PDF" %}
+                                {% endif %}
+
+                                {% if multipleAllowed %}
+                                    {% set fileNumberPrompt = "multiple files" %}
+                                {% else %}
+                                    {% set fileNumberPrompt = "one file" %}
+                                {% endif %}
+
+                                <h5>Paper File ({{ fileTypePrompt }} file only, no larger than 15M)
+                                    (You are allowed to upload {{ fileNumberPrompt }})</h5>
+
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="display: block;">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <input class="form-control" id="filename" name="filename"
+                                                   type="hidden" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="dZUpload" class="dropzone">
+                                    <div class="dz-default dz-message"></div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="ibox float-e-margins">
+                            <div class="ibox-title">
+                                <h5>Comment</h5>
+                                <div class="ibox-tools">
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="display: block;">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            {{ form.comment(class_='form-control', placeholder="Optional confidential comment to chairs") }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-primary pull-right m-t-n-xs" type="submit" id="submit_button">
+                            <strong>Submit</strong></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div id="template_wrapper" style="display:none;">
+            <!-- load author template -->
+            {{ macros.add_author_widget(endpoint == 'self_submission') }}
+        </div>
+    {% else %}
+        <div class="middle-box text-center animated fadeInRightBig">
+            <h3 class="font-bold">Sorry. Paper submission is not open yet.</h3>
+            <div class="error-desc">
+                <br><a href="{{ url_for('submission.my_submissions') }}" class="btn btn-primary m-t">My Submission</a>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Jquery Validate -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/validate/jquery.validate.min.js') }}"></script>
+    <!-- Autocomplete -->
+    <script src="{{ url_for('static', filename='conferency/js/jquery.autocomplete.min.js') }}"></script>
+    <!-- Tag Input -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-tagsinput.js') }}"></script>
+    <!-- Autosize Textarea -->
+    <script src="{{ url_for('static', filename='conferency/js/autosize.min.js') }}"></script>
+    <!-- dropzone -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/dropzone/dropzone.js') }}"></script>
+    <!-- custom radio buttons -->
+    <script src="{{ url_for('static', filename='inspinia/js/plugins/iCheck/icheck.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='conferency/js/dropzone.js') }}"></script>
+
+    <script>
+        function setUpAutocomplete(selector, data) {
+            $(selector).devbridgeAutocomplete({
+                lookup: data,
+                lookupLimit: 10,
+            });
+        }
+
+        // autosize the textarea
+        $('textarea').each(function () {
+            autosize(this);
+        });
+
+        function fill_form(element, data) {
+            // for(var name in data) {
+            //     $(element).find("[name="+name+"]").val(data[name]);
+            // }
+            $(element).find("[name^=author_firstname_]").val(data["first_name"]);
+            $(element).find("[name^=author_lastname_]").val(data["last_name"]);
+            $(element).find("[name^=author_email_]").val(data["email"]);
+            $(element).find("[name^=author_organization_]").val(data["organization"]);
+            $(element).find("[name^=author_country_]").val(data["country"]);
+            $(element).find("[name^=author_website_]").val(data["website"]);
+        }
+
+        function escapeRegExChars(value) {
+            return value.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&");
+        }
+
+        $(document).ready(function () {
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green'
+            });
+
+            var countries = [], all_univ_names = [];
+
+            $.getJSON("{{ url_for('static', filename='json/affiliations.json')}}", function (data) {
+                all_univ_names = data;
+                setUpAutocomplete('.organization', data);
+            });
+
+            //Tags plugin hides the actual form input and adds its own div so we do this to check the new div/apply styles
+            $.validator.addMethod("checkTags", function (value) {
+                if ($(".bootstrap-tagsinput").find(".tag").length < 3) {
+                    $(".bootstrap-tagsinput").addClass("form-control error");
+                } else {
+                    return true;
+                }
+            });
+
+            // check duplicate emails
+            jQuery.validator.addMethod("checkDupEmails", function (value) {
+                // console.log(value);
+                var matches = [];
+                $('.email').each(function (index, item) {
+                    if (value == $(item).val()) {
+                        matches.push(item);
+                    }
+                });
+                // console.log(matches.length);
+                return matches.length === 1;
+            }, "Duplicate email address");
+
+            // dropZone
+            Dropzone.autoDiscover = false;
+            var acceptedFiles = "";
+            {% if conf_configuration.get('submission-pdf-allowed', True) %}
+                acceptedFiles += "application/pdf, .pdf,";
+            {% endif %}
+            {% if conf_configuration.get('submission-word-allowed', False) %}
+                acceptedFiles += ".doc, .docx, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            {% endif %}
+
+            {% if not conf_configuration.get("multiple_submission", False) %}
+                var maxFiles = 1;
+            {% else %}
+                var maxFiles = null;
+            {% endif %}
+
+            var uploadedFiles = [];
+            var pdfUrl = "{{ pdf_url }}";
+
+            var myDropZone = initializeDropZone(acceptedFiles, maxFiles, uploadedFiles, pdfUrl);
+
+            // add class as validating method
+            jQuery.validator.classRuleSettings.email = {checkDupEmails: true};
+
+            jQuery.validator.addMethod("check_member_name", function (value, element) {
+                var regex = /^[a-zA-Z. \-]*$/g;
+                return regex.test(value);
+            }, "Name should only contain letters, dots, hyphens and spaces.");
+
+            {% set max_word_count = conf_configuration.get('abstract_max_word_count', "") %}
+            {% if max_word_count != "0" and max_word_count != ""%}
+                jQuery.validator.addMethod("check_abstract_word_count", function (value) {
+                    var regex = /\s+/gi;
+                    var count = value.trim().replace(regex, ' ').split(" ").length;
+                    if (count > {{ conf_configuration.get('abstract_max_word_count', 0) }}) {
+                        return false;
+                    }
+                    else {
+                        return true;
+                    }
+                }, "The maximal length of abstract is {{ conf_configuration.get('abstract_max_word_count', 0) }} characters.");
+            {% endif %}
+
+            jQuery.validator.addClassRules("name-box", {
+                check_member_name: true
+            });
+
+            //Validating the form for client
+            $("#add-submission").validate({
+                //tags plugin hides actual input, we make sure jquery still checks it
+                ignore: "",
+                //how to validate the hidden tags input
+                rules: {
+                    keywords: "checkTags"{% if max_word_count != "0" and max_word_count != ""%},
+                        abstract: "check_abstract_word_count"
+                    {% endif %}
+                },
+                messages: {
+                    keywords: "At least 3 keywords"{% if max_word_count != "0" and max_word_count != ""%},
+                        abstract: "The maximal length of abstract is {{ conf_configuration.get('abstract_max_word_count', 0) }} characters."
+                    {% endif %}
+                },
+                onkeyup: false,
+                onclick: false,
+                onfocusout: function (element) {
+                    $(element).valid();
+                },
+                errorPlacement: function (error, element) {
+                    if (element.attr("type") === "radio" || element.attr("type") === "checkbox") {
+                        // error.addClass('col-lg-12');
+                        element.closest(".col-sm-8").after(error);
+                    } else {
+                        element.after(error);
+                    }
+                }
+            });
+
+            //Adding additonal authors
+            var numAuthors = 1;
+            $("#addAuthor").click(function (event) {
+                event.preventDefault();
+                var curLast = "#author" + numAuthors;
+                numAuthors++;
+                var template = $('#author_template').html();
+                //console.log(curLast)
+                $(curLast).after("<div id=author" + numAuthors + "></div>");
+                var newDiv = $("#author" + numAuthors);
+                newDiv.append(template);
+                newDiv.find("h5").text("Author #" + numAuthors);
+                newDiv.find("button").attr("buttonindex", numAuthors);
+                newDiv.find("input[name='author_sendnotification_']").attr("id", "author_sendnotification_" + numAuthors);
+                newDiv.find("label[for='author_sendnotification_']").attr("for", "author_sendnotification_" + numAuthors);
+                newDiv.find("input[name='author_sendnotification_']").attr("name", "author_sendnotification_" + numAuthors);
+                newDiv.find("input[name='author_email_']").attr("name", "author_email_" + numAuthors);
+                newDiv.find("input[name='author_firstname_']").attr("name", "author_firstname_" + numAuthors);
+                newDiv.find("input[name='author_lastname_']").attr("name", "author_lastname_" + numAuthors);
+                newDiv.find("input[name='author_organization_']").attr("name", "author_organization_" + numAuthors);
+                newDiv.find("select[name='author_country_']").attr("name", "author_country_" + numAuthors);
+                newDiv.find("input[name='author_website_']").attr("name", "author_website_" + numAuthors);
+                setUpAutocomplete(newDiv.find('.organization'), all_univ_names);
+                // setUpAutocomplete('.country', countries);
+                // $(".country").countrySelect();
+                // country_option($("select[name='author_country_" + numAuthors + "']"), countries);
+            });
+
+            //Removing authors
+            $("#mainContent").on("click", ".close-link", (function (event) {
+                event.preventDefault();
+                // TODO this is pretty hacky, ran out of time
+                var authToDelete = $(this).parent().parent().parent().parent();
+                var authToDeleteId = parseInt(authToDelete.attr("id").slice(-1));
+                if (authToDeleteId > 1) {
+                    authToDelete.remove();
+                    for (var i = authToDeleteId + 1; i <= 10; i++) {
+                        var newId = i - 1;
+                        var curAuthor = $("#author" + i);
+                        curAuthor.attr("id", "author" + newId);
+                        curAuthor.find("h5").text("Author #" + newId);
+                        curAuthor.find("input[id='author_sendnotification_" + i + "']").attr("id", "author_sendnotification_" + newId);
+                        curAuthor.find("label[for='author_sendnotification_" + i + "']").attr("for", "author_sendnotification_" + newId);
+                        curAuthor.find("input[name='author_sendnotification_" + i + "']").attr("name", "author_sendnotification_" + newId);
+                        curAuthor.find("input[name='author_email_" + i + "']").attr("name", "author_email_" + newId);
+                        curAuthor.find("input[name='author_firstname_" + i + "']").attr("name", "author_firstname_" + newId);
+                        curAuthor.find("input[name='author_lastname_" + i + "']").attr("name", "author_lastname_" + newId);
+                        curAuthor.find("input[name='author_organization_" + i + "']").attr("name", "author_organization_" + newId);
+                        curAuthor.find("select[name='author_country_" + i + "']").attr("name", "author_country_" + newId);
+                        curAuthor.find("input[name='author_website_" + i + "']").attr("name", "author_website_" + newId);
+                    }
+                    numAuthors--;
+                }
+            }));
+            // fill out the first author form
+            $("#mainContent").on("click", ".autofill", function (event) {
+                // get the buttonindex of the clicked button
+                var index = $(this).attr("buttonindex");
+                $("input[name='author_firstname_" + index + "']").val("{{ user.first_name }}");
+                $("input[name='author_lastname_" + index + "']").val("{{ user.last_name }}");
+                $("input[name='author_email_" + index + "']").val("{{ user.email }}");
+                $("input[name='author_organization_" + index + "']").val("{{ user.organization | default("", True) }}");
+                // if ("{{ user.country | default("", True) }}" in country_list) {
+                $("select[name='author_country_" + index + "']").val("{{ user.country | default("", True) }}");
+                // }
+                $("input[name='author_website_" + index + "']").val("{{ user.website | default("", True) }}");
+            });
+
+            $("#submit_button").click(function (event) {
+                event.preventDefault();
+                if (myDropZone.files_list.length === 0) {
+                    swal({
+                        title: "Warning!",
+                        text: "There is no file for this submission!",
+                        type: "warning"
+                    });
+                } else {
+                    var files = "";
+                    $.each(myDropZone.files_list, function (num, fileID) {
+                        files += fileID + ",";
+                    });
+                    $("input[name=filename]").val(files);
+                    var flag = true;
+
+                    {% if endpoint == 'self_submission' %}
+                        flag = false;
+                        $("form input[name^=author_email_]").each(function () {
+                            if (this.value === "{{ current_user.email }}") {
+                                flag = true;
+                            }
+                        });
+                    {% endif %}
+
+                    if (!flag) {
+                        swal({
+                            title: "Warning!",
+                            text: "Your current account email ({{current_user.email}}) has to be an author's email address",
+                            type: "warning"
+                        });
+                    } else {
+                        if ($("#add-submission").valid()) {
+                            document.getElementById("add-submission").submit();
+                        }
+                    }
+                }
+            });
+
+
+            var autocomplete_config = {
+                serviceUrl: "{{ url_for('api.search_users') }}",
+                paramName: "",
+                maxHeight: 440,
+                formatResult: function (suggestion, currentValue) {
+                    // Do not replace anything if the current value is empty
+                    if (!currentValue) {
+                        return suggestion.value;
+                    }
+                    var pattern = '(' + escapeRegExChars(currentValue) + ')';
+                    var organization = suggestion.data.organization ? "<p><i class=\"fa fa-institution\"></i>&nbsp;" + suggestion.data.organization + "</p>" : "";
+                    return "<h4>" + (suggestion.data.first_name + " " + suggestion.data.last_name)
+                            .replace(new RegExp(pattern, 'gi'), '<strong>$1<\/strong>')
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/&lt;(\/?strong)&gt;/g, '<$1>') + "</h4>" +
+                        "<p><i class=\"fa fa-envelope\"></i>&nbsp;" + suggestion.data.email + "</p>" +
+                        organization;
+                }
+            };
+
+            $("#add-submission").on('focus', ".autofill", function () {
+                if (this.name.indexOf("firstname")) {
+                    var paramName = "first_name";
+                } else if (this.name.indexOf("lastname")) {
+                    var paramName = "last_name";
+                } else {
+                    var paramName = "email";
+                }
+                // console.log(this.parentElement.parentElement.parentElement.parentElement);
+                autocomplete_config['paramName'] = paramName;
+                autocomplete_config['onSelect'] = function (suggestion) {
+                    fill_form(this.parentElement.parentElement.parentElement.parentElement, suggestion.data);
+                };
+                $(this).devbridgeAutocomplete(autocomplete_config);
+            });
+        }); //end of ready
+
+
+    </script>
+{% endblock %}

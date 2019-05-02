@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+{% set active_page = "conferenceManagement" %}
+{% set active_subpage = "submission_menu" %}
+{% set active_second_subpage = "all-submissions" %}
+{% set page_title = "All Submissions" %}
+
+{% block head %}
+    <link href="{{ url_for('static', filename='conferency/css/bootstrap-tagsinput.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='conferency/css/footable.standalone.updated.min.css') }}" rel="stylesheet">
+    {{ super() }}
+    <style>
+        /* PROJECTS */
+
+        .project-title {
+            font-size: 14px;
+            color: #676a6c;
+            font-weight: 600;
+        }
+
+        .project-people {
+            color: #337ab7;
+        }
+
+        .project-actions {
+        }
+
+        span.label {
+            position: relative;
+            top: 7px;
+        }
+
+        .nav-tabs > li.active {
+            pointer-events: none;
+        }
+
+        .bootstrap-tagsinput {
+            border-radius: 0px;
+            margin-bottom: 0px;
+            padding: 5px 6px;
+            min-width: 300px;
+        }
+
+        span.label {
+            position: relative;
+            top: 0px;
+        }
+
+        .bootstrap-tagsinput input {
+            min-width: 285px;
+        }
+
+        .btn-primary {
+            background-color: #1ab394 !important;
+            border-color: #1ab394 !important;
+        }
+
+        .btn-white {
+            background-color: white !important;
+        }
+
+        .ibox-content {
+            min-height: 270px;
+        }
+
+    </style>
+{% endblock %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('main.dashboard')), ('Administration', '#'), (page_title, request.path)]) }}
+{% endblock %}
+
+{% block page_content %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs">
+                        <li class="{% if endpoint == 'conference_submission' %}active{% endif %}">
+                            <a href="{{ url_for('conference.conference_submission', conference_id=conference.id, search_type=search_type if search_keyword else None, search_keyword=search_keyword if search_keyword else None) }}">Normal
+                                Submissions ({{ number_papers[0] }})</a></li>
+                        <li class="{% if endpoint == 'conferences_submission_withdrawn' %}active{% endif %}"><a
+                                href="{{ url_for('conference.conferences_submission_withdrawn', conference_id=conference.id, search_type=search_type if search_keyword else None, search_keyword=search_keyword if search_keyword else None) }}">Withdrawn
+                            Submissions ({{ number_papers[1] }})</a></li>
+                        <li class="{% if endpoint == 'conferences_submission_deleted' %}active{% endif %}"><a
+                                href="{{ url_for('conference.conferences_submission_deleted', conference_id=conference.id, search_type=search_type if search_keyword else None, search_keyword=search_keyword if search_keyword else None) }}">Deleted
+                            Submissions ({{ number_papers[2] }})</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        {% if endpoint == 'conference_submission' %}
+                            <div id="tab-1" class="tab-pane active">
+                                <div class="panel-body">
+                                    {# if papers | count != 0 #}
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="ibox">
+                                                    {% if not search_keyword %}
+                                                    <div class="pull-right">
+                                                      <a href="{{ url_for('conference.conferences_submission_download', conference_id=conference.id) }}"
+                                                         class="btn btn-primary m-b-sm btn-xs">Download All Submissions (Zip)</a>
+                                                    </div>
+
+                                                      {% endif %}
+                                                    <div class="ibox-content">
+                                                        <table class="table"></table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {# else #}
+                                        <!-- <div class="middle-box text-center animated fadeInRightBig"
+                                             style="padding-bottom: 269px;">
+                                            <h3 class="font-bold">There is no normal submissions...yet :)</h3>
+                                            <div class="error-desc">
+                                                <br><a href="{{ url_for('main.dashboard') }}"
+                                                       class="btn btn-primary m-t">Dashboard</a>
+                                            </div>
+                                        </div> -->
+                                    {# endif #}
+                                </div>
+                            </div>
+                        {% elif endpoint == 'conferences_submission_withdrawn' %}
+                            <div id="tab-2" class="tab-pane active">
+                                <div class="panel-body">
+                                    {# if papers | count != 0 #}
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="ibox">
+                                                    <!-- <div class="ibox-content"> -->
+                                                        <table class="table"></table>
+                                                    <!-- </div> -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {# else }
+                                        <div class="middle-box text-center animated fadeInRightBig"
+                                             style="padding-bottom: 269px;">
+                                            <h3 class="font-bold">There is no withdrawn submissions...yet :)</h3>
+                                            <div class="error-desc">
+                                                <br><a href="{{ url_for('main.dashboard') }}"
+                                                       class="btn btn-primary m-t">Dashboard</a>
+                                            </div>
+                                        </div>
+                                    { endif #}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div id="tab-3" class="tab-pane active">
+                                <div class="panel-body">
+                                    {# if papers | count != 0 #}
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="ibox">
+                                                    <!-- <div class="ibox-content"> -->
+                                                        <table class="table"></table>
+                                                    <!-- </div> -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {# else %}
+                                        <div class="middle-box text-center animated fadeInRightBig"
+                                             style="padding-bottom: 269px;">
+                                            <h3 class="font-bold">There is no deleted submissions...yet :)</h3>
+                                            <div class="error-desc">
+
+                                                <br><a href="{{ url_for('main.dashboard') }}"
+                                                       class="btn btn-primary m-t">Dashboard</a>
+                                            </div>
+                                        </div>
+                                    {% endif #}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <!-- Tag Input -->
+    <script src="{{ url_for('static', filename='conferency/js/bootstrap-tagsinput.js') }}"></script>
+    <script src="{{ url_for('static', filename='conferency/js/footable.updated.min.js') }}"></script>
+    <script>
+        var trigged = false;
+        $(document).ready(function () {
+            {% if endpoint == 'conference_submission' %}
+                {% set status = 'Normal' %}
+            {% elif endpoint == 'conferences_submission_withdrawn' %}
+                {% set status = 'Withdrawn' %}
+            {% else %}
+                {% set status = 'Deleted' %}
+            {% endif %}
+            $('.table').footable({
+                "columns":[
+                    {"name": "empty", "title":"", "breakpoints":"xs sm md", "type":"text", "sortable": false, "filterable":false},
+                    {"name": "id", "title":"ID", "breakpoints":"", "type":"number"},
+                    {"name": "title", "title":"Title", "breakpoints":"xs sm md", "type":"text"},
+                    {"name": "author", "title":"Author", "breakpoints":"", "type": "html", "sortable": false},
+                    {"name": "submitted_by", "title": "Submitted by", "breakpoints": "all", "type": "html", "sortable": false},
+                    {"name": "submission_type", "title": "Submission type", "breakpoints": "all", "type": "text", "sortable": false},
+                    {% if conference.get_tracks.all() %}{"name": "track", "title":"Track", "breakpoints":"", "type": "html", "filterable": false},{% endif %}
+                    {"name": "abstract", "title":"Abstract", "breakpoints":"all", "type":"text", "sortable": false},
+                    {"name": "keywords", "title":"Keywords", "breakpoints":"all", "type":"text", "sortable": false},
+                    {"name": "submission_time", "title":"Submission time", "breakpoints":"all", "type":"date", "formatString":"YYYY-MM-DD"},
+                    {"name": "reviews_button", "title":"Reviews", "breakpoints":"all", "type":"html", "sortable": false, "filterable": false},
+                    {"name": "files_button", "title":"Files", "breakpoints":"all", "type":"html", "sortable": false, "filterable": false},
+                    {"name": "deleted_files_button", "title":"Deleted files", "breakpoints":"all", "type":"html", "sortable": false, "filterable": false},
+                    {"name": "operation_button", "title":"Operation", "breakpoints":"all", "type":"html", "sortable": false, "filterable": false},
+                    {"name": "label", "title":"Labels", "breakpoints":"all", "type":"html", "sortable": false},
+                    {"name": "hide", "title":"Details", "breakpoints":"all", "type":"html", "sortable": false, "attributes": {"colspan": "2"}}
+                ],
+                "rows": $.get("{{ url_for('api.get_submissions', conference_id=conference.id, status=status) }}"),
+                "paging": {
+                    "enabled": true,
+                    "size": 20
+                },
+                "filtering": {
+                    "enabled": true
+                },
+                "sorting": {
+                    "enabled": true
+                },
+            {% if status != 'Deleted' %}
+                "editing": {
+                    enabled: true,
+                    deleteRow: function(row) {
+                        var paper_id = row.value.id;
+                        var title = row.value.title;
+                        swal({
+                        title: "Are you sure?",
+                        text: "You are going to delete \"<b>" + title + "</b>\".",
+                        type: "warning",
+                        html: true,
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Yes, delete it!",
+                        closeOnConfirm: false,
+                        showLoaderOnConfirm: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            var data = {paper_id: paper_id};
+                            $.ajax({
+                                type: "DELETE",
+                                url: "/api/papers/" + paper_id,
+                                success: function (response) {
+                                    swal({
+                                        title: "Deleted!",
+                                        text: "You can still find the paper in Deleted Submissions tab.",
+                                        type: "success",
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                    row.delete();
+                                }
+                            })
+                                .fail(function (data, textStatus, error) {
+                                    // console.log(data);
+                                    swal({
+                                        title: "Oops...",
+                                        text: "Deletion failed. Please contact with customer service.",
+                                        type: "error",
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                });
+                        }
+                    });
+                    }
+                }
+            {% endif %}
+            });
+
+            $(document).delegate('.footable-show', "click", function () {
+                $('.footable-edit').remove();
+                $('.footable-add').remove();
+                $('footable-hide').text('Save');
+            });
+
+            $(document).delegate(".save-labels", "click", function () {
+                var paper_id = $(this).data("paper-id");
+                var label = $(this).parent().parent().find(".paper-label").val();
+                $.ajax({
+                    type: "PUT",
+                    url: "/api/papers/" + paper_id,
+                    contentType: "application/json",
+                    data: JSON.stringify({label:label}),
+                    success: function (response) {
+                        swal({
+                                title: "Updated!",
+                                text: "Paper has been updated.",
+                                type: "success",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                    }})
+                        .fail(function (data, textStatus, error) {
+                            swal({
+                                    title: "Oops...",
+                                    text: "Update failed. We are very sorry. Please contact with customer service.",
+                                    type: "error",
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                        });
+            });
+
+            $(document).delegate(".track-selector", "change", function () {
+                var paper_id = $(this).data('paper-id');
+                var paper_name = $(this).data('paper-name');
+                var track_id = $(this).children(":selected").val();
+                var track_name = $(this).children(":selected").html();
+                var orig_track_id = $(this).data('orig-track-id');
+                var orig_track_name = $(this).data('orig-track-name');
+
+                swal({
+                        title: "Are you sure?",
+                        text: "You are going to change the track of paper <i>" + paper_name + "</i> to <u>" + track_name + "</u>.",
+                        type: "warning",
+                        html: true,
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Yes, change it!",
+                        closeOnConfirm: false,
+                        showLoaderOnConfirm: true
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            var data = {paper_id: paper_id, track_id: track_id, orig_track_id: orig_track_id};
+                            $.ajax({
+                                type: "POST",
+                                url: "/api/papers/" + paper_id + "/track/change",
+                                contentType: "application/json",
+                                data: JSON.stringify(data),
+                                success: function (response) {
+                                    // console.log(response);
+                                    swal({
+                                        title: "Updated!",
+                                        text: "Paper track has been updated.",
+                                        type: "success",
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                }
+                            })
+                                .fail(function (data, textStatus, error) {
+                                    // console.log(data);
+                                    swal({
+                                        title: "Oops...",
+                                        text: "Update failed. We are very sorry. Please contact with customer service.",
+                                        type: "error",
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                });
+                        } else {
+                            // $('#track-paper-' + paper_id).val(orig_track_name);
+                        }
+                    });
+
+            });
+
+            $("table").click(function () {
+                if (! trigged) {
+                    $('.tagsinput').tagsinput();
+                    trigged = true;
+                }
+            });
+        });
+    </script>
+{% endblock %}

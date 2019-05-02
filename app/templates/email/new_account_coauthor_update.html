@@ -1,0 +1,16 @@
+{% extends "/email/email_base.html" %}
+
+{% block page_content %}
+<tbody>
+    <!-- content -->
+    <tr>
+        <td style="font-family: Helvetica, arial, sans-serif; font-size: 14px; color: #95a5a6; text-align:center;line-height: 30px;" st-content="fulltext-paragraph">
+            Hi {{ user.first_name }},<br>
+            A paper titled: "{{ title }}" in conference: "{{conference}}" with you as an author has been updated.<br>
+            For your convenience, we have set up a new account for you. You can log in with your current email address and password: {{ password }}. We highly recommend that you change the password after first-time login.
+        </td>
+    </tr>
+    <!-- End of content -->
+
+</tbody>
+{% endblock %}

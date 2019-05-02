@@ -1,0 +1,388 @@
+/*
+ *
+ *   Conferency Inspinia customizations
+ *
+*/
+.profile-element {
+    text-align: center;
+}
+
+.ibox-content {
+    min-height: 70px;
+}
+
+.form-control.btn-primary {
+    background-color: #1ab394;
+    color: #fff;
+}
+
+/* for search box in review decisons and other pages*/
+.less-padding {
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+/* hide footable dropdown content*/
+.footable-hide {
+    display: none;
+}
+
+/* the following makes avatar square look */
+/*.profile-element .img-circle {
+    border-radius: 5px;
+}*/
+
+/*
+ *
+ *   Conferency Drew customizations
+ *
+*/
+
+/*html, body {
+    height: 100%;
+    overflow: auto;
+}
+
+#clear {
+    clear: both;
+}
+
+#page-wrapper {
+    box-sizing: border-box;
+}
+
+.main-form {
+    margin-top: 80px;
+}
+
+.project-status {
+    min-width: 110px;
+    position: fixed;
+}
+
+.project-title {
+    font-size: 14px;
+    color: #676a6c;
+    font-weight: 600;
+}
+
+.push-left-110 {
+    padding-left: 110px;
+}
+
+.project-people {
+    color: #337ab7;
+}
+
+select, option {
+    cursor: pointer;
+}*/
+
+/* ======================================
+ * pdfJS reader styles
+ * ====================================== */
+.split-pane-divider {
+    width: 5px;
+    background-color: #666;
+}
+
+#toolbarViewer {
+    background-color: #fff;
+}
+
+.pdfjs-viewer {
+    margin: 0;
+    height: 1010px;
+}
+
+#my-divider {
+    background: #aaa;
+    width: 3px;
+}
+
+.pdfjs-viewer iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+#right-component {
+    overflow: hidden;
+}
+
+.clearfix:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.page-heading {
+    padding-top: 20px;
+}
+
+/* ======================================
+ * devbridge autoComplete styles
+ * ====================================== */
+
+.autocomplete-suggestions {
+    border: 1px solid #ddd;
+    background: #FFF;
+    overflow: auto;
+}
+
+.autocomplete-suggestion {
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 4px 0 4px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.autocomplete-selected {
+    background: #F0F0F0;
+}
+
+.autocomplete-suggestions strong {
+    font-weight: normal;
+    color: #65AE94;
+}
+
+.autocomplete-group {
+    padding: 2px 5px;
+}
+
+.autocomplete-group strong {
+    display: block;
+    border-bottom: 1px solid #000;
+}
+
+/* ======================================
+ * decision_review.html
+ * ====================================== */
+.decision-form {
+    /* padding-right: 15px; */
+}
+
+.label-row {
+    padding-bottom: 5px;
+}
+
+.hide {
+    display: none;
+}
+
+/* ======================================
+ * Fix icon misposition
+ * ====================================== */
+div.ibox-tools {
+    display: inline-block;
+    float: right;
+
+}
+
+.total_user {
+    margin-right: 10px;
+    border-radius: 3px;
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+}
+
+.tourist-popover {
+    z-index: 9999
+}
+
+.hotfix-arrow-contact .shepherd-content:before {
+    top: 100%;
+    left: 100%;
+    margin-left: -85px;
+    content: "";
+    display: block;
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 16px solid transparent !important;
+    border-right: 16px solid transparent !important;;
+    border-top: 16px solid #fff !important;;
+}
+
+.hotfix-arrow-right-top .shepherd-content:before {
+    bottom: 100%;
+    left: 100%;
+    margin-left: -64px;
+    content: "";
+    display: block;
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 16px solid transparent !important;;
+    border-right: 16px solid transparent !important;;
+    border-bottom: 16px solid #fff !important;;
+}
+
+@media (max-width: 768px) {
+    .dropdown-menu {
+        right: 5px;
+        left: inherit !important;
+    }
+}
+
+@media (min-width: 767px) {
+    .hidden-sm-up {
+        display: none !important;
+    }
+}
+
+.note-btn-group > .btn {
+    border: 1px solid #e7eaec;
+}
+
+.note-btn-group > .btn-info {
+    background-color: white;
+}
+
+.note-btn-group > .btn-info:hover,
+.btn-info:focus,
+.btn-info:active,
+.btn-info.active,
+.open .dropdown-toggle.btn-info,
+.btn-info:active:focus,
+.btn-info:active:hover,
+.btn-info.active:hover,
+.btn-info.active:focus {
+    background-color: #21b9bb;
+    border-color: #21b9bb;
+    color: #FFFFFF;
+}
+
+.select2-container--default .select2-selection--multiple {
+    border: 1px solid #e5e6e7 !important;
+    border-radius: 1px !important;
+}
+
+.img-md {
+    width: 64px;
+    height: 64px;
+}
+
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+    margin-left: -1px;
+    -webkit-border-radius: 0 6px 6px 6px;
+    -moz-border-radius: 0 6px 6px;
+    border-radius: 0 6px 6px 6px;
+}
+
+.dropdown-submenu:hover > .dropdown-menu {
+    display: block;
+}
+
+.dropdown-submenu > a:after {
+    display: block;
+    content: " ";
+    float: right;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 5px 0 5px 5px;
+    border-left-color: #ccc;
+    margin-top: 5px;
+}
+
+.dropdown-submenu:hover > a:after {
+    border-left-color: #fff;
+}
+
+.dropdown-submenu.pull-left {
+    float: none;
+}
+
+.dropdown-submenu.pull-left > .dropdown-menu {
+    left: -100%;
+    margin-left: 10px;
+    -webkit-border-radius: 6px 0 6px 6px;
+    -moz-border-radius: 6px 0 6px 6px;
+    border-radius: 6px 0 6px 6px;
+}
+
+.navbar-top-links .dropdown-menu li a {
+    padding: 3px 5px;
+    min-height: 0;
+}
+
+.blur-div {
+    -webkit-filter: blur(1px);
+    -moz-filter: blur(1px);
+    -o-filter: blur(1px);
+    -ms-filter: blur(1px);
+    filter: blur(1px);
+    pointer-events: none;
+}
+
+textarea.form-control {
+    resize: vertical;
+}
+
+/* Dropzone customization*/
+.dropzone .dz-preview:not(:hover) .dz-details .dz-filename,
+.dropzone-previews .dz-preview:not(:hover) .dz-details .dz-filename {
+    opacity: 0;
+}
+
+.dropzone .dz-preview .dz-details *,
+.dropzone-previews .dz-preview .dz-details * {
+    transition: opacity 0.3s;
+}
+
+.dropzone .dz-preview .dz-details, .dropzone-previews .dz-preview .dz-details {
+    background: none !important;
+}
+
+.dropzone span[data-dz-name] {
+    width: 100%;
+    display: inline-block;
+    height: 100%;
+    word-wrap: break-word;
+    cursor: pointer;
+}
+
+.dropzone .dz-details, .dropzone .dz-details *, .dropzone.dz-clickable .dz-details, .dropzone.dz-clickable .dz-details *{
+    cursor: pointer;
+}
+
+.sidebard-panel .feed-element, .media-body, .sidebard-panel p {
+    font-size: 13px;
+}
+
+.checkbox-success input[type="checkbox"]:checked + label::before, .checkbox-success input[type="radio"]:checked + label::before {
+    background-color: #1ab394;
+    border-color: #1ab394;
+}
+
+.checkbox label::after {
+    padding-top: 0px;
+    font-size: 13px;
+}
+
+.label-info, .badge-info {
+    background-color: #1ab394;
+}

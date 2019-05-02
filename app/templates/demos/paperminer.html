@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% set active_page = "demos" %}
+{% set active_subpage = "paperminer" %}
+{% set page_title = "Paper Miner Example" %}
+
+{% block page_heading %}
+    {{ macros.breadcrumb_widget([('Home', url_for('.dashboard')), ('Demo', '#'), (page_title, url_for('.paperminer'))]) }}
+{% endblock %}
+
+{% block page_content %}
+
+    <h1>Paper Miner Example</h1>
+
+    <h3>paperminer.py extract title, authors, abstract, and keywords from a PDF</h3>
+    <form method="POST">
+      <p>Enter file name: <input type="text" name="filename" value=""></p>
+      <p>Try cswim1.pdf, cswim2.pdf, cswim3.pdf, or bps2012.pdf</p>
+      <p>The files are in the demos/paperminer/papers folder</p>
+      <input type="submit" name="submit" value="Analyze">
+    </form>
+
+    <dl>
+        {% for item in result%}
+            *****: {{ item }} <br>
+        {%- endfor %}
+    </dl>
+
+
+{% endblock %}
