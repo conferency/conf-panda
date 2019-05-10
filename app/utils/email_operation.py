@@ -3,7 +3,7 @@ from threading import Thread
 import time
 import random
 from flask import current_app, render_template, jsonify
-from flask.ext.mail import Message
+from flask_mail import Message
 from celery.execute import send_task
 from .. import mail
 # temp

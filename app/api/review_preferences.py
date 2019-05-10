@@ -8,7 +8,7 @@ from ..models import ReviewPreference
 from . import api
 from .errors import internal_error, forbidden
 from .authentication import auth
-from flask.ext.login import current_user
+from flask_login import current_user
 
 
 @api.route(

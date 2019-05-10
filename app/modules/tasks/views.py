@@ -1,6 +1,6 @@
 from flask import request, render_template, session, flash, redirect, \
     url_for, jsonify
-from flask.ext.mail import Message
+from flask_mail import Message
 from . import tasks
 from ...utils.task import long_task
 from ...utils.email_operation import send_async_email

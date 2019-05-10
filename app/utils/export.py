@@ -2,14 +2,14 @@
 """Functions to generate texts."""
 
 from flask import Response
-import cStringIO
+from io import StringIO
 import unicodecsv as csv
 from bs4 import BeautifulSoup
 
 
 def generate_csv_response(columns, rows, file_name):
     """Generate csv file."""
-    csv_str = cStringIO.StringIO()
+    csv_str = StringIO.StringIO()
     csv_str.write(u'\ufeff'.encode('utf-8'))
     write = csv.writer(csv_str, dialect='excel', encoding='utf-8')
     try:

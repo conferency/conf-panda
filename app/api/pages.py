@@ -1,5 +1,5 @@
 from flask import request, abort
-from flask.ext.login import current_user
+from flask_login import current_user
 from .. import db
 from . import api
 from .authentication import auth

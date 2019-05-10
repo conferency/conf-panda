@@ -7,7 +7,7 @@ from .errors import forbidden, bad_request
 from .authentication import auth
 from datetime import datetime
 import pytz
-from exceptions import UnicodeDecodeError
+# from exceptions import UnicodeDecodeError
 
 
 def validate_promo_code(promo_json):

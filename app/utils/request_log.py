@@ -2,7 +2,7 @@
 """Request log function."""
 
 from flask import current_app, request, session, g
-from flask.ext.login import current_user
+from flask_login import current_user
 from threading import Thread
 from sqlalchemy.exc import IntegrityError
 from ..models import RequestLog

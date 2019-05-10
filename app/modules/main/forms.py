@@ -1,7 +1,7 @@
 import time
 
-from flask.ext.pagedown.fields import PageDownField
-from flask.ext.wtf import Form
+# from flask.ext.pagedown.fields import PageDownField
+from flask_wtf import Form
 from wtforms import StringField, TextAreaField, BooleanField, SelectField, \
     SubmitField, RadioField, HiddenField, SelectMultipleField, IntegerField
 from wtforms import ValidationError
@@ -56,9 +56,9 @@ class EditProfileAdminForm(Form):
             raise ValidationError('Email already registered.')
 
 
-class PostForm(Form):
-    body = PageDownField("What's on your mind?", validators=[Required()])
-    submit = SubmitField('Submit')
+# class PostForm(Form):
+#     body = PageDownField("What's on your mind?", validators=[Required()])
+#     submit = SubmitField('Submit')
 
 
 class CommentForm(Form):
@@ -107,9 +107,8 @@ class RegistrationForm(Form):
     stripeToken = HiddenField()
 
     def __init__(self,*args, **kwargs):
-    	super(RegistrationForm,self).__init__(*args, **kwargs)
-
-        current_year = time.localtime()[0]
+        super(RegistrationForm,self).__init__(*args, **kwargs)
+        current_year = time.localtime().tm_year
         expire_year = []
         for year in range(current_year, current_year+10):
             expire_year.append((str(year), str(year)))

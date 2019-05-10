@@ -2,7 +2,7 @@ from . import api
 from .. import db
 from ..models import FavSession
 from flask import jsonify, request
-from flask.ext.login import current_user
+from flask_login import current_user
 from .authentication import auth
 import random
 from .errors import bad_request

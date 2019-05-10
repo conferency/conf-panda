@@ -2,7 +2,7 @@
 """event log function."""
 
 
-from flask.ext.login import current_user
+from flask_login import current_user
 from threading import Thread
 from flask import current_app
 from ..models import EventLog

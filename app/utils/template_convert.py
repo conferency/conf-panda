@@ -2,7 +2,7 @@
 
 import hashlib
 from flask import url_for
-from flask.ext.login import current_user
+from flask_login import current_user
 from sqlalchemy import and_, or_
 from yattag import Doc, indent
 from ..models import Paper, DelegateReview, Session, speaker_session, \

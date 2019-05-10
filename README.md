@@ -21,7 +21,9 @@ python manage.py fakedata
 python manage.py runserver
 ```
 
-Now the APIs are served at 127.0.0.1:5000
+Now the APIs are served at 127.0.0.1:5000, you can use Postman to test the APIs as follows (you need to use one of the fake users to authenticate):
+
+![Postman API Test](https://user-images.githubusercontent.com/595772/57551604-7a136e00-7337-11e9-833d-e7cf4abd20f9.png)
 
 To use the shell during development:
 

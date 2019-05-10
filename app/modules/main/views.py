@@ -5,8 +5,8 @@ import os
 import stripe
 from flask import render_template, redirect, url_for, abort, flash, request, \
     current_app, json, session
-from flask.ext.login import login_required, current_user
-from flask.ext.sqlalchemy import get_debug_queries
+from flask_login import login_required, current_user
+from flask_sqlalchemy import get_debug_queries
 from sqlalchemy import or_
 from collections import OrderedDict
 from app.utils.event_log import add_event
@@ -666,7 +666,7 @@ def get_ticket_price():
 def ticket_refund():
     ticket_transaction = TicketTransaction.query.get_or_404(
         int(request.form.get('ticket_transaction_id', -1)))
-    print ticket_transaction
+    print(ticket_transaction)
     if ticket_transaction:
         try:
             ticket_transaction.refund_transaction()
@@ -688,7 +688,7 @@ def ticket_refund():
                 type='conference_registration_refund')
             return 'Success', 200
         except Exception as e:
-            print e.message
+            print(e.message)
             return e.message, 403
     # if refund.status == 'succeeded':
     #     ticket_transaction.refund_id = refund.id
@@ -937,6 +937,6 @@ def notifications():
 @main.route('/email_landing')
 def email_landing():
     error_msg = request.args.get('error_msg', '')
-    print error_msg
+    print(error_msg)
     """ Landing page for login-less email page. """
     return render_template('email_landing.html', error_msg=error_msg)

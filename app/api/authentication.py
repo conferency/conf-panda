@@ -2,11 +2,11 @@
 """Restful api for authentication."""
 
 from flask import jsonify, request, json, g
-from flask.ext.httpauth import HTTPBasicAuth
+from flask_httpauth import HTTPBasicAuth
 from ..models import User
 from . import api
 from .errors import unauthorized, forbidden, bad_request
-from flask.ext.login import current_user, login_user
+from flask_login import current_user, login_user
 import re
 from ..utils.email_operation import send_email
 
