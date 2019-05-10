@@ -6,7 +6,7 @@ from . import api
 from .. import db
 from ..models import Paper, Permission, User, PaperStatus, paper_author,\
     DelegateReview
-from flask.ext.login import current_user
+from flask_login import current_user
 from .authentication import auth
 from .errors import forbidden, bad_request
 

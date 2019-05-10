@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from flask import render_template, request, current_app, session, redirect, \
     url_for, flash
-from flask.ext.login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user
 from sqlalchemy import or_, and_
 from . import conf_admin
 from ...models import Conference, User, Paper, ConferencePromoCode, \

@@ -1,5 +1,5 @@
 from flask import jsonify, request
-from flask.ext.login import login_required, current_user
+from flask_login import login_required, current_user
 from ..models import EmailTemplate, Conference
 from . import api
 from .errors import not_found

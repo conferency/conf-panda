@@ -1,7 +1,7 @@
 from flask import render_template, redirect, request, url_for, flash, \
-    jsonify, abort
-from flask.ext.login import login_user, logout_user, login_required, \
-    current_user, session
+    jsonify, abort, session
+from flask_login import login_user, logout_user, login_required, \
+    current_user
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from . import auth
 from ... import db

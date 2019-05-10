@@ -11,7 +11,7 @@ from random import shuffle, choice
 try:
     import cStringIO as StringIO
 except ImportError:
-    import StringIO
+    from io import StringIO
 import xlsxwriter
 import requests
 from flask import jsonify, request, current_app, url_for, abort, Response

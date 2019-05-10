@@ -12,10 +12,10 @@ from datetime import datetime, date
 from itertools import groupby
 import bleach
 from flask import current_app, request, url_for, json
-from flask.ext.login import UserMixin, AnonymousUserMixin
+from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, \
     BadSignature, SignatureExpired
-from markdown import markdown
+# from markdown import markdown
 from sqlalchemy import event, and_, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -27,10 +27,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from . import APP_STATIC
 from . import db, login_manager
 from . import uploaded_papers
-from utils.exceptions import ValidationError
+from .utils.exceptions import ValidationError
 from .utils.customDataType import LowerCaseText, \
     NestedMutableJson as JsonObject
-# temp
+
 # from .utils.email_operation import send_email
 from .utils.guid import GUID
 from .utils.macros import generate_uuid
@@ -424,7 +424,7 @@ class Role(db.Model):
             role.default = roles[r][1]
             db.session.add(role)
         db.session.commit()
-        print "successfully inserted roles"
+        print("successfully inserted roles")
 
     def __repr__(self):
         return '<Role %r>' % self.name
@@ -686,7 +686,7 @@ class User(UserMixin, db.Model):
                 user.follow(user)
                 db.session.add(user)
                 db.session.commit()
-        print "successfully added self follows for all users"
+        print("successfully added self follows for all users")
 
     @property
     def password(self):

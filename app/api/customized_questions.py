@@ -159,7 +159,7 @@ def delete_registration_question(conference_id):
     if not request.json:
         return bad_request('Empty question list')
     else:
-        print request.json
+        print(request.json)
         curr_questions = conference.registration.private_question
         id = str(request.json['numid'])
         for uuid, question in curr_questions.items():

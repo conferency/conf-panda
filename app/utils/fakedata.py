@@ -40,7 +40,7 @@ def generate_fake_users(count=50):
             j += 1
         except IntegrityError:
             db.session.rollback()
-    print "successfully created " + str(j) + " fake users"
+    print("successfully created " + str(j) + " fake users")
 
 
 def generate_one_fake_users():
@@ -86,7 +86,7 @@ def generate_admin():
     # update role in conference
     admin.update_conference_role(main_conf, role=admin_role)
 
-    print "successfully created site admin"
+    print("successfully created site admin")
 
 
 def generate_fake(count=100):
@@ -135,7 +135,7 @@ def generate_fake_confs(count, email):
         except IntegrityError:
             db.session.rollback()
 
-    print "successfully created " + str(j) + " fake conferences"
+    print("successfully created " + str(j) + " fake conferences")
 
 
 def generate_main_conf():
@@ -144,7 +144,7 @@ def generate_main_conf():
     main_conference = Conference(name='Main', short_name='main', status='Hide')
     db.session.add(main_conference)
     db.session.commit()
-    print "successfully created the default main conference"
+    print("successfully created the default main conference")
 
 
 def generate_test_confs():
@@ -232,16 +232,16 @@ def generate_test_confs():
                 db.session.add(track3)
             db.session.add(c)
         db.session.commit()
-        print "successfully created testing conferences and tracks"
+        print("successfully created testing conferences and tracks")
     else:
-        print "testing conferences and tracks already created"
+        print("testing conferences and tracks already created")
 
 
 # Generate fake ticket for ICIS2015
 def generate_fake_tickets():
     icis2015 = Conference.query.filter_by(short_name="icis2015").first()
     if icis2015 is None:
-        print "ICIS2015 does not exist - no tickets created"
+        print("ICIS2015 does not exist - no tickets created")
     else:
         ticket_academic = Ticket(name="Academic",
                                  price=200,
@@ -279,7 +279,7 @@ def generate_fake_tickets():
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-    print "successfully created fake tickets"
+    print("successfully created fake tickets")
 
 
 # Generate named fake users with different roles
@@ -352,7 +352,7 @@ def generate_test_users():
     except IntegrityError:
         db.session.rollback()
 
-    print "successfully created site admin, chair, track chair, pc, and author fake users"
+    print("successfully created site admin, chair, track chair, pc, and author fake users")
     # assign admin of Conferency
     main_conf = Conference.query.filter_by(name='Main').first()
     admin_role = Role.query.filter_by(name="Administrator").first()
@@ -530,7 +530,7 @@ def generate_fake_papers(count=100):
             db.session.rollback()
         except FlushError:
             db.session.rollback()
-    print "successfully created " + str(j) + " fake papers"
+    print("successfully created " + str(j) + " fake papers")
 
 
 def generate_fake_reviews():
@@ -591,7 +591,7 @@ def generate_fake_reviews():
                     j += 1
                 except IntegrityError:
                     db.session.rollback()
-    print "successfully created " + str(j) + " fake reviews"
+    print("successfully created " + str(j) + " fake reviews")
 
 
 def generate_fake_transactions():
@@ -638,7 +638,7 @@ def generate_fake_transactions():
         'abc': 'Chris Paul'
     })
     if icis2015 is None:
-        print "ICIS2015 does not exist - no tickets created"
+        print("ICIS2015 does not exist - no tickets created")
     else:
         ticket_academic_1 = TicketPrice.query.filter(
             TicketPrice.ticket_id == 1,
@@ -737,7 +737,7 @@ def generate_fake_transactions():
         transaction3.add_ticket(ticket_student, 1)
         transaction4.add_ticket(ticket_industry, 1)
         transaction5.add_ticket(ticket_academic_2, 1)
-    print "successfully created fake transactions"
+    print("successfully created fake transactions")
 
 
 def generate_fake_schedule():
@@ -784,7 +784,7 @@ def generate_fake_schedule():
     s3.moderators.append(User.query.get(3))
     db.session.add(s3)
     db.session.commit()
-    print 'successfully created fake schedule'
+    print('successfully created fake schedule')
 
 
 def generate_default_addons():

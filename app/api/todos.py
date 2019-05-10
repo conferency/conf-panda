@@ -13,7 +13,7 @@ def update_todo_item(todo_id):
     todo = Todo.query.get_or_404(todo_id)
     item = todo.list.get(request.json.get('id'), None)
     if item:
-        print item
+        print(item)
         item['done'] = request.json['done']
         item['update_timestamp'] = datetime_now_string()
         todo.list[request.json.get('id')] = item

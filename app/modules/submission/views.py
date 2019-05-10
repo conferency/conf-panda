@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from flask import render_template, redirect, request, url_for, flash, \
     current_app, abort
-from flask.ext.login import login_required, current_user
+from flask_login import login_required, current_user
 from sqlalchemy import or_, and_
 from wtforms import StringField, SelectMultipleField, SelectField, BooleanField
 from wtforms.validators import required, email

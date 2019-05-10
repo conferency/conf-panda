@@ -17,8 +17,8 @@ from app.models import User, Follow, Role, Permission, Post, Comment, Paper, \
     ConferenceSchedule, Session, ReviewPreference, RequestLog, \
     ConferencePayment, ConferenceTransaction, ConferenceAddon, ReviewComment, \
     FavSession, TicketPrice, paper_reviewer, paper_author
-from flask.ext.script import Manager, Shell, Server
-from flask.ext.migrate import Migrate, MigrateCommand
+from flask_script import Manager, Shell, Server
+from flask_migrate import Migrate, MigrateCommand
 from config import config
 
 COV = None
@@ -26,7 +26,7 @@ if os.environ.get('FLASK_COVERAGE'):
     import coverage
     COV = coverage.coverage(branch=True, include='app/*')
     COV.start()
-    print 'Test Coverage Analysis Starting'
+    print('Test Coverage Analysis Starting')
 
 if os.path.exists('.env'):
     print('Importing environment from .env...')
@@ -92,14 +92,14 @@ def test(coverage=False):
         os.environ['FLASK_COVERAGE'] = '1'
         os.execvp(sys.executable, [sys.executable] + sys.argv)
 
-    print "**************Testing Started**********"
+    print("**************Testing Started**********")
     # run the app in tesing configration
     app.config.from_object(config['testing'])
     config['testing'].init_app(app)
     # Remove the sqlite database files if exist
     for fl in glob.glob('data-test.sqlite'):
         os.remove(fl)
-        print 'old test sqlite database removed'
+        print('old test sqlite database removed')
 
     deploy()  # redeploy the database
     fakedata()  # generate the fakedata
@@ -144,13 +144,13 @@ def profile(length=25, profile_dir=None):
 @manager.command
 def deploy():
     """Initialize the database and populate init data."""
-    from flask.ext.migrate import upgrade
+    from flask_migrate import upgrade
 
     upgrade()  # upgrade to the latest db schema
 
     # setup necessary data to initialize database
     if Conference.query.filter_by(short_name='main').first():
-        print 'database already initialized'
+        print('database already initialized')
     else:
         # add registration form questions
         FormConfiguration.insert_formConfiguration()
@@ -190,7 +190,7 @@ def testconfs(email='harryjwang@gmail.com'):
 def fakedata():
     """Generate fake testing data."""
     if User.query.filter_by(email='chair@conferency.com').first():
-        print 'fake data already generated'
+        print ('fake data already generated')
     else:
         generate_test_confs()  # load testing confs and tracks
         generate_fake_tickets()  # create fake tickets

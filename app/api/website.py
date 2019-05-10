@@ -9,7 +9,7 @@ from ..utils.export import generate_csv_response
 from datetime import datetime
 from .errors import forbidden, bad_request
 from copy import deepcopy
-from flask.ext.login import current_user
+from flask_login import current_user
 from .authentication import auth
 
 
