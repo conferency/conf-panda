@@ -157,8 +157,8 @@ def create_app(config_name):
     #from .modules.tasks import tasks as tasks_blueprint
     #app.register_blueprint(tasks_blueprint)
 
-    #from .modules.auth import auth as auth_blueprint
-    #app.register_blueprint(auth_blueprint, url_prefix='/auth')
+    from .modules.auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
     #from .modules.conf_admin import conf_admin as conf_admin_blueprint
     #app.register_blueprint(conf_admin_blueprint, url_prefix='/conf_admin')
