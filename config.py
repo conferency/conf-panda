@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
+from datetime import timedelta
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -69,6 +71,11 @@ class Config:
     AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
     PAPER_BUCKET = os.environ.get('PAPER_BUCKET')
     S3_ENDPOINT = os.environ.get('S3_ENDPOINT')
+
+    # jwt
+    JWT_AUTH_USERNAME_KEY = 'email'
+    JWT_AUTH_URL_RULE = '/jwt_auth'
+    JWT_EXPIRATION_DELTA = timedelta(seconds=86400)
 
     # session
     import datetime

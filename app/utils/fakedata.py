@@ -84,7 +84,7 @@ def generate_admin():
     main_conf = Conference.query.filter_by(name='Main').first()
     admin_role = Role.query.filter_by(name="Administrator").first()
     # update role in conference
-    admin.update_conference_role(main_conf, role=admin_role)
+    # admin.update_conference_role(main_conf, role=admin_role)
 
     print("successfully created site admin")
 
@@ -206,9 +206,9 @@ def generate_test_confs():
                 c.tracks.append(track1)
                 c.tracks.append(track2)
                 c.tracks.append(track3)
-                db.session.add(track1)
-                db.session.add(track2)
-                db.session.add(track3)
+                # db.session.add(track1)
+                # db.session.add(track2)
+                # db.session.add(track3)
                 r = c.registration
                 r.private_question = OrderedDict(
                     [('0', {'require': True, 'ques_type': 2, 'options': [], 'include': True,
@@ -227,9 +227,9 @@ def generate_test_confs():
                 c.tracks.append(track1)
                 c.tracks.append(track2)
                 c.tracks.append(track3)
-                db.session.add(track1)
-                db.session.add(track2)
-                db.session.add(track3)
+                # db.session.add(track1)
+                # db.session.add(track2)
+                # db.session.add(track3)
             db.session.add(c)
         db.session.commit()
         print("successfully created testing conferences and tracks")
@@ -357,7 +357,7 @@ def generate_test_users():
     main_conf = Conference.query.filter_by(name='Main').first()
     admin_role = Role.query.filter_by(name="Administrator").first()
     # update role in conference
-    admin.update_conference_role(main_conf, role=admin_role)
+    # admin.update_conference_role(main_conf, role=admin_role)
 
     # assign admin and chair to all conferences
     # assign PC and Author to first four conferences

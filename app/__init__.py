@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """Init for conferency."""
 
+import os
+import warnings
+import time
 from flask import Flask, request_finished, g, url_for
 # from flask.ext.bootstrap import Bootstrap
 from flask_mail import Mail
@@ -9,18 +12,20 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 # from flask.ext.pagedown import PageDown
 from flask_uploads import configure_uploads, UploadSet
+from flask_jwt import JWT
 # from flask_debugtoolbar import DebugToolbarExtension
 # from flask.ext.admin import Admin
 from celery import Celery
 from config import config
-import os
-import time
+
+from .utils.jwt_auth import authenticate, identity
+# import utils.jwt_auth
 # from utils.macros import format_date_thedaybefore, check_date, format_date,\
 #    timestamp, product_has_sold, generate_timeout_token
 # from utils.template import generate_navigation_bar
 # import flask_excel as excel
 # import stripe
-import warnings
+
 
 
 # toolbar = DebugToolbarExtension()
@@ -66,6 +71,9 @@ def create_app(config_name):
     # pagedown.init_app(app)
     configure_uploads(app, (uploaded_papers, uploaded_papers_with_docx,
                             uploaded_temppapers))
+
+    # JWT
+    jwt = JWT(app, authenticate, identity)
 
     # celery.conf.update(app.config)
     # class ContextTask(celery.Task):

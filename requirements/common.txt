@@ -17,3 +17,7 @@ SQLAlchemy
 sqlalchemy-utils
 unicodecsv
 xlsxwriter
+yattag
+stripe
+celery
+Flask-JWT
