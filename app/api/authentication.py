@@ -3,6 +3,7 @@
 
 from flask import jsonify, request, json, g
 from flask_httpauth import HTTPBasicAuth
+from flask_jwt import jwt_required, current_identity
 from ..models import User
 from . import api
 from .errors import unauthorized, forbidden, bad_request
@@ -136,13 +137,14 @@ def check_email():
 
 
 @api.route('/test')
-@auth.login_required
+@jwt_required()
 def api_test():
     """Test authentication."""
-    return jsonify({
-        'email': current_user.email,
-        'name': current_user.full_name
-    })
+    return '%s' % current_identity.full_name
+    # return jsonify({
+    #     'email': current_user.email,
+    #     'name': current_user.full_name
+    # })
 
 
 @api.route('/auth/reset_password', methods=['POST'])

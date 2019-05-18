@@ -24,9 +24,9 @@ from sqlalchemy.orm import column_property
 from sqlalchemy.sql import func, select
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from . import APP_STATIC
-from . import db, login_manager
-from . import uploaded_papers
+# from . import APP_STATIC
+from .__init__ import db, login_manager
+from .__init__ import uploaded_papers
 from .utils.exceptions import ValidationError
 from .utils.customDataType import LowerCaseText, \
     NestedMutableJson as JsonObject
@@ -534,10 +534,10 @@ class User(UserMixin, db.Model):
         super(User, self).__init__(**kwargs)
         self.followed.append(Follow(followed=self))
         # join the default conference for each user
-        self.tracks.append(JoinTrack(
-            member=self, track=Conference.query.get(
-                1).tracks.filter_by(default=True).first(),
-            role=Role.query.filter_by(default=True).first()))
+        # self.tracks.append(JoinTrack(
+        #     member=self, track=Conference.query.get(
+        #         1).tracks.filter_by(default=True).first(),
+        #     role=Role.query.filter_by(default=True).first()))
         self.curr_conf_id = 1
         # self.check_invitation()
 
@@ -2133,20 +2133,20 @@ class Conference(db.Model):
         super(Conference, self).__init__(**kwargs)
         default_track = Track(name='Default', default=True)
         self.tracks.append(default_track)
-        db.session.add(default_track)
+        # db.session.add(default_track)
         if self.short_name != 'main':
             default_registration = Registration()
             self.registration = default_registration
-            db.session.add(default_registration)
+            # db.session.add(default_registration)
             # default_website = Website(title=self.name)
             # self.site = default_website
             # db.session.add(default_website)
             default_schedule = ConferenceSchedule()
             self.conference_schedule = default_schedule
-            db.session.add(default_schedule)
+            # db.session.add(default_schedule)
             default_todo_list = Todo.conference_management_workflow()
             self.todo_lists.append(default_todo_list)
-            db.session.add(default_todo_list)
+            # db.session.add(default_todo_list)
             self.configuration = {
                 'review_process': True,
                 'review_feedback': True,
@@ -2158,7 +2158,7 @@ class Conference(db.Model):
         else:
             default_todo_list = Todo(name='Main')
             self.todo_lists.append(default_todo_list)
-            db.session.add(default_todo_list)
+            # db.session.add(default_todo_list)
 
     def to_json(self):
         tracks = []
@@ -3057,10 +3057,10 @@ class Todo(db.Model):
     def conference_management_workflow():
         todo = Todo(name='Conference Management Workflow')
         todo.list = OrderedDict()
-        with open(os.path.join(APP_STATIC, 'json/todo_list.json')) as data_file:
-            data = json.load(data_file)
-        for item in data['Conference Management Workflow']:
-            todo.list[generate_uuid()] = item
+        # with open(os.path.join(APP_STATIC, 'json/todo_list.json')) as data_file:
+        #     data = json.load(data_file)
+        # for item in data['Conference Management Workflow']:
+        #     todo.list[generate_uuid()] = item
         return todo
 
 
